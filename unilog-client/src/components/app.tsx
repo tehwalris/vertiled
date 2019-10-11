@@ -47,6 +47,16 @@ const INITAL_LOG: Action[] = [
   },
 ];
 
+function testConnection() {
+  const ws = new WebSocket("ws://localhost:8080");
+  ws.onopen = () => {
+    console.log("ws open");
+    ws.send("bla");
+  };
+  ws.onmessage = msg => console.log("ws receive", msg.data);
+}
+testConnection();
+
 export const AppComponent: React.FC = () => {
   const [log, setLog] = useState(INITAL_LOG);
   const pushAction = (a: Action) => setLog([...log, a]);
