@@ -40,19 +40,21 @@ export const BallCreatorComponent: React.FC<Props> = ({
   }
 
   return (
-    <label>
-      Bucket
-      <select
-        value={selectedBucketId}
-        onChange={ev => setSelectedBucketId(ev.target.value)}
-      >
-        {buckets.map(bu => (
-          <option key={bu.id} value={bu.id}>
-            {bu.name}
-          </option>
-        ))}
-      </select>
+    <div>
+      <label>
+        Bucket
+        <select
+          value={selectedBucketId}
+          onChange={ev => setSelectedBucketId(ev.target.value)}
+        >
+          {buckets.map(bu => (
+            <option key={bu.id} value={bu.id}>
+              {bu.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <button onClick={onClick}>Add ball</button>
-    </label>
+    </div>
   );
 };
