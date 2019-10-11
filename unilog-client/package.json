@@ -5,8 +5,11 @@
   "dependencies": {
     "@types/jest": "24.0.18",
     "@types/node": "12.7.12",
+    "@types/ramda": "^0.26.29",
     "@types/react": "16.9.5",
     "@types/react-dom": "16.9.1",
+    "immer": "^4.0.1",
+    "ramda": "^0.26.1",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
     "react-scripts": "3.2.0",

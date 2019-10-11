@@ -1,5 +1,5 @@
 import React from "react";
-import { Ball, Bucket } from "../interfaces";
+import { Bucket } from "../interfaces";
 
 interface Props {
   bucket: Bucket;
