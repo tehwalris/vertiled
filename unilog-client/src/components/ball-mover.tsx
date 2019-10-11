@@ -1,6 +1,6 @@
 import * as R from "ramda";
 import React, { useState } from "react";
-import { Action, ActionType, Bucket } from "../interfaces";
+import { Action, ActionType, Bucket } from "unilog-shared";
 
 interface Props {
   buckets: Bucket[];

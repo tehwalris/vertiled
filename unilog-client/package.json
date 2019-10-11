@@ -1,6 +1,6 @@
 {
   "name": "unilog-client",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@types/jest": "24.0.18",
@@ -15,7 +15,8 @@
     "react-dom": "^16.10.2",
     "react-scripts": "3.2.0",
     "typescript": "3.6.4",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "unilog-shared": "^1.0.0"
   },
   "scripts": {
     "start": "react-scripts start",

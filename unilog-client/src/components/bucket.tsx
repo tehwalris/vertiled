@@ -1,5 +1,5 @@
 import React from "react";
-import { Bucket } from "../interfaces";
+import { Bucket } from "unilog-shared";
 
 interface Props {
   bucket: Bucket;

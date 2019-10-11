@@ -1,5 +1,6 @@
 {
   "name": "unilog-server",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc"
@@ -7,6 +8,7 @@
   "dependencies": {
     "@types/ws": "^6.0.3",
     "typescript": "^3.6.4",
-    "ws": "^7.1.2"
+    "ws": "^7.1.2",
+    "unilog-shared": "^1.0.0"
   }
 }

@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "unilog-client",
+      "unilog-server",
+      "unilog-shared"
+    ],
+    "nohoist": [
+      "**"
+    ]
+  }
+}

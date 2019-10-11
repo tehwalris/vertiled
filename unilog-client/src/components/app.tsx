@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { State, Action, ActionType } from "../interfaces";
+import { State, Action, ActionType } from "unilog-shared";
 import { BucketComponent } from "./bucket";
 import { BallCreatorComponent } from "./ball-creator";
 import { mainReducer } from "../reducer";

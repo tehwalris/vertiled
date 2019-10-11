@@ -1,4 +1,4 @@
-import { State, Action, ActionType, Bucket, Ball } from "./interfaces";
+import { State, Action, ActionType, Bucket, Ball } from "unilog-shared";
 import { produce } from "immer";
 import { unreachable } from "./util";
 import * as R from "ramda";

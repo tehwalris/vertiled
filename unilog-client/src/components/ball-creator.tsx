@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Action, Bucket, ActionType } from "../interfaces";
+import { Action, Bucket, ActionType } from "unilog-shared";
 import { v4 as genId } from "uuid";
 import * as R from "ramda";
 
