@@ -1,7 +1,8 @@
-import { State, Action, ActionType, Bucket, Ball } from "./interfaces";
 import { produce } from "immer";
 import { unreachable } from "./util";
 import * as R from "ramda";
+import { Action, ActionType } from "./interfaces/action";
+import { State, Bucket, Ball } from "./interfaces/data";
 
 export const reducer = (_state: State, action: Action): State =>
   produce(_state, state => {
