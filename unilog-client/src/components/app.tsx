@@ -1,9 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
-import { State, Action, ActionType, reducer, LogEntry } from "unilog-shared";
-import { BucketComponent } from "./bucket";
+import * as R from "ramda";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Action,
+  ClientMessage,
+  LogEntry,
+  MessageType,
+  reducer,
+  ServerMessage,
+  State,
+  unreachable,
+} from "unilog-shared";
 import { BallCreatorComponent } from "./ball-creator";
 import { BallMoverComponent } from "./ball-mover";
-import * as R from "ramda";
+import { BucketComponent } from "./bucket";
 
 const INITIAL_STATE: State = {
   buckets: [
@@ -34,17 +43,35 @@ export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
   const [localLog, setLocalLog] = useState<LogEntry[]>([]);
   const nextLocalId = useRef<number>(-1);
+  const wsRef = useRef<WebSocket>();
 
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8080");
+    wsRef.current = ws;
 
-    ws.onmessage = msg => {
-      setRemoteLog(old =>
-        R.sortBy(
-          (e: LogEntry) => e.id,
-          R.uniqBy(e => e.id, [...old, JSON.parse(msg.data) as LogEntry]),
-        ),
-      );
+    ws.onmessage = _msg => {
+      const msg = JSON.parse(_msg.data) as ServerMessage;
+      switch (msg.type) {
+        case MessageType.LogEntryServer: {
+          setRemoteLog(old =>
+            R.sortBy(
+              (e: LogEntry) => e.id,
+              R.uniqBy(e => e.id, [...old, msg.entry]),
+            ),
+          );
+          break;
+        }
+        case MessageType.RemapEntryServer: {
+          console.log("TODO remap");
+          break;
+        }
+        default:
+          unreachable(msg);
+      }
+    };
+
+    ws.onclose = () => {
+      wsRef.current = undefined;
     };
 
     return () => {
@@ -53,8 +80,17 @@ export const AppComponent: React.FC = () => {
   }, []);
 
   const pushAction = (a: Action) => {
-    setLocalLog(old => [...old, { id: nextLocalId.current, action: a }]);
+    if (!wsRef.current) {
+      return;
+    }
+    const localEntry = { id: nextLocalId.current, action: a };
+    setLocalLog(old => [...old, localEntry]);
     nextLocalId.current--;
+    const msg: ClientMessage = {
+      type: MessageType.SubmitEntryClient,
+      entry: localEntry,
+    };
+    wsRef.current.send(JSON.stringify(msg));
   };
 
   const state = [...remoteLog, ...localLog].reduce(

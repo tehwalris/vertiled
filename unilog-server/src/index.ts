@@ -1,5 +1,11 @@
 import WebSocket from "ws";
-import { Action, ActionType, LogEntry } from "unilog-shared";
+import {
+  Action,
+  ActionType,
+  LogEntry,
+  ServerMessage,
+  MessageType,
+} from "unilog-shared";
 
 const LOG = [
   {
@@ -34,7 +40,8 @@ wss.on("connection", ws => {
   console.log("ws connect");
 
   for (const e of LOG) {
-    ws.send(JSON.stringify(e));
+    const msg: ServerMessage = { type: MessageType.LogEntryServer, entry: e };
+    ws.send(JSON.stringify(msg));
   }
 
   ws.on("message", msg => {
