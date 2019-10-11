@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { State, Action, ActionType, reducer } from "unilog-shared";
+import React, { useState, useEffect, useRef } from "react";
+import { State, Action, ActionType, reducer, LogEntry } from "unilog-shared";
 import { BucketComponent } from "./bucket";
 import { BallCreatorComponent } from "./ball-creator";
 import { BallMoverComponent } from "./ball-mover";
+import * as R from "ramda";
 
 const INITIAL_STATE: State = {
   buckets: [
@@ -19,33 +20,6 @@ const INITIAL_STATE: State = {
   ],
 };
 
-const INITAL_LOG: Action[] = [
-  {
-    type: ActionType.CreateBall,
-    id: "1",
-    color: "red",
-    bucketId: "philippes-bucket",
-  },
-  {
-    type: ActionType.CreateBall,
-    id: "2",
-    color: "green",
-    bucketId: "philippes-bucket",
-  },
-  {
-    type: ActionType.CreateBall,
-    id: "4",
-    color: "green",
-    bucketId: "other-bucket",
-  },
-  {
-    type: ActionType.CreateBall,
-    id: "6",
-    color: "blue",
-    bucketId: "other-bucket",
-  },
-];
-
 function testConnection() {
   const ws = new WebSocket("ws://localhost:8080");
   ws.onopen = () => {
@@ -57,10 +31,36 @@ function testConnection() {
 testConnection();
 
 export const AppComponent: React.FC = () => {
-  const [log, setLog] = useState(INITAL_LOG);
-  const pushAction = (a: Action) => setLog([...log, a]);
+  const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
+  const [localLog, setLocalLog] = useState<LogEntry[]>([]);
+  const nextLocalId = useRef<number>(-1);
 
-  const state = log.reduce((a, c) => reducer(a, c), INITIAL_STATE);
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8080");
+
+    ws.onmessage = msg => {
+      setRemoteLog(old =>
+        R.sortBy(
+          (e: LogEntry) => e.id,
+          R.uniqBy(e => e.id, [...old, JSON.parse(msg.data) as LogEntry]),
+        ),
+      );
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const pushAction = (a: Action) => {
+    setLocalLog(old => [...old, { id: nextLocalId.current, action: a }]);
+    nextLocalId.current--;
+  };
+
+  const state = [...remoteLog, ...localLog].reduce(
+    (a, c) => reducer(a, c.action),
+    INITIAL_STATE,
+  );
 
   return (
     <div>

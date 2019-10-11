@@ -1,7 +1,7 @@
 import WebSocket from "ws";
-import { Action, ActionType } from "unilog-shared";
+import { Action, ActionType, LogEntry } from "unilog-shared";
 
-const INITAL_LOG: Action[] = [
+const LOG = [
   {
     type: ActionType.CreateBall,
     id: "1",
@@ -26,16 +26,18 @@ const INITAL_LOG: Action[] = [
     color: "blue",
     bucketId: "other-bucket",
   },
-];
+].map((a: Action, i): LogEntry => ({ id: i + 1, action: a }));
 
 const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on("connection", ws => {
   console.log("ws connect");
 
+  for (const e of LOG) {
+    ws.send(JSON.stringify(e));
+  }
+
   ws.on("message", msg => {
     console.log("ws receive", msg);
   });
-
-  ws.send("something");
 });
