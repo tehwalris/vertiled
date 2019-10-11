@@ -1,26 +1,67 @@
-import React from "react";
-import { State } from "../interfaces";
+import React, { useState } from "react";
+import { State, Action, ActionType } from "../interfaces";
 import { BucketComponent } from "./bucket";
+import { BallCreatorComponent } from "./ball-creator";
+import { mainReducer } from "../reducer";
 
-const FAKE_STATE: State = {
+const INITIAL_STATE: State = {
   buckets: [
     {
       id: "philippes-bucket",
       name: "Philippe's bucket",
-      balls: [{ id: "1", color: "red" }, { id: "2", color: "green" }],
+      balls: [],
     },
     {
       id: "other-bucket",
       name: "Other bucket",
-      balls: [{ id: "4", color: "green" }, { id: "6", color: "blue" }],
+      balls: [],
     },
   ],
 };
 
-export const AppComponent: React.FC = () => (
-  <div>
-    {FAKE_STATE.buckets.map(b => (
-      <BucketComponent key={b.id} bucket={b} />
-    ))}
-  </div>
-);
+const INITAL_LOG: Action[] = [
+  {
+    type: ActionType.CreateBall,
+    id: "1",
+    color: "red",
+    bucketId: "philippes-bucket",
+  },
+  {
+    type: ActionType.CreateBall,
+    id: "2",
+    color: "green",
+    bucketId: "philippes-bucket",
+  },
+  {
+    type: ActionType.CreateBall,
+    id: "4",
+    color: "green",
+    bucketId: "other-bucket",
+  },
+  {
+    type: ActionType.CreateBall,
+    id: "6",
+    color: "blue",
+    bucketId: "other-bucket",
+  },
+];
+
+export const AppComponent: React.FC = () => {
+  const [log, setLog] = useState(INITAL_LOG);
+  const pushAction = (a: Action) => setLog([...log, a]);
+
+  console.log(log);
+  const state = log.reduce((a, c) => mainReducer(a, c), INITIAL_STATE);
+
+  return (
+    <div>
+      <BallCreatorComponent
+        buckets={state.buckets}
+        onCreateAction={pushAction}
+      />
+      {state.buckets.map(b => (
+        <BucketComponent key={b.id} bucket={b} />
+      ))}
+    </div>
+  );
+};

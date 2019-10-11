@@ -1,10 +1,12 @@
 import { State, Action, ActionType, Bucket, Ball } from "./interfaces";
 import { produce } from "immer";
 import { unreachable } from "./util";
-import R from "ramda";
+import * as R from "ramda";
 
-export const mainReducer = (state: State, action: Action): State =>
-  produce(state, () => {
+export const mainReducer = (_state: State, action: Action): State =>
+  produce(_state, state => {
+    console.log("mainReducer", state, action);
+
     const ballIds = new Set(
       R.chain(bu => bu.balls.map(ba => ba.id), state.buckets),
     );
