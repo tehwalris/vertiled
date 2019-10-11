@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { State, Action, ActionType } from "unilog-shared";
+import { State, Action, ActionType, reducer } from "unilog-shared";
 import { BucketComponent } from "./bucket";
 import { BallCreatorComponent } from "./ball-creator";
-import { mainReducer } from "../reducer";
 import { BallMoverComponent } from "./ball-mover";
 
 const INITIAL_STATE: State = {
@@ -61,7 +60,7 @@ export const AppComponent: React.FC = () => {
   const [log, setLog] = useState(INITAL_LOG);
   const pushAction = (a: Action) => setLog([...log, a]);
 
-  const state = log.reduce((a, c) => mainReducer(a, c), INITIAL_STATE);
+  const state = log.reduce((a, c) => reducer(a, c), INITIAL_STATE);
 
   return (
     <div>

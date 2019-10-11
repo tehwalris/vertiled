@@ -6,8 +6,13 @@
   "scripts": {
     "build": "tsc"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@types/node": "^12.7.12",
+    "immer": "^4.0.1",
+    "ramda": "^0.26.1"
+  },
   "devDependencies": {
+    "@types/ramda": "^0.26.29",
     "typescript": "^3.6.4"
   }
 }
