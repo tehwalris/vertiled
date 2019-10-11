@@ -3,6 +3,7 @@ import { State, Action, ActionType } from "../interfaces";
 import { BucketComponent } from "./bucket";
 import { BallCreatorComponent } from "./ball-creator";
 import { mainReducer } from "../reducer";
+import { BallMoverComponent } from "./ball-mover";
 
 const INITIAL_STATE: State = {
   buckets: [
@@ -50,7 +51,6 @@ export const AppComponent: React.FC = () => {
   const [log, setLog] = useState(INITAL_LOG);
   const pushAction = (a: Action) => setLog([...log, a]);
 
-  console.log(log);
   const state = log.reduce((a, c) => mainReducer(a, c), INITIAL_STATE);
 
   return (
@@ -59,6 +59,7 @@ export const AppComponent: React.FC = () => {
         buckets={state.buckets}
         onCreateAction={pushAction}
       />
+      <BallMoverComponent buckets={state.buckets} onCreateAction={pushAction} />
       {state.buckets.map(b => (
         <BucketComponent key={b.id} bucket={b} />
       ))}

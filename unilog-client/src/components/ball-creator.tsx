@@ -27,6 +27,10 @@ export const BallCreatorComponent: React.FC<Props> = ({
 }) => {
   const [selectedBucketId, setSelectedBucketId] = useState<string>();
 
+  if (!selectedBucketId && buckets.length) {
+    setSelectedBucketId(buckets[0].id);
+  }
+
   function onClick() {
     if (!selectedBucketId) {
       return;
@@ -42,7 +46,7 @@ export const BallCreatorComponent: React.FC<Props> = ({
   return (
     <div>
       <label>
-        Bucket
+        Add ball to bucket
         <select
           value={selectedBucketId}
           onChange={ev => setSelectedBucketId(ev.target.value)}
