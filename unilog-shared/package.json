@@ -1,0 +1,12 @@
+{
+  "name": "unilog-shared",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^3.6.4"
+  }
+}

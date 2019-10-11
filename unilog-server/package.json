@@ -1,4 +1,5 @@
 {
+  "name": "unilog-server",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc"
