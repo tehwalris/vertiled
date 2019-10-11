@@ -29,21 +29,17 @@ const INITIAL_STATE: State = {
   ],
 };
 
-function testConnection() {
-  const ws = new WebSocket("ws://localhost:8080");
-  ws.onopen = () => {
-    console.log("ws open");
-    ws.send("bla");
-  };
-  ws.onmessage = msg => console.log("ws receive", msg.data);
-}
-testConnection();
-
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
   const [localLog, setLocalLog] = useState<LogEntry[]>([]);
   const nextLocalId = useRef<number>(-1);
   const wsRef = useRef<WebSocket>();
+
+  function addToRemoteLog(entry: LogEntry) {
+    setRemoteLog(old =>
+      R.sortBy((e: LogEntry) => e.id, R.uniqBy(e => e.id, [...old, entry])),
+    );
+  }
 
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8080");
@@ -53,16 +49,12 @@ export const AppComponent: React.FC = () => {
       const msg = JSON.parse(_msg.data) as ServerMessage;
       switch (msg.type) {
         case MessageType.LogEntryServer: {
-          setRemoteLog(old =>
-            R.sortBy(
-              (e: LogEntry) => e.id,
-              R.uniqBy(e => e.id, [...old, msg.entry]),
-            ),
-          );
+          addToRemoteLog(msg.entry);
           break;
         }
         case MessageType.RemapEntryServer: {
-          console.log("TODO remap");
+          setLocalLog(old => old.filter(e => e.id !== msg.oldId));
+          addToRemoteLog(msg.entry);
           break;
         }
         default:
@@ -79,7 +71,7 @@ export const AppComponent: React.FC = () => {
     };
   }, []);
 
-  const pushAction = (a: Action) => {
+  const runAction = (a: Action) => {
     if (!wsRef.current) {
       return;
     }
@@ -102,12 +94,14 @@ export const AppComponent: React.FC = () => {
     <div>
       <BallCreatorComponent
         buckets={state.buckets}
-        onCreateAction={pushAction}
+        onCreateAction={runAction}
       />
-      <BallMoverComponent buckets={state.buckets} onCreateAction={pushAction} />
+      <BallMoverComponent buckets={state.buckets} onCreateAction={runAction} />
       {state.buckets.map(b => (
         <BucketComponent key={b.id} bucket={b} />
       ))}
+      <div>Remote log length: {remoteLog.length}</div>
+      <div>Local log length: {localLog.length}</div>
     </div>
   );
 };

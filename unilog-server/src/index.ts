@@ -5,6 +5,8 @@ import {
   LogEntry,
   ServerMessage,
   MessageType,
+  ClientMessage,
+  unreachable,
 } from "unilog-shared";
 
 const LOG = [
@@ -44,7 +46,23 @@ wss.on("connection", ws => {
     ws.send(JSON.stringify(msg));
   }
 
-  ws.on("message", msg => {
-    console.log("ws receive", msg);
+  ws.on("message", _msg => {
+    const msg: ClientMessage = JSON.parse(_msg.toString());
+    switch (msg.type) {
+      case MessageType.SubmitEntryClient: {
+        const newEntry = { ...msg.entry, id: LOG.length + 1 };
+        LOG.push(newEntry);
+        const remapMsg: ServerMessage = {
+          type: MessageType.RemapEntryServer,
+          oldId: msg.entry.id,
+          entry: newEntry,
+        };
+        ws.send(JSON.stringify(remapMsg));
+        // TODO Notify all other clients
+        break;
+      }
+      default:
+        unreachable(msg as never); // TODO not sure why this type is not working
+    }
   });
 });
