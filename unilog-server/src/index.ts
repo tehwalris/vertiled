@@ -36,7 +36,7 @@ const LOG = [
   },
 ].map((a: Action, i): LogEntry => ({ id: i + 1, action: a }));
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 8080, clientTracking: true });
 
 wss.on("connection", ws => {
   console.log("ws connect");
@@ -58,7 +58,16 @@ wss.on("connection", ws => {
           entry: newEntry,
         };
         ws.send(JSON.stringify(remapMsg));
-        // TODO Notify all other clients
+        const logMsg: ServerMessage = {
+          type: MessageType.LogEntryServer,
+          entry: newEntry,
+        };
+        const logMsgString = JSON.stringify(logMsg);
+        for (const otherWs of wss.clients) {
+          if (otherWs !== ws) {
+            otherWs.send(logMsgString);
+          }
+        }
         break;
       }
       default:
