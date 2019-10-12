@@ -7,28 +7,13 @@ import {
   MessageType,
   reducer,
   ServerMessage,
-  State,
   unreachable,
+  initialState,
 } from "unilog-shared";
 import { useWebSocket } from "../use-web-socket";
 import { BallCreatorComponent } from "./ball-creator";
 import { BallMoverComponent } from "./ball-mover";
 import { BucketComponent } from "./bucket";
-
-const INITIAL_STATE: State = {
-  buckets: [
-    {
-      id: "philippes-bucket",
-      name: "Philippe's bucket",
-      balls: [],
-    },
-    {
-      id: "other-bucket",
-      name: "Other bucket",
-      balls: [],
-    },
-  ],
-};
 
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
@@ -74,7 +59,7 @@ export const AppComponent: React.FC = () => {
 
   const state = [...remoteLog, ...localLog].reduce(
     (a, c) => reducer(a, c.action),
-    INITIAL_STATE,
+    initialState,
   );
 
   return (

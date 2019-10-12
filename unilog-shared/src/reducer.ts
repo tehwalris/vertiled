@@ -4,6 +4,21 @@ import * as R from "ramda";
 import { Action, ActionType } from "./interfaces/action";
 import { State, Bucket, Ball } from "./interfaces/data";
 
+export const initialState: State = {
+  buckets: [
+    {
+      id: "philippes-bucket",
+      name: "Philippe's bucket",
+      balls: [],
+    },
+    {
+      id: "other-bucket",
+      name: "Other bucket",
+      balls: [],
+    },
+  ],
+};
+
 export const reducer = (_state: State, action: Action): State =>
   produce(_state, state => {
     const ballIds = new Set(

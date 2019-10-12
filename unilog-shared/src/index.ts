@@ -1,4 +1,4 @@
-export { reducer } from "./reducer";
+export { reducer, initialState } from "./reducer";
 export { unreachable } from "./util";
 
 export * from "./interfaces/action";

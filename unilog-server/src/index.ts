@@ -1,47 +1,35 @@
-import WebSocket from "ws";
 import {
   Action,
-  ActionType,
-  LogEntry,
-  ServerMessage,
-  MessageType,
   ClientMessage,
+  initialState,
+  LogEntry,
+  MessageType,
+  reducer,
+  ServerMessage,
+  State,
   unreachable,
 } from "unilog-shared";
+import WebSocket from "ws";
+import { FAKE_ACTIONS } from "./fake";
 
-const LOG = [
-  {
-    type: ActionType.CreateBall,
-    id: "1",
-    color: "red",
-    bucketId: "philippes-bucket",
-  },
-  {
-    type: ActionType.CreateBall,
-    id: "2",
-    color: "green",
-    bucketId: "philippes-bucket",
-  },
-  {
-    type: ActionType.CreateBall,
-    id: "4",
-    color: "green",
-    bucketId: "other-bucket",
-  },
-  {
-    type: ActionType.CreateBall,
-    id: "6",
-    color: "blue",
-    bucketId: "other-bucket",
-  },
-].map((a: Action, i): LogEntry => ({ id: i + 1, action: a }));
+const log: LogEntry[] = [];
+const state: State = initialState;
+
+function pushToLog(action: Action): LogEntry {
+  reducer(state, action); // test if the reducer throws when the action is applied
+  const newEntry: LogEntry = { id: log.length + 1, action };
+  log.push(newEntry);
+  return newEntry;
+}
+
+FAKE_ACTIONS.forEach(a => pushToLog(a));
 
 const wss = new WebSocket.Server({ port: 8080, clientTracking: true });
 
 wss.on("connection", ws => {
   console.log("ws connect");
 
-  for (const e of LOG) {
+  for (const e of log) {
     const msg: ServerMessage = { type: MessageType.LogEntryServer, entry: e };
     ws.send(JSON.stringify(msg));
   }
@@ -50,8 +38,7 @@ wss.on("connection", ws => {
     const msg: ClientMessage = JSON.parse(_msg.toString());
     switch (msg.type) {
       case MessageType.SubmitEntryClient: {
-        const newEntry = { ...msg.entry, id: LOG.length + 1 };
-        LOG.push(newEntry);
+        const newEntry = pushToLog(msg.entry.action);
         const remapMsg: ServerMessage = {
           type: MessageType.RemapEntryServer,
           oldId: msg.entry.id,
