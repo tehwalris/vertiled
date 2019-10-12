@@ -67,10 +67,14 @@ export const AppComponent: React.FC = () => {
     wsRef.current.send(JSON.stringify(msg));
   };
 
-  const state = [...remoteLog, ...localLog].reduce(
-    (a, c) => reducer(a, c.action),
-    initialState,
-  );
+  const state = [...remoteLog, ...localLog].reduce((a, c, i) => {
+    try {
+      return reducer(a, c.action);
+    } catch (err) {
+      console.warn("ignoring action (rejected by local reducer)", a, i);
+      return a;
+    }
+  }, initialState);
 
   return (
     <div>
