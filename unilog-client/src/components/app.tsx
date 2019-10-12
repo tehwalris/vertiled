@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Action,
   ClientMessage,
@@ -10,6 +10,7 @@ import {
   State,
   unreachable,
 } from "unilog-shared";
+import { useWebSocket } from "../use-web-socket";
 import { BallCreatorComponent } from "./ball-creator";
 import { BallMoverComponent } from "./ball-mover";
 import { BucketComponent } from "./bucket";
@@ -33,7 +34,6 @@ export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
   const [localLog, setLocalLog] = useState<LogEntry[]>([]);
   const nextLocalId = useRef<number>(-1);
-  const wsRef = useRef<WebSocket>();
 
   function addToRemoteLog(entry: LogEntry) {
     setRemoteLog(old =>
@@ -41,35 +41,22 @@ export const AppComponent: React.FC = () => {
     );
   }
 
-  useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080");
-    wsRef.current = ws;
-
-    ws.onmessage = _msg => {
-      const msg = JSON.parse(_msg.data) as ServerMessage;
-      switch (msg.type) {
-        case MessageType.LogEntryServer: {
-          addToRemoteLog(msg.entry);
-          break;
-        }
-        case MessageType.RemapEntryServer: {
-          setLocalLog(old => old.filter(e => e.id !== msg.oldId));
-          addToRemoteLog(msg.entry);
-          break;
-        }
-        default:
-          unreachable(msg);
+  const wsRef = useWebSocket(["ws://localhost:8080"], _msg => {
+    const msg = JSON.parse(_msg.data) as ServerMessage;
+    switch (msg.type) {
+      case MessageType.LogEntryServer: {
+        addToRemoteLog(msg.entry);
+        break;
       }
-    };
-
-    ws.onclose = () => {
-      wsRef.current = undefined;
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, []);
+      case MessageType.RemapEntryServer: {
+        setLocalLog(old => old.filter(e => e.id !== msg.oldId));
+        addToRemoteLog(msg.entry);
+        break;
+      }
+      default:
+        unreachable(msg);
+    }
+  });
 
   const runAction = (a: Action) => {
     if (!wsRef.current) {
