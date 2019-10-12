@@ -13,12 +13,13 @@ import WebSocket from "ws";
 import { FAKE_ACTIONS } from "./fake";
 
 const log: LogEntry[] = [];
-const state: State = initialState;
+let state: State = initialState;
 
 function pushToLog(action: Action): LogEntry {
-  reducer(state, action); // test if the reducer throws when the action is applied
+  const nextState = reducer(state, action); // test if the reducer throws when the action is applied
   const newEntry: LogEntry = { id: log.length + 1, action };
   log.push(newEntry);
+  state = nextState;
   return newEntry;
 }
 
@@ -29,6 +30,10 @@ const wss = new WebSocket.Server({ port: 8080, clientTracking: true });
 wss.on("connection", ws => {
   console.log("ws connect");
 
+  function send(msg: ServerMessage) {
+    ws.send(JSON.stringify(msg));
+  }
+
   for (const e of log) {
     const msg: ServerMessage = { type: MessageType.LogEntryServer, entry: e };
     ws.send(JSON.stringify(msg));
@@ -38,13 +43,22 @@ wss.on("connection", ws => {
     const msg: ClientMessage = JSON.parse(_msg.toString());
     switch (msg.type) {
       case MessageType.SubmitEntryClient: {
-        const newEntry = pushToLog(msg.entry.action);
-        const remapMsg: ServerMessage = {
+        let newEntry: LogEntry;
+        try {
+          newEntry = pushToLog(msg.entry.action);
+        } catch (err) {
+          send({
+            type: MessageType.RejectEntryServer,
+            entryId: msg.entry.id,
+            error: err.toString(),
+          });
+          return;
+        }
+        send({
           type: MessageType.RemapEntryServer,
           oldId: msg.entry.id,
           entry: newEntry,
-        };
-        ws.send(JSON.stringify(remapMsg));
+        });
         const logMsg: ServerMessage = {
           type: MessageType.LogEntryServer,
           entry: newEntry,

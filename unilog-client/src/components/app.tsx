@@ -38,6 +38,16 @@ export const AppComponent: React.FC = () => {
         addToRemoteLog(msg.entry);
         break;
       }
+      case MessageType.RejectEntryServer: {
+        const entry = localLog.find(e => e.id === msg.entryId);
+        setLocalLog(old => old.filter(e => e.id !== msg.entryId));
+        console.warn(
+          "action rejected by server",
+          entry && entry.action,
+          msg.error,
+        );
+        break;
+      }
       default:
         unreachable(msg);
     }
