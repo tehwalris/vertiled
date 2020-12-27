@@ -3,12 +3,30 @@ import { unreachable } from "./util";
 import * as R from "ramda";
 import { Action, ActionType } from "./interfaces/action";
 import { Layer, State } from "./interfaces/data";
-import { readFileSync } from "fs";
 
 export const initialState: State = {
-  world: JSON.parse(
-    readFileSync("../test-world/main.json", { encoding: "utf-8" }),
-  ),
+  world: {
+    compressionlevel: -1,
+    editorsettings: {
+      export: {
+        target: ".",
+      },
+    },
+    height: 100,
+    infinite: false,
+    layers: [],
+    nextlayerid: 1,
+    nextobjectid: 1,
+    orientation: "orthogonal",
+    renderorder: "right-down",
+    tiledversion: "1.4.3",
+    tileheight: 32,
+    tilesets: [],
+    tilewidth: 32,
+    type: "map",
+    version: 1.4,
+    width: 100,
+  },
   cursors: [],
 };
 
