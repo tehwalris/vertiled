@@ -10,7 +10,14 @@ export interface Rectangle extends Coordinates {
   height: number;
 }
 
+export interface TileFlips {
+  horizontal: boolean;
+  vertical: boolean;
+  diagonal: boolean;
+}
+
 export interface DisplayTile {
   image: CanvasImageSource;
   rectangle: Rectangle;
+  flips: TileFlips;
 }

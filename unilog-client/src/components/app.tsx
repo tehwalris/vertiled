@@ -13,7 +13,7 @@ import {
   Tileset,
   Property,
 } from "unilog-shared";
-import { Rectangle } from "../interfaces";
+import { Rectangle, TileFlips } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
 import { getDisplayTilesFunction, MapDisplay } from "./map-display";
 
@@ -22,12 +22,6 @@ const styles = {
     display: "block",
   } as React.CSSProperties,
 };
-
-interface TileFlips {
-  horizontal: boolean;
-  vertical: boolean;
-  diagonal: boolean;
-}
 
 interface TileResource {
   idWithoutFlags: number;
