@@ -187,9 +187,9 @@ export const AppComponent: React.FC = () => {
       <div style={styles.map}>
         <MapDisplay
           getDisplayTiles={getDisplayTiles}
-          width={500}
-          height={400}
-          pixelScale={3}
+          width={1000}
+          height={1000}
+          pixelScale={2}
           focus={{ x: 12, y: 10 }}
           tileSize={32}
         />

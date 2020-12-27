@@ -73,9 +73,6 @@ export const MapDisplay: React.FC<Props> = ({
 
       const displayTiles = getDisplayTiles(tileCoords);
       for (const { image, rectangle } of displayTiles) {
-        if (tileCoords.x === 12 && tileCoords.y === 10) {
-          console.log("DEBUG", displayTiles, rectangle, tileCornerDest);
-        }
         ctx.drawImage(
           image,
           rectangle.x,
