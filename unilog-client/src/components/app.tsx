@@ -37,6 +37,19 @@ interface TileResource {
   flips: TileFlips;
 }
 
+export function splitGid(
+  gid: number,
+): { idWithoutFlags: number; flags: TileFlips } {
+  return {
+    idWithoutFlags: 0x1fffffff & gid,
+    flags: {
+      horizontal: (gid & 0x80000000) > 0,
+      vertical: (gid & 0x40000000) > 0,
+      diagonal: (gid & 0x20000000) > 0,
+    },
+  };
+}
+
 const serverOrigin = "localhost:8080";
 const wsServerURL = `ws://${serverOrigin}`;
 const httpServerURL = `//${serverOrigin}`;
