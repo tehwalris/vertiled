@@ -1,12 +1,12 @@
 import * as R from "ramda";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-interface Coord {
+interface Coordinates {
   x: number;
   y: number;
 }
 
-interface Rect extends Coord {
+interface Rectangle extends Coordinates {
   x: number;
   y: number;
   width: number;
@@ -15,11 +15,11 @@ interface Rect extends Coord {
 
 interface VisualTile {
   image: string;
-  rect: Rect;
+  rect: Rectangle;
 }
 
 interface Props {
-  getTile: (coord: Coord) => VisualTile[];
+  getTile: (coordinates: Coordinates) => VisualTile[];
 }
 
 export const MapDisplay: React.FC<Props> = ({}) => {
