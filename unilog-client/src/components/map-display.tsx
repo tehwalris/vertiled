@@ -39,28 +39,53 @@ export const MapDisplay: React.FC<Props> = ({
     }
 
     // TODO not necessary to clear background, this is only for debugging
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "black";
     ctx.fillRect(0, 0, width, height);
 
-    const tileCornerDest = {
-      x: Math.floor(canvasWidth / 2 - focus.x - tileSize / 2),
-      y: Math.floor(canvasHeight / 2 - focus.y - tileSize / 2),
+    const firstTileCoords = {
+      x: Math.floor(focus.x - canvasWidth / 2 / tileSize),
+      y: Math.floor(focus.y - canvasHeight / 2 / tileSize),
+    };
+    const lastTileCoords = {
+      x: Math.floor(focus.x + canvasWidth / 2 / tileSize),
+      y: Math.floor(focus.y + canvasHeight / 2 / tileSize),
     };
 
-    const displayTiles = getDisplayTiles({ x: 0, y: 0 });
-    console.log("DEBUG", displayTiles);
-    for (const { image, rectangle } of displayTiles) {
-      ctx.drawImage(
-        image,
-        rectangle.x,
-        rectangle.y,
-        rectangle.width,
-        rectangle.height,
-        tileCornerDest.x,
-        tileCornerDest.y,
-        rectangle.width,
-        rectangle.height,
-      );
+    for (
+      let tileCoords = { ...firstTileCoords };
+      tileCoords.y <= lastTileCoords.y;
+      tileCoords =
+        tileCoords.x <= lastTileCoords.x
+          ? {
+              x: tileCoords.x + 1,
+              y: tileCoords.y,
+            }
+          : { x: firstTileCoords.x, y: tileCoords.y + 1 }
+    ) {
+      const tileCornerDest = {
+        x: Math.floor(
+          canvasWidth / 2 + tileCoords.x * tileSize - focus.x - tileSize / 2,
+        ),
+        y: Math.floor(
+          canvasHeight / 2 + tileCoords.y * tileSize - focus.y - tileSize / 2,
+        ),
+      };
+      console.log(tileCoords, tileCornerDest);
+
+      const displayTiles = getDisplayTiles({ x: 0, y: 0 });
+      for (const { image, rectangle } of displayTiles) {
+        ctx.drawImage(
+          image,
+          rectangle.x,
+          rectangle.y,
+          rectangle.width,
+          rectangle.height,
+          tileCornerDest.x,
+          tileCornerDest.y,
+          rectangle.width,
+          rectangle.height,
+        );
+      }
     }
   });
 
