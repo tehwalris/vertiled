@@ -1,5 +1,12 @@
 export interface State {
   world: MapWorld;
+  cursors: Cursor[];
+}
+
+export interface Cursor {
+  x: number;
+  y: number;
+  userId: number;
 }
 
 export interface MapWorld {

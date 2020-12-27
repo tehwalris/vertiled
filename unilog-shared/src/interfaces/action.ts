@@ -1,19 +1,21 @@
-export type Action = CreateBallAction | MoveBallAction;
+export type Action = SetTileAction | SetCursorAction;
 
 export enum ActionType {
-  CreateBall = "CreateBall",
-  MoveBall = "MoveBall",
+  SetTile = "SetTile",
+  SetCursor = "SetCursor",
 }
 
-export interface CreateBallAction {
-  type: ActionType.CreateBall;
+export interface SetTileAction {
+  type: ActionType.SetTile;
   id: string;
-  color: string;
-  bucketId: string;
+  layerId: number;
+  index: number;
+  tileId: number;
 }
 
-export interface MoveBallAction {
-  type: ActionType.MoveBall;
+export interface SetCursorAction {
+  type: ActionType.SetCursor;
   id: string;
-  bucketId: string;
+  x: number;
+  y: number;
 }

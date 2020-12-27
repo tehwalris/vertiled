@@ -2,60 +2,45 @@ import { produce } from "immer";
 import { unreachable } from "./util";
 import * as R from "ramda";
 import { Action, ActionType } from "./interfaces/action";
-import { State, Bucket, Ball } from "./interfaces/data";
+import { Layer, State } from "./interfaces/data";
+import { readFileSync } from "fs";
 
 export const initialState: State = {
-  buckets: [
-    {
-      id: "philippes-bucket",
-      name: "Philippe's bucket",
-      balls: [],
-    },
-    {
-      id: "other-bucket",
-      name: "Other bucket",
-      balls: [],
-    },
-  ],
+  world: JSON.parse(
+    readFileSync("../test-world/main.json", { encoding: "utf-8" }),
+  ),
+  cursors: [],
 };
 
 export const reducer = (_state: State, action: Action): State =>
-  produce(_state, state => {
-    const ballIds = new Set(
-      R.chain(bu => bu.balls.map(ba => ba.id), state.buckets),
-    );
-
-    function getBucket(id: string): Bucket {
-      const bucket = state.buckets.find(b => b.id === action.bucketId);
-      if (!bucket) {
-        throw new Error(`bucket with id ${action.bucketId} not found`);
+  produce(_state, (state) => {
+    function getLayer(id: number): Layer {
+      const layer = state.world.layers.find((l) => l.id === id);
+      if (!layer) {
+        throw new Error(`layer with id ${id} not found`);
       }
-      return bucket;
+      return layer;
     }
 
     switch (action.type) {
-      case ActionType.CreateBall: {
-        if (ballIds.has(action.id)) {
-          throw new Error(`ball with id ${action.id} already exists`);
+      case ActionType.SetTile: {
+        const layer = getLayer(action.layerId);
+        if (!layer.data || !layer.width || !layer.height) {
+          throw new Error(`layer ${action.layerId} has no data field`);
         }
-        getBucket(action.bucketId).balls.push({
-          id: action.id,
-          color: action.color,
-        });
+        if (layer.height * layer.width >= action.index) {
+          throw new Error(
+            `index ${action.index} is out of bounds, Layer: ${action.layerId} w: ${layer.width}, h: ${layer.height}`,
+          );
+        }
+
+        layer.data[action.index] = action.tileId;
         break;
       }
-      case ActionType.MoveBall: {
-        if (!ballIds.has(action.id)) {
-          throw new Error(`ball with id ${action.id} not found`);
-        }
-        let ball: Ball | undefined;
-        for (const bu of state.buckets) {
-          ball = ball || bu.balls.find(ba => ba.id === action.id);
-          bu.balls = bu.balls.filter(ba => ba.id !== action.id);
-        }
-        getBucket(action.bucketId).balls.push(ball!);
-        break;
+      case ActionType.SetCursor: {
+        throw new Error("Unimplemented");
       }
+
       default:
         unreachable(action);
     }
