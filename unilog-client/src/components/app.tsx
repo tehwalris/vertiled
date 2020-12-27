@@ -11,6 +11,7 @@ import {
   initialState,
   Tile,
   Tileset,
+  Property,
 } from "unilog-shared";
 import { Rectangle } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
@@ -22,10 +23,11 @@ const styles = {
   } as React.CSSProperties,
 };
 
-interface TileResource extends Tile {
+interface TileResource {
+  idWithoutFlags: number;
   image: string;
-  name: string;
   rectangle: Rectangle;
+  properties: Property[];
 }
 
 const serverOrigin = "localhost:8080";
@@ -54,10 +56,9 @@ export const AppComponent: React.FC = () => {
     for (const tileset of tilesets) {
       for (let index = 0; index < tileset.tilecount; index++) {
         tiles[tileset.firstgid + index] = {
-          id: tileset.firstgid + index,
+          idWithoutFlags: tileset.firstgid + index,
           properties: tileset.tiles?.[index]?.properties ?? [],
           image: tileset.image,
-          name: tileset.name,
           rectangle: {
             x: tileset.tilewidth * (index % tileset.columns),
             y: tileset.tileheight * Math.floor(index / tileset.columns),
@@ -150,9 +151,7 @@ export const AppComponent: React.FC = () => {
         l.y + l.height > y &&
         l.y <= y,
     );
-    const tiles = layers
-      .sort((a, b) => a.id - b.id)
-      .map((l) => l.data![y * l.width! + x]);
+    const tiles = layers.map((l) => l.data![y * l.width! + x]);
 
     const tileResources = tiles
       .map((tileId) => {
@@ -190,7 +189,7 @@ export const AppComponent: React.FC = () => {
           width={1000}
           height={1000}
           pixelScale={2}
-          focus={{ x: 12, y: 10 }}
+          focus={{ x: 42, y: 27 }}
           tileSize={32}
         />
       </div>

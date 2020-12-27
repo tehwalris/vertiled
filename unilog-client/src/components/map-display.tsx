@@ -53,7 +53,7 @@ export const MapDisplay: React.FC<Props> = ({
 
     for (
       let tileCoords = { ...firstTileCoords };
-      tileCoords.y < lastTileCoords.y;
+      tileCoords.y <= lastTileCoords.y;
       tileCoords =
         tileCoords.x <= lastTileCoords.x
           ? {
