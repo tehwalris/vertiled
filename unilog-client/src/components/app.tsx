@@ -159,6 +159,10 @@ export const AppComponent: React.FC = () => {
 
     const tileResources = tiles
       .map((tileId) => {
+        if (tileId === 0) {
+          // Background tile
+          return undefined;
+        }
         if (!tileMap[tileId]) {
           console.error(`Could not find tile with ID ${tileId}`);
           return undefined;
