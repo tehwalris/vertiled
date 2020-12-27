@@ -127,14 +127,16 @@ export const AppComponent: React.FC = () => {
     }
   }, serverState);
 
-  const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement>();
-  useEffect(() => {}, []);
+  const imageResources = useRef<Map<string, HTMLImageElement>>(new Map());
+
+  const [renderTrigger, setRenderTrigger] = useState("");
 
   function loadImage(url: string) {
     const imgEl = document.createElement("img");
     imgEl.src = `${httpServerURL}/food-and-drinks.png`;
+    imageResources.current.set(url, imgEl);
     imgEl.onload = () => {
-      setBackgroundImage(imgEl);
+      setRenderTrigger("");
     };
   }
 
@@ -158,22 +160,25 @@ export const AppComponent: React.FC = () => {
     const tileResources = tiles
       .map((tileId) => {
         if (!tileMap[tileId]) {
-          console.error(`Could not find tille with ID ${tileId}`);
-          return false;
+          console.error(`Could not find tile with ID ${tileId}`);
+          return undefined;
         }
-        return tileMap[tileId];
-      })
-      .filter((tile) => !!tile);
+        const tile = tileMap[tileId];
+        if (!imageResources.current.has(tile.image)) {
+          loadImage(tile.image);
+          // TODO: Loading status here
+          return undefined;
+        }
 
-    if (!backgroundImage) {
-      return [];
-    }
-    return [
-      {
-        image: backgroundImage,
-        rectangle: { x: 0, y: 0, width: 32, height: 32 },
-      },
-    ];
+        return {
+          ...tileMap[tileId],
+          image: imageResources.current.get(tile.image)!,
+        };
+      })
+      .filter((tile) => tile)
+      .map((tile) => tile!);
+
+    return tileResources;
   };
 
   return (
