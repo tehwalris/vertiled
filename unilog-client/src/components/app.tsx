@@ -23,11 +23,18 @@ const styles = {
   } as React.CSSProperties,
 };
 
+interface TileFlips {
+  horizontal: boolean;
+  vertical: boolean;
+  diagonal: boolean;
+}
+
 interface TileResource {
   idWithoutFlags: number;
   image: string;
   rectangle: Rectangle;
   properties: Property[];
+  flips: TileFlips;
 }
 
 const serverOrigin = "localhost:8080";
