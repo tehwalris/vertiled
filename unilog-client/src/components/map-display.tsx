@@ -32,14 +32,14 @@ export const MapDisplay: React.FC<Props> = ({
   const canvasWidth = Math.floor((width / pixelScale) * devicePixelRatio);
   const canvasHeight = Math.floor((height / pixelScale) * devicePixelRatio);
 
-  useEffect(() => {
+  const render = () => {
     const ctx = canvas.current?.getContext("2d");
     if (!ctx) {
       return;
     }
 
     // TODO not necessary to clear background, this is only for debugging
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, width, height);
 
     const firstTileCoords = {
@@ -47,13 +47,13 @@ export const MapDisplay: React.FC<Props> = ({
       y: Math.floor(focus.y - canvasHeight / 2 / tileSize),
     };
     const lastTileCoords = {
-      x: Math.floor(focus.x + canvasWidth / 2 / tileSize),
-      y: Math.floor(focus.y + canvasHeight / 2 / tileSize),
+      x: Math.ceil(focus.x + canvasWidth / 2 / tileSize),
+      y: Math.ceil(focus.y + canvasHeight / 2 / tileSize),
     };
 
     for (
       let tileCoords = { ...firstTileCoords };
-      tileCoords.y <= lastTileCoords.y;
+      tileCoords.y < lastTileCoords.y;
       tileCoords =
         tileCoords.x <= lastTileCoords.x
           ? {
@@ -64,18 +64,18 @@ export const MapDisplay: React.FC<Props> = ({
     ) {
       const tileCornerDest = {
         x: Math.floor(
-          canvasWidth / 2 + tileCoords.x * tileSize - focus.x - tileSize / 2,
+          canvasWidth / 2 + (tileCoords.x - focus.x) * tileSize - tileSize / 2,
         ),
         y: Math.floor(
-          canvasHeight / 2 + tileCoords.y * tileSize - focus.y - tileSize / 2,
+          canvasHeight / 2 + (tileCoords.y - focus.y) * tileSize - tileSize / 2,
         ),
       };
 
-      const displayTiles = getDisplayTiles({ x: 0, y: 0 });
-      if (tileCoords.x === 0 && tileCoords.y === 0) {
-        console.log("DEBUG displayTiles", displayTiles);
-      }
+      const displayTiles = getDisplayTiles(tileCoords);
       for (const { image, rectangle } of displayTiles) {
+        if (tileCoords.x === 12 && tileCoords.y === 10) {
+          console.log("DEBUG", displayTiles, rectangle, tileCornerDest);
+        }
         ctx.drawImage(
           image,
           rectangle.x,
@@ -89,6 +89,15 @@ export const MapDisplay: React.FC<Props> = ({
         );
       }
     }
+  };
+
+  useEffect(() => {
+    const frameRequestHandle = requestAnimationFrame(() => {
+      render();
+    });
+    return () => {
+      cancelAnimationFrame(frameRequestHandle);
+    };
   });
 
   return (

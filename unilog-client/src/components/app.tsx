@@ -74,10 +74,10 @@ export const AppComponent: React.FC = () => {
     const msg = JSON.parse(_msg.data) as ServerMessage;
     switch (msg.type) {
       case MessageType.InitialServer: {
-        setServerState(msg.initialState);
         setTileMap(
           getTileResourcesFromTileset(msg.initialState.world.tilesets),
         );
+        setServerState(msg.initialState);
         break;
       }
       case MessageType.LogEntryServer: {
@@ -129,14 +129,14 @@ export const AppComponent: React.FC = () => {
 
   const imageResources = useRef<Map<string, HTMLImageElement>>(new Map());
 
-  const [renderTrigger, setRenderTrigger] = useState("");
+  const [renderTrigger, setRenderTrigger] = useState({});
 
   function loadImage(url: string) {
     const imgEl = document.createElement("img");
     imgEl.src = `${httpServerURL}/${url}`;
     imageResources.current.set(url, imgEl);
     imgEl.onload = () => {
-      setRenderTrigger("");
+      setRenderTrigger({});
     };
   }
 
@@ -161,7 +161,7 @@ export const AppComponent: React.FC = () => {
           return undefined;
         }
         if (!tileMap[tileId]) {
-          console.error(`Could not find tile with ID ${tileId}`);
+          console.error(`Could not find tile with ID ${tileId}`, tileMap);
           return undefined;
         }
         const tile = tileMap[tileId];
@@ -176,7 +176,7 @@ export const AppComponent: React.FC = () => {
           image: imageResources.current.get(tile.image)!,
         };
       })
-      .filter((tile) => tile)
+      .filter((tile) => tile && tile.image.complete)
       .map((tile) => tile!);
 
     return tileResources;
@@ -190,7 +190,7 @@ export const AppComponent: React.FC = () => {
           width={500}
           height={400}
           pixelScale={3}
-          focus={{ x: 0, y: 0 }}
+          focus={{ x: 12, y: 10 }}
           tileSize={32}
         />
       </div>
