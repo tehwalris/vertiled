@@ -9,8 +9,10 @@ import {
   ServerMessage,
   unreachable,
   initialState,
+  Tile,
+  Tileset,
 } from "unilog-shared";
-import { DisplayTile } from "../interfaces";
+import { Rectangle } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
 import { getDisplayTilesFunction, MapDisplay } from "./map-display";
 
@@ -19,6 +21,12 @@ const styles = {
     display: "block",
   } as React.CSSProperties,
 };
+
+interface TileResource extends Tile {
+  image: string;
+  name: string;
+  rectangle: Rectangle;
+}
 
 const serverOrigin = "localhost:8080";
 const wsServerURL = `ws://${serverOrigin}`;
@@ -30,6 +38,7 @@ export const AppComponent: React.FC = () => {
   const nextLocalId = useRef<number>(-1);
 
   const [serverState, setServerState] = useState(initialState);
+  const [tileMap, setTileMap] = useState<Record<number, TileResource>>({});
 
   function addToRemoteLog(entry: LogEntry) {
     setRemoteLog((old) =>
@@ -40,11 +49,35 @@ export const AppComponent: React.FC = () => {
     );
   }
 
+  function getTileResourcesFromTileset(tilesets: Tileset[]) {
+    const tiles: Record<number, TileResource> = {};
+    for (const tileset of tilesets) {
+      for (let index = 0; index < tileset.tilecount; index++) {
+        tiles[tileset.firstgid + index] = {
+          id: tileset.firstgid + index,
+          properties: tileset.tiles?.[index]?.properties ?? [],
+          image: tileset.image,
+          name: tileset.name,
+          rectangle: {
+            x: tileset.tilewidth * (index % tileset.columns),
+            y: tileset.tileheight * Math.floor(index / tileset.columns),
+            width: tileset.tilewidth,
+            height: tileset.tileheight,
+          },
+        };
+      }
+    }
+    return tiles;
+  }
+
   const wsRef = useWebSocket([wsServerURL], (_msg) => {
     const msg = JSON.parse(_msg.data) as ServerMessage;
     switch (msg.type) {
       case MessageType.InitialServer: {
         setServerState(msg.initialState);
+        setTileMap(
+          getTileResourcesFromTileset(msg.initialState.world.tilesets),
+        );
         break;
       }
       case MessageType.LogEntryServer: {
@@ -95,16 +128,44 @@ export const AppComponent: React.FC = () => {
   }, serverState);
 
   const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement>();
-  useEffect(() => {
+  useEffect(() => {}, []);
+
+  function loadImage(url: string) {
     const imgEl = document.createElement("img");
     imgEl.src = "localhost:8080/background.png";
     imgEl.onload = () => {
       console.log("DEBUG set");
       setBackgroundImage(imgEl);
     };
-  }, []);
+  }
 
-  const getDisplayTiles = (): DisplayTile[] => {
+  const getDisplayTiles: getDisplayTilesFunction = ({ x, y }) => {
+    console.log("DEBUG,", state, tileMap);
+    const layers = state.world.layers.filter(
+      (l) =>
+        l.width &&
+        l.height &&
+        l.x + l.width > x &&
+        l.x <= x &&
+        l.y + l.height > y &&
+        l.y <= y,
+    );
+    console.log(`Found layers`, layers);
+    const tiles = layers
+      .sort((a, b) => a.id - b.id)
+      .map((l) => l.data![y * l.width! + x]);
+    console.log(`Found tiles`, tiles);
+
+    const tileResources = tiles
+      .map((tileId) => {
+        if (!tileMap[tileId]) {
+          console.error(`Could not find tille with ID ${tileId}`);
+          return false;
+        }
+        return tileMap[tileId];
+      })
+      .filter((tile) => !!tile);
+
     if (!backgroundImage) {
       return [];
     }

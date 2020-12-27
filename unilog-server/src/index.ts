@@ -19,9 +19,12 @@ const app = express();
 app.use(express.static("../test-world"));
 
 const log: LogEntry[] = [];
-let state: State = JSON.parse(
-  readFileSync("../test-world/main.json", { encoding: "utf-8" }),
-);
+let state: State = {
+  cursors: [],
+  world: JSON.parse(
+    readFileSync("../test-world/main.json", { encoding: "utf-8" }),
+  ),
+};
 
 function pushToLog(action: Action): LogEntry {
   const nextState = reducer(state, action); // test if the reducer throws when the action is applied
