@@ -10,6 +10,8 @@ interface Props {
   width: number;
   height: number;
   pixelScale: number; // number of physical pixels per sprite pixel
+  focus: Coordinates; // coordinates of the tile which will be shown exactly in the center of the canvas (possibly fractional)
+  tileSize: number; // width (and height) of a tile in pixels of the source image
 }
 
 const styles = {
@@ -23,8 +25,12 @@ export const MapDisplay: React.FC<Props> = ({
   width,
   height,
   pixelScale,
+  focus,
+  tileSize,
 }) => {
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
+  const canvasWidth = Math.floor((width / pixelScale) * devicePixelRatio);
+  const canvasHeight = Math.floor((height / pixelScale) * devicePixelRatio);
 
   useEffect(() => {
     const ctx = canvas.current?.getContext("2d");
@@ -36,6 +42,11 @@ export const MapDisplay: React.FC<Props> = ({
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, width, height);
 
+    const tileCornerDest = {
+      x: Math.floor(canvasWidth / 2 - focus.x - tileSize / 2),
+      y: Math.floor(canvasHeight / 2 - focus.y - tileSize / 2),
+    };
+
     const displayTiles = getDisplayTiles({ x: 0, y: 0 });
     console.log("DEBUG", displayTiles);
     for (const { image, rectangle } of displayTiles) {
@@ -45,16 +56,13 @@ export const MapDisplay: React.FC<Props> = ({
         rectangle.y,
         rectangle.width,
         rectangle.height,
-        0,
-        0,
+        tileCornerDest.x,
+        tileCornerDest.y,
         rectangle.width,
         rectangle.height,
       );
     }
   });
-
-  const canvasWidth = Math.floor((width / pixelScale) * devicePixelRatio);
-  const canvasHeight = Math.floor((height / pixelScale) * devicePixelRatio);
 
   return (
     <div

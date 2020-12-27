@@ -123,6 +123,8 @@ export const AppComponent: React.FC = () => {
           width={500}
           height={400}
           pixelScale={3}
+          focus={{ x: 0, y: 0 }}
+          tileSize={32}
         />
       </div>
       {JSON.stringify(state)}
