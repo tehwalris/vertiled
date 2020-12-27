@@ -133,7 +133,7 @@ export const AppComponent: React.FC = () => {
 
   function loadImage(url: string) {
     const imgEl = document.createElement("img");
-    imgEl.src = `${httpServerURL}/food-and-drinks.png`;
+    imgEl.src = `${httpServerURL}/${url}`;
     imageResources.current.set(url, imgEl);
     imgEl.onload = () => {
       setRenderTrigger("");
