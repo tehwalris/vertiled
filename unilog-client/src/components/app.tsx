@@ -17,6 +17,8 @@ export const AppComponent: React.FC = () => {
   const [localLog, setLocalLog] = useState<LogEntry[]>([]);
   const nextLocalId = useRef<number>(-1);
 
+  const [serverState, setServerState] = useState(initialState);
+
   function addToRemoteLog(entry: LogEntry) {
     setRemoteLog((old) =>
       R.sortBy(
@@ -29,6 +31,10 @@ export const AppComponent: React.FC = () => {
   const wsRef = useWebSocket(["ws://localhost:8080"], (_msg) => {
     const msg = JSON.parse(_msg.data) as ServerMessage;
     switch (msg.type) {
+      case MessageType.InitialServer: {
+        setServerState(msg.initialState);
+        break;
+      }
       case MessageType.LogEntryServer: {
         addToRemoteLog(msg.entry);
         break;
@@ -74,7 +80,7 @@ export const AppComponent: React.FC = () => {
       console.warn("ignoring action (rejected by local reducer)", a, i);
       return a;
     }
-  }, initialState);
+  }, serverState);
 
   return (
     <div>

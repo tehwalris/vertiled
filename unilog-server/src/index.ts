@@ -1,6 +1,7 @@
 import {
   Action,
   ClientMessage,
+  InitialServerMessage,
   LogEntry,
   MessageType,
   reducer,
@@ -36,10 +37,18 @@ wss.on("connection", (ws) => {
     ws.send(JSON.stringify(msg));
   }
 
+  // Send initial state to
+  const initMsg: InitialServerMessage = {
+    type: MessageType.InitialServer,
+    initialState: state,
+  };
+  ws.send(initMsg);
+
+  /*
   for (const e of log) {
     const msg: ServerMessage = { type: MessageType.LogEntryServer, entry: e };
     ws.send(JSON.stringify(msg));
-  }
+  }*/
 
   ws.on("message", (_msg) => {
     const msg: ClientMessage = JSON.parse(_msg.toString());
@@ -74,7 +83,7 @@ wss.on("connection", (ws) => {
         break;
       }
       default:
-        unreachable(msg as never); // TODO not sure why this type is not working
+        unreachable(msg as never); // HACK: because this is not Union
     }
   });
 });

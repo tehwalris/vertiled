@@ -1,3 +1,4 @@
+import { State } from "..";
 import { Action } from "./action";
 
 export interface LogEntry {
@@ -9,13 +10,20 @@ export enum MessageType {
   LogEntryServer = "LogEntryServer",
   RemapEntryServer = "RemapEntryServer",
   RejectEntryServer = "RejectEntryServer",
+  InitialServer = "InitialServer",
   SubmitEntryClient = "SubmitEntryClient",
 }
 
 export type ServerMessage =
+  | InitialServerMessage
   | LogEntryServerMessage
   | RemapEntryServerMessage
   | RejectEntryServerMessage;
+
+export interface InitialServerMessage {
+  type: MessageType.InitialServer;
+  initialState: State;
+}
 
 export interface LogEntryServerMessage {
   type: MessageType.LogEntryServer;
