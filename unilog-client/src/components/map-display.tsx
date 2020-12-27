@@ -13,26 +13,26 @@ interface Rectangle extends Coordinates {
   height: number;
 }
 
-interface VisualTile {
+export interface DisplayTile {
   image: string;
   rect: Rectangle;
 }
 
 interface Props {
-  getTile: (coordinates: Coordinates) => VisualTile[];
+  getDisplayTiles: (coordinates: Coordinates) => DisplayTile[];
 }
 
 export const MapDisplay: React.FC<Props> = ({}) => {
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
 
-  const context = useMemo(() => canvas.current?.getContext("2d"), [canvas]);
-
   useEffect(() => {
-    if (!context) {
+    const ctx = canvas.current?.getContext("2d");
+    if (!ctx) {
       return;
     }
 
-    context.fillRect(50, 50, 100, 100);
+    ctx.fillStyle = "red";
+    ctx.fillRect(50, 50, 100, 100);
   });
 
   return <canvas ref={canvas}></canvas>;

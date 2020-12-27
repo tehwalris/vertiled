@@ -11,6 +11,13 @@ import {
   initialState,
 } from "unilog-shared";
 import { useWebSocket } from "../use-web-socket";
+import { DisplayTile, MapDisplay } from "./map-display";
+
+const styles = {
+  map: {
+    display: "block",
+  } as React.CSSProperties,
+};
 
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
@@ -82,8 +89,15 @@ export const AppComponent: React.FC = () => {
     }
   }, serverState);
 
+  const getDisplayTiles = (): DisplayTile[] => {
+    return [];
+  };
+
   return (
     <div>
+      <div style={styles.map}>
+        <MapDisplay getDisplayTiles={getDisplayTiles} />
+      </div>
       {JSON.stringify(state)}
       <div>Remote log length: {remoteLog.length}</div>
       <div>Local log length: {localLog.length}</div>
