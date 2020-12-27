@@ -42,13 +42,7 @@ wss.on("connection", (ws) => {
     type: MessageType.InitialServer,
     initialState: state,
   };
-  ws.send(initMsg);
-
-  /*
-  for (const e of log) {
-    const msg: ServerMessage = { type: MessageType.LogEntryServer, entry: e };
-    ws.send(JSON.stringify(msg));
-  }*/
+  send(initMsg);
 
   ws.on("message", (_msg) => {
     const msg: ClientMessage = JSON.parse(_msg.toString());
