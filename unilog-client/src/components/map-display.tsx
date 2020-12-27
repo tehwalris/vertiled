@@ -7,10 +7,30 @@ export type getDisplayTilesFunction = (
 
 interface Props {
   getDisplayTiles: getDisplayTilesFunction;
+  width: number;
+  height: number;
+  pixelScale: number; // number of physical pixels per sprite pixel
+  focus: Coordinates; // coordinates of the tile which will be shown exactly in the center of the canvas (possibly fractional)
+  tileSize: number; // width (and height) of a tile in pixels of the source image
 }
 
-export const MapDisplay: React.FC<Props> = ({ getDisplayTiles }) => {
+const styles = {
+  canvas: {
+    transformOrigin: "top left",
+  } as React.CSSProperties,
+};
+
+export const MapDisplay: React.FC<Props> = ({
+  getDisplayTiles,
+  width,
+  height,
+  pixelScale,
+  focus,
+  tileSize,
+}) => {
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
+  const canvasWidth = Math.floor((width / pixelScale) * devicePixelRatio);
+  const canvasHeight = Math.floor((height / pixelScale) * devicePixelRatio);
 
   useEffect(() => {
     const ctx = canvas.current?.getContext("2d");
@@ -18,10 +38,17 @@ export const MapDisplay: React.FC<Props> = ({ getDisplayTiles }) => {
       return;
     }
 
-    ctx.fillStyle = "red";
-    ctx.fillRect(50, 50, 100, 100);
+    // TODO not necessary to clear background, this is only for debugging
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, width, height);
+
+    const tileCornerDest = {
+      x: Math.floor(canvasWidth / 2 - focus.x - tileSize / 2),
+      y: Math.floor(canvasHeight / 2 - focus.y - tileSize / 2),
+    };
 
     const displayTiles = getDisplayTiles({ x: 0, y: 0 });
+    console.log("DEBUG", displayTiles);
     for (const { image, rectangle } of displayTiles) {
       ctx.drawImage(
         image,
@@ -29,9 +56,31 @@ export const MapDisplay: React.FC<Props> = ({ getDisplayTiles }) => {
         rectangle.y,
         rectangle.width,
         rectangle.height,
+        tileCornerDest.x,
+        tileCornerDest.y,
+        rectangle.width,
+        rectangle.height,
       );
     }
   });
 
-  return <canvas ref={canvas}></canvas>;
+  return (
+    <div
+      style={{
+        width: `${width}px`,
+        height: `${height}px`,
+      }}
+    >
+      <canvas
+        ref={canvas}
+        width={canvasWidth}
+        height={canvasHeight}
+        style={{
+          ...styles.canvas,
+          imageRendering: "pixelated",
+          transform: `scale(${pixelScale / devicePixelRatio})`,
+        }}
+      ></canvas>
+    </div>
+  );
 };
