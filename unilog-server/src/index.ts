@@ -1,7 +1,6 @@
 import {
   Action,
   ClientMessage,
-  initialState,
   LogEntry,
   MessageType,
   reducer,
@@ -11,9 +10,12 @@ import {
 } from "unilog-shared";
 import WebSocket from "ws";
 import { FAKE_ACTIONS } from "./fake";
+import { readFileSync } from "fs";
 
 const log: LogEntry[] = [];
-let state: State = initialState;
+let state: State = JSON.parse(
+  readFileSync("../test-world/main.json", { encoding: "utf-8" }),
+);
 
 function pushToLog(action: Action): LogEntry {
   const nextState = reducer(state, action); // test if the reducer throws when the action is applied
@@ -23,11 +25,11 @@ function pushToLog(action: Action): LogEntry {
   return newEntry;
 }
 
-FAKE_ACTIONS.forEach(a => pushToLog(a));
+FAKE_ACTIONS.forEach((a) => pushToLog(a));
 
 const wss = new WebSocket.Server({ port: 8080, clientTracking: true });
 
-wss.on("connection", ws => {
+wss.on("connection", (ws) => {
   console.log("ws connect");
 
   function send(msg: ServerMessage) {
@@ -39,7 +41,7 @@ wss.on("connection", ws => {
     ws.send(JSON.stringify(msg));
   }
 
-  ws.on("message", _msg => {
+  ws.on("message", (_msg) => {
     const msg: ClientMessage = JSON.parse(_msg.toString());
     switch (msg.type) {
       case MessageType.SubmitEntryClient: {
