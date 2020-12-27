@@ -11,9 +11,6 @@ import {
   initialState,
 } from "unilog-shared";
 import { useWebSocket } from "../use-web-socket";
-import { BallCreatorComponent } from "./ball-creator";
-import { BallMoverComponent } from "./ball-mover";
-import { BucketComponent } from "./bucket";
 
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
@@ -21,12 +18,15 @@ export const AppComponent: React.FC = () => {
   const nextLocalId = useRef<number>(-1);
 
   function addToRemoteLog(entry: LogEntry) {
-    setRemoteLog(old =>
-      R.sortBy((e: LogEntry) => e.id, R.uniqBy(e => e.id, [...old, entry])),
+    setRemoteLog((old) =>
+      R.sortBy(
+        (e: LogEntry) => e.id,
+        R.uniqBy((e) => e.id, [...old, entry]),
+      ),
     );
   }
 
-  const wsRef = useWebSocket(["ws://localhost:8080"], _msg => {
+  const wsRef = useWebSocket(["ws://localhost:8080"], (_msg) => {
     const msg = JSON.parse(_msg.data) as ServerMessage;
     switch (msg.type) {
       case MessageType.LogEntryServer: {
@@ -34,13 +34,13 @@ export const AppComponent: React.FC = () => {
         break;
       }
       case MessageType.RemapEntryServer: {
-        setLocalLog(old => old.filter(e => e.id !== msg.oldId));
+        setLocalLog((old) => old.filter((e) => e.id !== msg.oldId));
         addToRemoteLog(msg.entry);
         break;
       }
       case MessageType.RejectEntryServer: {
-        const entry = localLog.find(e => e.id === msg.entryId);
-        setLocalLog(old => old.filter(e => e.id !== msg.entryId));
+        const entry = localLog.find((e) => e.id === msg.entryId);
+        setLocalLog((old) => old.filter((e) => e.id !== msg.entryId));
         console.warn(
           "action rejected by server",
           entry && entry.action,
@@ -58,7 +58,7 @@ export const AppComponent: React.FC = () => {
       return;
     }
     const localEntry = { id: nextLocalId.current, action: a };
-    setLocalLog(old => [...old, localEntry]);
+    setLocalLog((old) => [...old, localEntry]);
     nextLocalId.current--;
     const msg: ClientMessage = {
       type: MessageType.SubmitEntryClient,
