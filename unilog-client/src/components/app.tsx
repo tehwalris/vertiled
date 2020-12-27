@@ -194,7 +194,6 @@ export const AppComponent: React.FC = () => {
           tileSize={32}
         />
       </div>
-      {JSON.stringify(state)}
       <div>Remote log length: {remoteLog.length}</div>
       <div>Local log length: {localLog.length}</div>
     </div>
