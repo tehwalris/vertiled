@@ -11,6 +11,6 @@ export interface Rectangle extends Coordinates {
 }
 
 export interface DisplayTile {
-  image: string;
-  rect: Rectangle;
+  image: CanvasImageSource;
+  rectangle: Rectangle;
 }

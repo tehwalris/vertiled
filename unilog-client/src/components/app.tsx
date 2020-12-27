@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Action,
   ClientMessage,
@@ -10,6 +10,7 @@ import {
   unreachable,
   initialState,
 } from "unilog-shared";
+import { DisplayTile } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
 import { getDisplayTilesFunction, MapDisplay } from "./map-display";
 
@@ -18,6 +19,10 @@ const styles = {
     display: "block",
   } as React.CSSProperties,
 };
+
+const serverOrigin = "localhost:8080";
+const wsServerURL = `ws://${serverOrigin}`;
+const httpServerURL = serverOrigin;
 
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
@@ -35,7 +40,7 @@ export const AppComponent: React.FC = () => {
     );
   }
 
-  const wsRef = useWebSocket(["ws://localhost:8080"], (_msg) => {
+  const wsRef = useWebSocket([wsServerURL], (_msg) => {
     const msg = JSON.parse(_msg.data) as ServerMessage;
     switch (msg.type) {
       case MessageType.InitialServer: {
@@ -89,9 +94,26 @@ export const AppComponent: React.FC = () => {
     }
   }, serverState);
 
-  const getDisplayTiles: getDisplayTilesFunction = ({ x, y }) => {
-    const layersOnTile = state.world;
-    return [];
+  const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement>();
+  useEffect(() => {
+    const imgEl = document.createElement("img");
+    imgEl.src = "localhost:8080/background.png";
+    imgEl.onload = () => {
+      console.log("DEBUG set");
+      setBackgroundImage(imgEl);
+    };
+  }, []);
+
+  const getDisplayTiles = (): DisplayTile[] => {
+    if (!backgroundImage) {
+      return [];
+    }
+    return [
+      {
+        image: backgroundImage,
+        rectangle: { x: 0, y: 0, width: 32, height: 32 },
+      },
+    ];
   };
 
   return (

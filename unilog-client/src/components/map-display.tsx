@@ -9,7 +9,7 @@ interface Props {
   getDisplayTiles: getDisplayTilesFunction;
 }
 
-export const MapDisplay: React.FC<Props> = ({}) => {
+export const MapDisplay: React.FC<Props> = ({ getDisplayTiles }) => {
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
 
   useEffect(() => {
@@ -20,6 +20,17 @@ export const MapDisplay: React.FC<Props> = ({}) => {
 
     ctx.fillStyle = "red";
     ctx.fillRect(50, 50, 100, 100);
+
+    const displayTiles = getDisplayTiles({ x: 0, y: 0 });
+    for (const { image, rectangle } of displayTiles) {
+      ctx.drawImage(
+        image,
+        rectangle.x,
+        rectangle.y,
+        rectangle.width,
+        rectangle.height,
+      );
+    }
   });
 
   return <canvas ref={canvas}></canvas>;
