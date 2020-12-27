@@ -34,7 +34,6 @@ interface TileResource {
   image: string;
   rectangle: Rectangle;
   properties: Property[];
-  flips: TileFlips;
 }
 
 export function splitGid(
@@ -174,16 +173,20 @@ export const AppComponent: React.FC = () => {
     const tiles = layers.map((l) => l.data![y * l.width! + x]);
 
     const tileResources = tiles
-      .map((tileId) => {
-        if (tileId === 0) {
+      .map((tileIdwithFlags) => {
+        const { idWithoutFlags, flags } = splitGid(tileIdwithFlags);
+        if (idWithoutFlags === 0) {
           // Background tile
           return undefined;
         }
-        if (!tileMap[tileId]) {
-          console.error(`Could not find tile with ID ${tileId}`, tileMap);
+        if (!tileMap[idWithoutFlags]) {
+          console.error(
+            `Could not find tile with ID ${idWithoutFlags}`,
+            tileMap,
+          );
           return undefined;
         }
-        const tile = tileMap[tileId];
+        const tile = tileMap[idWithoutFlags];
         if (!imageResources.current.has(tile.image)) {
           loadImage(tile.image);
           // TODO: Loading status here
@@ -191,8 +194,9 @@ export const AppComponent: React.FC = () => {
         }
 
         return {
-          ...tileMap[tileId],
+          ...tileMap[idWithoutFlags],
           image: imageResources.current.get(tile.image)!,
+          flips: flags,
         };
       })
       .filter((tile) => tile && tile.image.complete)
