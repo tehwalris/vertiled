@@ -10,8 +10,13 @@ import {
   unreachable,
 } from "unilog-shared";
 import WebSocket from "ws";
+import express from "express";
+
 import { FAKE_ACTIONS } from "./fake";
 import { readFileSync } from "fs";
+
+const app = express();
+app.use(express.static("../test-world"));
 
 const log: LogEntry[] = [];
 let state: State = JSON.parse(
@@ -28,7 +33,7 @@ function pushToLog(action: Action): LogEntry {
 
 FAKE_ACTIONS.forEach((a) => pushToLog(a));
 
-const wss = new WebSocket.Server({ port: 8080, clientTracking: true });
+const wss = new WebSocket.Server({ noServer: true });
 
 wss.on("connection", (ws) => {
   console.log("ws connect");
@@ -79,5 +84,15 @@ wss.on("connection", (ws) => {
       default:
         unreachable(msg as never); // HACK: because this is not Union
     }
+  });
+});
+
+// `server` is a vanilla Node.js HTTP server, so use
+// the same ws upgrade process described here:
+// https://www.npmjs.com/package/ws#multiple-servers-sharing-a-single-https-server
+const server = app.listen(8080);
+server.on("upgrade", (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (socket) => {
+    wss.emit("connection", socket, request);
   });
 });
