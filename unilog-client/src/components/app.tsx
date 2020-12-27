@@ -11,7 +11,7 @@ import {
   initialState,
 } from "unilog-shared";
 import { useWebSocket } from "../use-web-socket";
-import { DisplayTile, MapDisplay } from "./map-display";
+import { getDisplayTilesFunction, MapDisplay } from "./map-display";
 
 const styles = {
   map: {
@@ -89,7 +89,8 @@ export const AppComponent: React.FC = () => {
     }
   }, serverState);
 
-  const getDisplayTiles = (): DisplayTile[] => {
+  const getDisplayTiles: getDisplayTilesFunction = ({ x, y }) => {
+    const layersOnTile = state.world;
     return [];
   };
 

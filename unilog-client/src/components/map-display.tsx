@@ -1,25 +1,12 @@
-import * as R from "ramda";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { Coordinates, DisplayTile } from "../interfaces";
 
-interface Coordinates {
-  x: number;
-  y: number;
-}
-
-interface Rectangle extends Coordinates {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface DisplayTile {
-  image: string;
-  rect: Rectangle;
-}
+export type getDisplayTilesFunction = (
+  coordinates: Coordinates,
+) => DisplayTile[];
 
 interface Props {
-  getDisplayTiles: (coordinates: Coordinates) => DisplayTile[];
+  getDisplayTiles: getDisplayTilesFunction;
 }
 
 export const MapDisplay: React.FC<Props> = ({}) => {
