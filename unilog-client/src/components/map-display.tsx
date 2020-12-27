@@ -70,9 +70,11 @@ export const MapDisplay: React.FC<Props> = ({
           canvasHeight / 2 + tileCoords.y * tileSize - focus.y - tileSize / 2,
         ),
       };
-      console.log(tileCoords, tileCornerDest);
 
       const displayTiles = getDisplayTiles({ x: 0, y: 0 });
+      if (tileCoords.x === 0 && tileCoords.y === 0) {
+        console.log("DEBUG displayTiles", displayTiles);
+      }
       for (const { image, rectangle } of displayTiles) {
         ctx.drawImage(
           image,

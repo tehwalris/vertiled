@@ -141,7 +141,6 @@ export const AppComponent: React.FC = () => {
   }
 
   const getDisplayTiles: getDisplayTilesFunction = ({ x, y }) => {
-    console.log("DEBUG,", state, tileMap);
     const layers = state.world.layers.filter(
       (l) =>
         l.width &&
@@ -151,11 +150,9 @@ export const AppComponent: React.FC = () => {
         l.y + l.height > y &&
         l.y <= y,
     );
-    console.log(`Found layers`, layers);
     const tiles = layers
       .sort((a, b) => a.id - b.id)
       .map((l) => l.data![y * l.width! + x]);
-    console.log(`Found tiles`, tiles);
 
     const tileResources = tiles
       .map((tileId) => {
