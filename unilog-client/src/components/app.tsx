@@ -78,14 +78,7 @@ export const AppComponent: React.FC = () => {
 
   return (
     <div>
-      <BallCreatorComponent
-        buckets={state.buckets}
-        onCreateAction={runAction}
-      />
-      <BallMoverComponent buckets={state.buckets} onCreateAction={runAction} />
-      {state.buckets.map(b => (
-        <BucketComponent key={b.id} bucket={b} />
-      ))}
+      {JSON.stringify(state)}
       <div>Remote log length: {remoteLog.length}</div>
       <div>Local log length: {localLog.length}</div>
     </div>
