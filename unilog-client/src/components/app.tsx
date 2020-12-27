@@ -22,7 +22,7 @@ const styles = {
 
 const serverOrigin = "localhost:8080";
 const wsServerURL = `ws://${serverOrigin}`;
-const httpServerURL = serverOrigin;
+const httpServerURL = `//${serverOrigin}`;
 
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
@@ -97,9 +97,8 @@ export const AppComponent: React.FC = () => {
   const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement>();
   useEffect(() => {
     const imgEl = document.createElement("img");
-    imgEl.src = "localhost:8080/background.png";
+    imgEl.src = `${httpServerURL}/food-and-drinks.png`;
     imgEl.onload = () => {
-      console.log("DEBUG set");
       setBackgroundImage(imgEl);
     };
   }, []);
@@ -119,7 +118,12 @@ export const AppComponent: React.FC = () => {
   return (
     <div>
       <div style={styles.map}>
-        <MapDisplay getDisplayTiles={getDisplayTiles} />
+        <MapDisplay
+          getDisplayTiles={getDisplayTiles}
+          width={500}
+          height={400}
+          pixelScale={3}
+        />
       </div>
       {JSON.stringify(state)}
       <div>Remote log length: {remoteLog.length}</div>
