@@ -22,6 +22,7 @@ const log: LogEntry[] = [];
 let state: State = {
   users: [],
   world: JSON.parse(
+    // TODO: validate json, write importer
     readFileSync("../test-world/main.json", { encoding: "utf-8" }),
   ),
 };
@@ -54,6 +55,7 @@ wss.on("connection", (ws) => {
 
   ws.on("message", (_msg) => {
     const msg: ClientMessage = JSON.parse(_msg.toString());
+    console.log(msg);
     switch (msg.type) {
       case MessageType.SubmitEntryClient: {
         let newEntry: LogEntry;

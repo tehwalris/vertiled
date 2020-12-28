@@ -4,13 +4,15 @@ export type Action =
   | SetTileAction
   | SetSelectionAction
   | AddUserAction
-  | RemoveUserAction;
+  | RemoveUserAction
+  | SetLayerVisibilityAction;
 
 export enum ActionType {
   SetTile = "SetTile",
   SetSelection = "SetSelection",
   AddUser = "AddUser",
   RemoveUser = "RemoveUser",
+  SetLayerVisibility = "SetLayerVisibility",
 }
 
 export interface SetTileAction {
@@ -25,6 +27,12 @@ export interface SetSelectionAction {
   type: ActionType.SetSelection;
   userId: string;
   selection?: Rectangle;
+}
+
+export interface SetLayerVisibilityAction {
+  type: ActionType.SetLayerVisibility;
+  layerId: number;
+  visibility: boolean;
 }
 
 export interface AddUserAction {

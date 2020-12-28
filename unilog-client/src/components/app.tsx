@@ -20,6 +20,7 @@ import { v4 as genId } from "uuid";
 import { useImageStore } from "../image-store";
 import { generateTileMapFromTileset, TileMap } from "../tile-map";
 import { makeGetDisplayTiles } from "../get-display-tiles";
+import { produce } from "immer";
 
 const styles = {
   map: {
@@ -50,7 +51,6 @@ export const AppComponent: React.FC = () => {
   const [tileMap, setTileMap] = useState<TileMap>({});
 
   const [selectedTileSet, setSelectedTileSet] = useState(0);
-  const [visibleLayers, setVisibleLayers] = useState<number[]>([]);
 
   function addToRemoteLog(entry: LogEntry) {
     setRemoteLog((old) =>
@@ -98,13 +98,14 @@ export const AppComponent: React.FC = () => {
       return;
     }
     const localEntry = { id: nextLocalId.current, action: a };
-    setLocalLog((old) => [...old, localEntry]);
     nextLocalId.current--;
+
     const msg: ClientMessage = {
       type: MessageType.SubmitEntryClient,
       entry: localEntry,
     };
     wsRef.current.send(JSON.stringify(msg));
+    setLocalLog((old) => [...old, localEntry]);
   };
 
   const state = [...remoteLog, ...localLog].reduce((a, c, i) => {
@@ -144,7 +145,6 @@ export const AppComponent: React.FC = () => {
 
             runAction({
               type: ActionType.SetTile,
-              id: genId(),
               layerId,
               index: getIndexInLayerFromTileCoord(state.world, layerId, c),
               tileId: 10,
@@ -172,9 +172,15 @@ export const AppComponent: React.FC = () => {
         <ul>
           {state.world.layers.map((layer, i) => (
             <li
-              key={i}
-              onClick={() => setVisibleLayers([...visibleLayers])}
-              className={visibleLayers.includes(i) ? "active" : ""}
+              key={layer.id}
+              onClick={() => {
+                runAction({
+                  type: ActionType.SetLayerVisibility,
+                  layerId: layer.id,
+                  visibility: !layer.visible,
+                });
+              }}
+              className={layer.visible ? "active" : ""}
             >
               {layer.name}
             </li>
