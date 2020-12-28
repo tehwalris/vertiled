@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { isEqualWith } from "lodash";
+import { useRef } from "react";
 
 function shallowEqual(a: any, b: any): boolean {
-  return isEqualWith(a, b, (va, vb) => va === vb);
+  return (
+    Object.keys(a).every((k) => a[k] === b[k]) &&
+    Object.keys(b).every((k) => a[k] === b[k])
+  );
 }
 
 export function useShallowMemo<T>(cb: () => T): T {

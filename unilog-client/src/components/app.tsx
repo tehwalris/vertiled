@@ -9,6 +9,7 @@ import {
   Coordinates,
   getLayer,
   initialState,
+  Layer,
   LogEntry,
   MapWorld,
   MessageType,
@@ -24,6 +25,8 @@ import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
 import { useWindowSize } from "../useWindowSize";
 import { useShallowMemo } from "../use-shallow-memo";
+
+const EMPTY_LAYERS: Layer[] = [];
 
 export function getIndexInLayerFromTileCoord(
   world: MapWorld,
@@ -121,7 +124,6 @@ export const AppComponent: React.FC = () => {
       imageStore.getImage(tileset.image);
     }
   }, [state.world.tilesets, imageStore]);
-  const assetCache = imageStore.asAssetCache();
 
   const {
     addSelectionToWorld,
@@ -135,27 +137,90 @@ export const AppComponent: React.FC = () => {
       produce(state.world, (world) => {
         addSelectionToWorld(world, state.users, userId);
         for (const tileset of world.tilesets) {
-          if (!assetCache[tileset.image]) {
+          if (!imageStore.assetCache[tileset.image]) {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
           }
         }
       }),
-    [state.world, assetCache, state.users, userId, addSelectionToWorld],
+    [
+      state.world,
+      imageStore.assetCache,
+      state.users,
+      userId,
+      addSelectionToWorld,
+    ],
   );
 
   const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
     ...worldForGlTiled,
-    layers: [],
+    layers: EMPTY_LAYERS,
   }));
 
   const tilemap = useMemo(() => {
     const tilemap = new glTiled.GLTilemap(
-      (worldForGlTiledWithoutLayers as any) as glTiled.ITilemap, // TODO avoid cast
-      { assetCache },
+      ({ ...worldForGlTiledWithoutLayers } as any) as glTiled.ITilemap, // TODO avoid cast
+      { assetCache: imageStore.assetCache },
     );
     tilemap.repeatTiles = false;
     return tilemap;
-  }, [worldForGlTiledWithoutLayers, assetCache]);
+  }, [worldForGlTiledWithoutLayers, imageStore.assetCache]);
+
+  useEffect(() => {
+    const tilemapWithPrivate = (tilemap as unknown) as Omit<
+      glTiled.GLTilemap,
+      "_layers"
+    > & {
+      _layers: glTiled.TGLLayer[];
+    };
+    const privateLayersByDesc = new Map(
+      tilemapWithPrivate._layers.map((privateLayer, i) => [
+        tilemap.desc.layers[i],
+        privateLayer,
+      ]),
+    );
+    const layerDescsWithoutPrivate = new Set();
+
+    const newLayers: glTiled.ILayer[] = worldForGlTiled.layers as any; // TODO avoid cast
+    const addedLayers = newLayers.filter(
+      (newLayer) => !tilemap.desc.layers.includes(newLayer),
+    );
+    const removedLayers = tilemap.desc.layers.filter(
+      (oldLayer) => !newLayers.includes(oldLayer),
+    );
+    for (const layer of removedLayers) {
+      tilemap.destroyLayerFromDesc(layer);
+    }
+    for (const layer of addedLayers) {
+      const oldPrivateLayersLength = tilemapWithPrivate._layers.length;
+      tilemap.createLayerFromDesc(layer);
+      const newPrivateLayersLength = tilemapWithPrivate._layers.length;
+      if (newPrivateLayersLength == oldPrivateLayersLength + 1) {
+        privateLayersByDesc.set(
+          layer,
+          tilemapWithPrivate._layers[newPrivateLayersLength - 1],
+        );
+      } else if (newPrivateLayersLength == oldPrivateLayersLength) {
+        layerDescsWithoutPrivate.add(layer);
+      } else {
+        throw new Error("unexpected change to private layers");
+      }
+    }
+
+    tilemap.desc.layers = [...newLayers];
+    tilemapWithPrivate._layers = newLayers
+      .map((newLayer) => {
+        const privateLayer = privateLayersByDesc.get(newLayer);
+        if (
+          privateLayer === undefined &&
+          !layerDescsWithoutPrivate.has(newLayer)
+        ) {
+          throw new Error("could not find private layer for desc");
+        }
+        return privateLayer;
+      })
+      .filter((v) => v)
+      .map((v) => v!);
+  }, [tilemap, worldForGlTiled.layers]);
 
   const windowSize = useWindowSize();
 

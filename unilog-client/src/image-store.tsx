@@ -3,12 +3,13 @@ import { useMemo, useRef, useState } from "react";
 
 export interface ImageStore {
   getImage: (url: string) => HTMLImageElement | undefined;
+  assetCache: IAssetCache;
 }
 
 export function useImageStore(baseUrl: string) {
   const imageResources = useRef<Map<string, HTMLImageElement>>(new Map());
 
-  const [_renderTrigger, setRenderTrigger] = useState({});
+  const [assetCache, setAssetCache] = useState<IAssetCache>({});
 
   return useMemo(() => {
     function loadImage(url: string) {
@@ -17,7 +18,13 @@ export function useImageStore(baseUrl: string) {
       imgEl.crossOrigin = "anonymous"; // TODO is this necessary
       imageResources.current.set(url, imgEl);
       imgEl.onload = () => {
-        setRenderTrigger({});
+        const assetCache: IAssetCache = {};
+        for (const [url, image] of imageResources.current.entries()) {
+          if (image.complete) {
+            assetCache[url] = image;
+          }
+        }
+        setAssetCache(assetCache);
       };
     }
 
@@ -33,16 +40,6 @@ export function useImageStore(baseUrl: string) {
       return image;
     }
 
-    function asAssetCache(): IAssetCache {
-      const assetCache: IAssetCache = {};
-      for (const [url, image] of imageResources.current.entries()) {
-        if (image.complete) {
-          assetCache[url] = image;
-        }
-      }
-      return assetCache;
-    }
-
-    return { getImage, asAssetCache };
-  }, [baseUrl, setRenderTrigger, imageResources]);
+    return { getImage, assetCache };
+  }, [baseUrl, assetCache, imageResources]);
 }
