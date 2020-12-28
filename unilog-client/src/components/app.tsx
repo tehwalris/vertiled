@@ -223,7 +223,6 @@ export const AppComponent: React.FC = () => {
   const worldForGlTiled = useMemo(
     () =>
       produce(state.world, (world) => {
-        wo;
         for (const tileset of world.tilesets) {
           if (!assetCache[tileset.image]) {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
@@ -234,12 +233,11 @@ export const AppComponent: React.FC = () => {
   );
 
   const tilemap = useMemo(() => {
-    console.log("DEBUG new GLTilemap", state.world);
     const tilemap = new glTiled.GLTilemap(
       (worldForGlTiled as any) as glTiled.ITilemap, // TODO avoid cast
       { assetCache },
     );
-    tilemap.resizeViewport(1000, 1000);
+    tilemap.repeatTiles = false;
     return tilemap;
   }, [worldForGlTiled, assetCache]);
 
@@ -248,7 +246,8 @@ export const AppComponent: React.FC = () => {
       <div style={styles.map}>
         <MapDisplay
           tilemap={tilemap}
-          pixelScale={2}
+          width={1000}
+          height={1000}
           offset={{ x: 30, y: 15 }}
           tileSize={tileSize}
           onPointerDown={(c, ev) => {

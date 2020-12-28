@@ -1,6 +1,4 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { DisplayTile } from "../interfaces";
-import { getDisplayTilesFunction } from "../get-display-tiles";
 import { Coordinates } from "unilog-shared";
 import * as glTiled from "gl-tiled";
 
@@ -24,18 +22,21 @@ const styles = {
 
 export const MapDisplay: React.FC<Props> = ({
   tilemap,
+  width,
+  height,
   offset,
   tileSize,
   onPointerDown,
   onPointerMove,
   onPointerUp,
 }) => {
-  const width = tilemap.viewportWidth;
-  const height = tilemap.viewportHeight;
-
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
-  const canvasWidth = Math.floor((width / pixelScale) * devicePixelRatio);
-  const canvasHeight = Math.floor((height / pixelScale) * devicePixelRatio);
+  const canvasWidth = Math.floor(width * devicePixelRatio);
+  const canvasHeight = Math.floor(height * devicePixelRatio);
+
+  useEffect(() => {
+    tilemap.resizeViewport(canvasWidth, canvasHeight);
+  }, [tilemap, canvasWidth, canvasHeight]);
 
   const tempTileCtx = useMemo(() => {
     const tempCanvas = document.createElement("canvas");
@@ -82,7 +83,7 @@ export const MapDisplay: React.FC<Props> = ({
     };
   });
 
-  const canvasScale = pixelScale / devicePixelRatio;
+  const canvasScale = 1 / devicePixelRatio;
 
   function screenCoordsToTileCoords(
     rect: DOMRect | undefined,
