@@ -65,7 +65,10 @@ export const MapDisplay: React.FC<Props> = ({
       tilemap.glInitialize(gl);
     }
 
-    tilemap.draw();
+    tilemap.draw(
+      Math.round(offset.x * tileSize),
+      Math.round(offset.y * tileSize),
+    );
   };
 
   useEffect(() => {
