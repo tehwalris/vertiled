@@ -22,6 +22,7 @@ import { useSelection } from "../useSelection";
 import { MapDisplay } from "./map-display";
 import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
+import { useShallowMemo } from "../use-shallow-memo";
 
 const styles = {
   map: {
@@ -186,14 +187,19 @@ export const AppComponent: React.FC = () => {
     ],
   );
 
+  const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
+    ...worldForGlTiled,
+    layers: [],
+  }));
+
   const tilemap = useMemo(() => {
     const tilemap = new glTiled.GLTilemap(
-      (worldForGlTiled as any) as glTiled.ITilemap, // TODO avoid cast
+      (worldForGlTiledWithoutLayers as any) as glTiled.ITilemap, // TODO avoid cast
       { assetCache },
     );
     tilemap.repeatTiles = false;
     return tilemap;
-  }, [worldForGlTiled, assetCache]);
+  }, [worldForGlTiledWithoutLayers, assetCache]);
 
   return (
     <div>
