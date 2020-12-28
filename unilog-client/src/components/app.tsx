@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Action,
   ActionType,
@@ -21,6 +21,10 @@ import { useImageStore } from "../image-store";
 import { generateTileMapFromTileset, TileMap, TileResource } from "../tile-map";
 import { useWebSocket } from "../use-web-socket";
 import { MapDisplay } from "./map-display";
+import { v4 as genId } from "uuid";
+
+import { produce } from "immer";
+import * as glTiled from "gl-tiled";
 
 const styles = {
   map: {
@@ -209,14 +213,41 @@ export const AppComponent: React.FC = () => {
   );
 
   const [isSelecting, setIsSelecting] = useState(false);
+  useEffect(() => {
+    for (const tileset of state.world.tilesets) {
+      imageStore.getImage(tileset.image);
+    }
+  }, [state.world.tilesets]);
+  const assetCache = imageStore.asAssetCache();
+
+  const worldForGlTiled = useMemo(
+    () =>
+      produce(state.world, (world) => {
+        wo;
+        for (const tileset of world.tilesets) {
+          if (!assetCache[tileset.image]) {
+            tileset.image = ""; // HACK don't load anything if the image is not in the cache
+          }
+        }
+      }),
+    [state.world, assetCache],
+  );
+
+  const tilemap = useMemo(() => {
+    console.log("DEBUG new GLTilemap", state.world);
+    const tilemap = new glTiled.GLTilemap(
+      (worldForGlTiled as any) as glTiled.ITilemap, // TODO avoid cast
+      { assetCache },
+    );
+    tilemap.resizeViewport(1000, 1000);
+    return tilemap;
+  }, [worldForGlTiled, assetCache]);
 
   return (
     <div>
       <div style={styles.map}>
         <MapDisplay
-          getDisplayTiles={getDisplayTiles}
-          width={1000}
-          height={1000}
+          tilemap={tilemap}
           pixelScale={2}
           offset={{ x: 30, y: 15 }}
           tileSize={tileSize}

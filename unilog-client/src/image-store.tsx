@@ -1,3 +1,4 @@
+import { IAssetCache } from "gl-tiled";
 import { useMemo, useRef, useState } from "react";
 
 export interface ImageStore {
@@ -13,6 +14,7 @@ export function useImageStore(baseUrl: string) {
     function loadImage(url: string) {
       const imgEl = document.createElement("img");
       imgEl.src = `${baseUrl}/${url}`;
+      imgEl.crossOrigin = "anonymous"; // TODO is this necessary
       imageResources.current.set(url, imgEl);
       imgEl.onload = () => {
         setRenderTrigger({});
@@ -31,6 +33,16 @@ export function useImageStore(baseUrl: string) {
       return image;
     }
 
-    return { getImage };
+    function asAssetCache(): IAssetCache {
+      const assetCache: IAssetCache = {};
+      for (const [url, image] of imageResources.current.entries()) {
+        if (image.complete) {
+          assetCache[url] = image;
+        }
+      }
+      return assetCache;
+    }
+
+    return { getImage, asAssetCache };
   }, [baseUrl, setRenderTrigger, imageResources]);
 }
