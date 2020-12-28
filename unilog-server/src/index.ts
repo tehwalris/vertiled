@@ -46,20 +46,34 @@ const wss = new WebSocket.Server({ noServer: true });
 wss.on("connection", (ws) => {
   console.log("ws connect");
 
-  function send(msg: ServerMessage) {
+  function sendToSelf(msg: ServerMessage) {
     ws.send(JSON.stringify(msg));
   }
-
+  function sendToOthers(msg: ServerMessage) {
+    for (const otherWs of wss.clients) {
+      if (otherWs !== ws) {
+        otherWs.send(JSON.stringify(msg));
+      }
+    }
+  }
   const userId = genId();
-  pushToLog({ type: ActionType.AddUser, userId });
-  send({
+  sendToOthers({
+    type: MessageType.LogEntryServer,
+    entry: pushToLog({ type: ActionType.AddUser, userId }),
+  });
+
+  sendToSelf({
     type: MessageType.InitialServer,
     initialState: state,
     userId,
   });
 
   ws.on("close", () => {
-    pushToLog({ type: ActionType.RemoveUser, userId });
+    console.log("REMOVING", userId);
+    sendToOthers({
+      type: MessageType.LogEntryServer,
+      entry: pushToLog({ type: ActionType.RemoveUser, userId }),
+    });
   });
 
   ws.on("message", (_msg) => {
@@ -71,28 +85,22 @@ wss.on("connection", (ws) => {
         try {
           newEntry = pushToLog(msg.entry.action);
         } catch (err) {
-          send({
+          sendToSelf({
             type: MessageType.RejectEntryServer,
             entryId: msg.entry.id,
             error: err.toString(),
           });
           return;
         }
-        send({
+        sendToSelf({
           type: MessageType.RemapEntryServer,
           oldId: msg.entry.id,
           entry: newEntry,
         });
-        const logMsg: ServerMessage = {
+        sendToOthers({
           type: MessageType.LogEntryServer,
           entry: newEntry,
-        };
-        const logMsgString = JSON.stringify(logMsg);
-        for (const otherWs of wss.clients) {
-          if (otherWs !== ws) {
-            otherWs.send(logMsgString);
-          }
-        }
+        });
         break;
       }
       default:
