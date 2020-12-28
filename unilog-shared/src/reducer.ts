@@ -1,5 +1,5 @@
 import { produce } from "immer";
-import { unreachable } from "./util";
+import { getLayer, unreachable } from "./util";
 import * as R from "ramda";
 import { Action, ActionType } from "./interfaces/action";
 import { Layer, State } from "./interfaces/data";
@@ -32,17 +32,9 @@ export const initialState: State = {
 
 export const reducer = (_state: State, action: Action): State =>
   produce(_state, (state) => {
-    function getLayer(id: number): Layer {
-      const layer = state.world.layers.find((l) => l.id === id);
-      if (!layer) {
-        throw new Error(`layer with id ${id} not found`);
-      }
-      return layer;
-    }
-
     switch (action.type) {
       case ActionType.SetTile: {
-        const layer = getLayer(action.layerId);
+        const layer = getLayer(state.world, action.layerId);
         if (!layer.data || !layer.width || !layer.height) {
           throw new Error(`layer ${action.layerId} has no data field`);
         }

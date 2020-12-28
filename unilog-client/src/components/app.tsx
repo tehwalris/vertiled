@@ -13,8 +13,10 @@ import {
   Tileset,
   Property,
   ActionType,
+  MapWorld,
+  getLayer,
 } from "unilog-shared";
-import { Rectangle, TileFlips } from "../interfaces";
+import { Coordinates, Rectangle, TileFlips } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
 import { getDisplayTilesFunction, MapDisplay } from "./map-display";
 import { v4 as genId } from "uuid";
@@ -43,6 +45,15 @@ export function splitGid(
       diagonal: !!(gid & 0x20000000),
     },
   };
+}
+
+export function getIndexInLayerFromTileCoord(
+  world: MapWorld,
+  layerId: number,
+  c: Coordinates,
+) {
+  const layer = getLayer(world, layerId);
+  return layer.width! * (c.y - layer.y) + (c.x - layer.x);
 }
 
 const serverOrigin = "localhost:8080";
@@ -209,16 +220,19 @@ export const AppComponent: React.FC = () => {
           width={1000}
           height={1000}
           pixelScale={2}
-          focus={{ x: 40, y: 25 }}
+          focus={{ x: 0, y: 0 }}
           tileSize={32}
           onMouseClick={(c, ev) => {
             console.log("Clicked mouse, cords:", c, ev);
+
+            const layerId = 11;
+
             runAction({
               type: ActionType.SetTile,
               id: genId(),
-              layerId: 11,
-              index: 0,
-              tileId: 390,
+              layerId,
+              index: getIndexInLayerFromTileCoord(state.world, layerId, c),
+              tileId: 10,
             });
           }}
         />

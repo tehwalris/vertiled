@@ -1,5 +1,5 @@
 export { reducer, initialState } from "./reducer";
-export { unreachable } from "./util";
+export * from "./util";
 
 export * from "./interfaces/action";
 export * from "./interfaces/data";
