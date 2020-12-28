@@ -11,7 +11,6 @@ export function makeGetDisplayTiles(
   layers: Layer[],
   tileMap: TileMap,
   imageStore: ImageStore,
-  ownCursorCoords: Coordinates,
   tileSize: number,
 ): getDisplayTilesFunction {
   return ({ x, y }) => {
@@ -54,21 +53,6 @@ export function makeGetDisplayTiles(
       })
       .filter((tile) => tile)
       .map((tile) => tile!);
-
-    const uiTilesImage = imageStore.getImage("ui-tiles.png"); // TODO save this separately from the "world" tile maps
-    if (uiTilesImage) {
-      if (
-        ownCursorCoords &&
-        ownCursorCoords.x === x &&
-        ownCursorCoords.y === y
-      ) {
-        displayTiles.push({
-          image: uiTilesImage,
-          rectangle: { x: 0, y: 0, width: tileSize, height: tileSize },
-          flips: { diagonal: false, horizontal: false, vertical: false },
-        });
-      }
-    }
 
     return displayTiles;
   };

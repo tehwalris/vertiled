@@ -5,7 +5,10 @@ import { Coordinates } from "unilog-shared";
 
 interface Props {
   getDisplayTiles: getDisplayTilesFunction;
-  onMouseClick: (coordinates: Coordinates, ev: React.MouseEvent) => void;
+  onPointerDown: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+  onPointerMove: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+  onPointerUp: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+
   width: number;
   height: number;
   pixelScale: number; // number of physical pixels per sprite pixel
@@ -64,7 +67,9 @@ export const MapDisplay: React.FC<Props> = ({
   pixelScale,
   offset,
   tileSize,
-  onMouseClick,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
 }) => {
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
   const canvasWidth = Math.floor((width / pixelScale) * devicePixelRatio);
@@ -143,6 +148,24 @@ export const MapDisplay: React.FC<Props> = ({
 
   const canvasScale = pixelScale / devicePixelRatio;
 
+  function screenCoordsToTileCoords(
+    rect: DOMRect | undefined,
+    x: number,
+    y: number,
+  ): Coordinates {
+    if (!rect) {
+      throw new Error("error getting canvas DOMRect");
+    }
+    const canvasX = Math.floor(
+      (x - rect.left) / canvasScale / tileSize + offset.x,
+    );
+    const canvasY = Math.floor(
+      (y - rect.top) / canvasScale / tileSize + offset.y,
+    );
+
+    return { x: canvasX, y: canvasY };
+  }
+
   return (
     <div
       style={{
@@ -154,17 +177,26 @@ export const MapDisplay: React.FC<Props> = ({
         ref={canvas}
         width={canvasWidth}
         height={canvasHeight}
-        onClick={(ev) => {
+        onPointerDown={(ev) => {
           const canvasRect = canvas.current?.getBoundingClientRect()!;
-
-          const canvasX = Math.floor(
-            (ev.clientX - canvasRect.left) / canvasScale / tileSize,
+          onPointerDown(
+            screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
+            ev,
           );
-          const canvasY = Math.floor(
-            (ev.clientY - canvasRect.top) / canvasScale / tileSize,
+        }}
+        onPointerUp={(ev) => {
+          const canvasRect = canvas.current?.getBoundingClientRect()!;
+          onPointerUp(
+            screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
+            ev,
           );
-
-          onMouseClick({ x: canvasX, y: canvasY }, ev);
+        }}
+        onPointerMove={(ev) => {
+          const canvasRect = canvas.current?.getBoundingClientRect();
+          onPointerMove(
+            screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
+            ev,
+          );
         }}
         style={{
           ...styles.canvas,
