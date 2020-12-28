@@ -272,8 +272,8 @@ export const AppComponent: React.FC = () => {
               const newSelection = {
                 x: oldSelection.x,
                 y: oldSelection.y,
-                width: c.x - oldSelection.x,
-                height: c.y - oldSelection.y,
+                width: c.x - oldSelection.x + 1,
+                height: c.y - oldSelection.y + 1,
               };
               if (
                 oldSelection.width !== newSelection.width ||
@@ -338,7 +338,7 @@ export const AppComponent: React.FC = () => {
           </p>
         </div>
       </div>
-
+      UserId: {userId}
       <div>Remote log length: {remoteLog.length}</div>
       <div>Local log length: {localLog.length}</div>
     </div>
