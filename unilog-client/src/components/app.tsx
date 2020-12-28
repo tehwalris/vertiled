@@ -109,14 +109,18 @@ export const AppComponent: React.FC = () => {
     setLocalLog((old) => [...old, localEntry]);
   };
 
-  const state = [...remoteLog, ...localLog].reduce((a, c, i) => {
-    try {
-      return reducer(a, c.action);
-    } catch (err) {
-      console.warn("ignoring action (rejected by local reducer)", a, i);
-      return a;
-    }
-  }, serverState);
+  const state = useMemo(
+    () =>
+      [...remoteLog, ...localLog].reduce((a, c, i) => {
+        try {
+          return reducer(a, c.action);
+        } catch (err) {
+          console.warn("ignoring action (rejected by local reducer)", a, i);
+          return a;
+        }
+      }, serverState),
+    [serverState, remoteLog, localLog],
+  );
 
   const imageStore = useImageStore(httpServerURL);
   useEffect(() => {
