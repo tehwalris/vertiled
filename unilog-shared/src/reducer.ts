@@ -56,9 +56,6 @@ export const reducer = (_state: State, action: Action): State =>
       }
       case ActionType.SetLayerVisibility: {
         const layer = getLayer(state.world, action.layerId);
-        if (!layer.data || !layer.width || !layer.height) {
-          throw new Error(`layer ${action.layerId} has no data field`);
-        }
         layer.visible = action.visibility;
         break;
       }

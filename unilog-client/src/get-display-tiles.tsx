@@ -17,6 +17,7 @@ export function makeGetDisplayTiles(
   return ({ x, y }) => {
     const hitLayers = layers.filter(
       (l) =>
+        l.visible &&
         l.width &&
         l.height &&
         l.x + l.width > x &&
