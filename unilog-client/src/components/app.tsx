@@ -14,7 +14,7 @@ import {
   Property,
   ActionType,
 } from "unilog-shared";
-import { Rectangle, TileFlips } from "../interfaces";
+import { Coordinates, DisplayTile, Rectangle, TileFlips } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
 import { getDisplayTilesFunction, MapDisplay } from "./map-display";
 import { v4 as genId } from "uuid";
@@ -48,6 +48,7 @@ export function splitGid(
 const serverOrigin = "localhost:8080";
 const wsServerURL = `ws://${serverOrigin}`;
 const httpServerURL = `//${serverOrigin}`;
+const tileSize = 32;
 
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
@@ -156,6 +157,9 @@ export const AppComponent: React.FC = () => {
     };
   }
 
+  // TODO get from synced state
+  const ownCursorCoords: Coordinates | undefined = { x: 40, y: 30 };
+
   const getDisplayTiles: getDisplayTilesFunction = ({ x, y }) => {
     const layers = state.world.layers.filter(
       (l) =>
@@ -168,7 +172,7 @@ export const AppComponent: React.FC = () => {
     );
     const tiles = layers.map((l) => l.data![y * l.width! + x]);
 
-    const tileResources = tiles
+    const displayTiles: DisplayTile[] = tiles
       .map((tileIdwithFlags) => {
         const { idWithoutFlags, flips } = splitGid(tileIdwithFlags);
         if (idWithoutFlags === 0) {
@@ -198,7 +202,25 @@ export const AppComponent: React.FC = () => {
       .filter((tile) => tile && tile.image.complete)
       .map((tile) => tile!);
 
-    return tileResources;
+    const uiTilesImageName = "ui-tiles.png"; // TODO save this separately from the "world" tile maps
+    if (imageResources.current.has(uiTilesImageName)) {
+      const uiTilesImage = imageResources.current.get(uiTilesImageName)!;
+      if (
+        ownCursorCoords &&
+        ownCursorCoords.x === x &&
+        ownCursorCoords.y === y
+      ) {
+        displayTiles.push({
+          image: uiTilesImage,
+          rectangle: { x: 0, y: 0, width: tileSize, height: tileSize },
+          flips: { diagonal: false, horizontal: false, vertical: false },
+        });
+      }
+    } else {
+      loadImage(uiTilesImageName);
+    }
+
+    return displayTiles;
   };
 
   return (
@@ -210,7 +232,7 @@ export const AppComponent: React.FC = () => {
           height={1000}
           pixelScale={2}
           focus={{ x: 40, y: 25 }}
-          tileSize={32}
+          tileSize={tileSize}
           onMouseClick={(c, ev) => {
             console.log("Clicked mouse, cords:", c, ev);
             runAction({
