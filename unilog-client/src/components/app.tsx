@@ -209,7 +209,7 @@ export const AppComponent: React.FC = () => {
           width={1000}
           height={1000}
           pixelScale={2}
-          focus={{ x: 0, y: 0 }}
+          focus={{ x: 40, y: 25 }}
           tileSize={32}
           onMouseClick={(c, ev) => {
             console.log("Clicked mouse, cords:", c, ev);

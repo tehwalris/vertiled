@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Coordinates, DisplayTile } from "../interfaces";
 
 export type getDisplayTilesFunction = (
@@ -21,6 +21,44 @@ const styles = {
   } as React.CSSProperties,
 };
 
+// extractTileImage draws a single tile from a sprite sheet into the supplied canvas context.
+// ctx must have width == height == tileSize
+function extractTileImage(tile: DisplayTile, ctx: CanvasRenderingContext2D) {
+  ctx.save();
+
+  const tileSize = tile.rectangle.width;
+  if (tile.rectangle.height !== tileSize) {
+    throw new Error("tiles must be square");
+  }
+
+  ctx.translate(tileSize / 2, tileSize / 2);
+  if (tile.flips.diagonal) {
+    ctx.rotate(-Math.PI / 2);
+    ctx.scale(1, -1);
+  }
+  if (tile.flips.horizontal) {
+    ctx.scale(1, -1);
+  }
+  if (tile.flips.vertical) {
+    ctx.scale(-1, 1);
+  }
+  ctx.translate(-tileSize / 2, -tileSize / 2);
+
+  ctx.drawImage(
+    tile.image,
+    tile.rectangle.x,
+    tile.rectangle.y,
+    tileSize,
+    tileSize,
+    0,
+    0,
+    tileSize,
+    tileSize,
+  );
+
+  ctx.restore();
+}
+
 export const MapDisplay: React.FC<Props> = ({
   getDisplayTiles,
   width,
@@ -33,6 +71,17 @@ export const MapDisplay: React.FC<Props> = ({
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
   const canvasWidth = Math.floor((width / pixelScale) * devicePixelRatio);
   const canvasHeight = Math.floor((height / pixelScale) * devicePixelRatio);
+
+  const tempTileCtx = useMemo(() => {
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = tileSize;
+    tempCanvas.height = tileSize;
+    const tempCtx = tempCanvas.getContext("2d");
+    if (!tempCtx) {
+      throw new Error("failed to initialize context of temp canvas");
+    }
+    return tempCtx;
+  }, [tileSize]);
 
   const render = () => {
     const ctx = canvas.current?.getContext("2d");
@@ -74,13 +123,12 @@ export const MapDisplay: React.FC<Props> = ({
       };
 
       const displayTiles = getDisplayTiles(tileCoords);
-      for (const { image, rectangle } of displayTiles) {
+      for (const displayTile of displayTiles) {
+        extractTileImage(displayTile, tempTileCtx);
+
+        const { image, rectangle } = displayTile;
         ctx.drawImage(
-          image,
-          rectangle.x,
-          rectangle.y,
-          rectangle.width,
-          rectangle.height,
+          tempTileCtx.canvas,
           tileCornerDest.x,
           tileCornerDest.y,
           rectangle.width,
