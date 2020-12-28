@@ -11,7 +11,7 @@ interface Props {
   width: number;
   height: number;
   pixelScale: number; // number of physical pixels per sprite pixel
-  focus: Coordinates; // coordinates of the tile which will be shown exactly in the center of the canvas (possibly fractional)
+  offset: Coordinates; // number of tiles to shift by before drawing. When zero, the (0, 0) tile will draw in the top left corner of the canvas (possibly fractional)
   tileSize: number; // width (and height) of a tile in pixels of the source image
 }
 
@@ -64,7 +64,7 @@ export const MapDisplay: React.FC<Props> = ({
   width,
   height,
   pixelScale,
-  focus,
+  offset,
   tileSize,
   onMouseClick,
 }) => {
@@ -94,12 +94,12 @@ export const MapDisplay: React.FC<Props> = ({
     ctx.fillRect(0, 0, width, height);
 
     const firstTileCoords = {
-      x: Math.floor(focus.x - canvasWidth / 2 / tileSize),
-      y: Math.floor(focus.y - canvasHeight / 2 / tileSize),
+      x: Math.floor(offset.x / tileSize),
+      y: Math.floor(offset.y / tileSize),
     };
     const lastTileCoords = {
-      x: Math.ceil(focus.x + canvasWidth / 2 / tileSize),
-      y: Math.ceil(focus.y + canvasHeight / 2 / tileSize),
+      x: Math.ceil(offset.x + canvasWidth / tileSize),
+      y: Math.ceil(offset.y + canvasHeight / tileSize),
     };
 
     for (
@@ -114,12 +114,8 @@ export const MapDisplay: React.FC<Props> = ({
           : { x: firstTileCoords.x, y: tileCoords.y + 1 }
     ) {
       const tileCornerDest = {
-        x: Math.floor(
-          canvasWidth / 2 + (tileCoords.x - focus.x) * tileSize - tileSize / 2,
-        ),
-        y: Math.floor(
-          canvasHeight / 2 + (tileCoords.y - focus.y) * tileSize - tileSize / 2,
-        ),
+        x: Math.floor((tileCoords.x - offset.x) * tileSize),
+        y: Math.floor((tileCoords.y - offset.y) * tileSize),
       };
 
       const displayTiles = getDisplayTiles(tileCoords);
@@ -164,16 +160,10 @@ export const MapDisplay: React.FC<Props> = ({
           const canvasRect = canvas.current?.getBoundingClientRect()!;
 
           const canvasX = Math.floor(
-            ((ev.clientX - canvasRect.left) / canvasScale -
-              canvasWidth / 2 +
-              tileSize / 2) /
-              tileSize,
+            (ev.clientX - canvasRect.left) / canvasScale / tileSize,
           );
           const canvasY = Math.floor(
-            ((ev.clientY - canvasRect.top) / canvasScale -
-              canvasHeight / 2 +
-              tileSize / 2) /
-              tileSize,
+            (ev.clientY - canvasRect.top) / canvasScale / tileSize,
           );
 
           onMouseClick({ x: canvasX, y: canvasY }, ev);

@@ -242,7 +242,7 @@ export const AppComponent: React.FC = () => {
           width={1000}
           height={1000}
           pixelScale={2}
-          focus={{ x: 40, y: 25 }}
+          offset={{ x: 30, y: 15 }}
           tileSize={tileSize}
           onMouseClick={(c, ev) => {
             const layerId = 11;
