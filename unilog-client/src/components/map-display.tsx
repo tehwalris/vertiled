@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { Coordinates, DisplayTile } from "../interfaces";
-
-export type getDisplayTilesFunction = (
-  coordinates: Coordinates,
-) => DisplayTile[];
+import { getDisplayTilesFunction } from "../get-display-tiles";
 
 interface Props {
   getDisplayTiles: getDisplayTilesFunction;

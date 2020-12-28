@@ -18,34 +18,17 @@ import {
 } from "unilog-shared";
 import { Coordinates, DisplayTile, Rectangle, TileFlips } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
-import { getDisplayTilesFunction, MapDisplay } from "./map-display";
+import { MapDisplay } from "./map-display";
 import { v4 as genId } from "uuid";
+import { useImageStore } from "../image-store";
+import { generateTileMapFromTileset, TileMap } from "../tile-map";
+import { makeGetDisplayTiles } from "../get-display-tiles";
 
 const styles = {
   map: {
     display: "block",
   } as React.CSSProperties,
 };
-
-interface TileResource {
-  idWithoutFlags: number;
-  image: string;
-  rectangle: Rectangle;
-  properties: Property[];
-}
-
-export function splitGid(
-  gid: number,
-): { idWithoutFlags: number; flips: TileFlips } {
-  return {
-    idWithoutFlags: 0x1fffffff & gid,
-    flips: {
-      horizontal: !!(gid & 0x80000000),
-      vertical: !!(gid & 0x40000000),
-      diagonal: !!(gid & 0x20000000),
-    },
-  };
-}
 
 export function getIndexInLayerFromTileCoord(
   world: MapWorld,
@@ -67,7 +50,7 @@ export const AppComponent: React.FC = () => {
   const nextLocalId = useRef<number>(-1);
 
   const [serverState, setServerState] = useState(initialState);
-  const [tileMap, setTileMap] = useState<Record<number, TileResource>>({});
+  const [tileMap, setTileMap] = useState<TileMap>({});
 
   const [selectedTileSet, setSelectedTileSet] = useState(0);
   const [visibleLayers, setVisibleLayers] = useState<number[]>([]);
@@ -81,33 +64,11 @@ export const AppComponent: React.FC = () => {
     );
   }
 
-  function getTileResourcesFromTileset(tilesets: Tileset[]) {
-    const tiles: Record<number, TileResource> = {};
-    for (const tileset of tilesets) {
-      for (let index = 0; index < tileset.tilecount; index++) {
-        tiles[tileset.firstgid + index] = {
-          idWithoutFlags: tileset.firstgid + index,
-          properties: tileset.tiles?.[index]?.properties ?? [],
-          image: tileset.image,
-          rectangle: {
-            x: tileset.tilewidth * (index % tileset.columns),
-            y: tileset.tileheight * Math.floor(index / tileset.columns),
-            width: tileset.tilewidth,
-            height: tileset.tileheight,
-          },
-        };
-      }
-    }
-    return tiles;
-  }
-
   const wsRef = useWebSocket([wsServerURL], (_msg) => {
     const msg = JSON.parse(_msg.data) as ServerMessage;
     switch (msg.type) {
       case MessageType.InitialServer: {
-        setTileMap(
-          getTileResourcesFromTileset(msg.initialState.world.tilesets),
-        );
+        setTileMap(generateTileMapFromTileset(msg.initialState.world.tilesets));
         setServerState(msg.initialState);
         break;
       }
@@ -158,84 +119,18 @@ export const AppComponent: React.FC = () => {
     }
   }, serverState);
 
-  const imageResources = useRef<Map<string, HTMLImageElement>>(new Map());
-
-  const [renderTrigger, setRenderTrigger] = useState({});
-
-  function loadImage(url: string) {
-    const imgEl = document.createElement("img");
-    imgEl.src = `${httpServerURL}/${url}`;
-    imageResources.current.set(url, imgEl);
-    imgEl.onload = () => {
-      setRenderTrigger({});
-    };
-  }
-
   // TODO get from synced state
   const ownCursorCoords: Coordinates | undefined = { x: 40, y: 30 };
 
-  const getDisplayTiles: getDisplayTilesFunction = ({ x, y }) => {
-    const layers = state.world.layers.filter(
-      (l) =>
-        l.width &&
-        l.height &&
-        l.x + l.width > x &&
-        l.x <= x &&
-        l.y + l.height > y &&
-        l.y <= y,
-    );
-    const tiles = layers.map((l) => l.data![y * l.width! + x]);
+  const imageStore = useImageStore(httpServerURL);
 
-    const displayTiles: DisplayTile[] = tiles
-      .map((tileIdwithFlags) => {
-        const { idWithoutFlags, flips } = splitGid(tileIdwithFlags);
-        if (idWithoutFlags === 0) {
-          // Background tile
-          return undefined;
-        }
-        if (!tileMap[idWithoutFlags]) {
-          console.error(
-            `Could not find tile with ID ${idWithoutFlags}`,
-            tileMap,
-          );
-          return undefined;
-        }
-        const tile = tileMap[idWithoutFlags];
-        if (!imageResources.current.has(tile.image)) {
-          loadImage(tile.image);
-          // TODO: Loading status here
-          return undefined;
-        }
-
-        return {
-          ...tileMap[idWithoutFlags],
-          image: imageResources.current.get(tile.image)!,
-          flips: flips,
-        };
-      })
-      .filter((tile) => tile && tile.image.complete)
-      .map((tile) => tile!);
-
-    const uiTilesImageName = "ui-tiles.png"; // TODO save this separately from the "world" tile maps
-    if (imageResources.current.has(uiTilesImageName)) {
-      const uiTilesImage = imageResources.current.get(uiTilesImageName)!;
-      if (
-        ownCursorCoords &&
-        ownCursorCoords.x === x &&
-        ownCursorCoords.y === y
-      ) {
-        displayTiles.push({
-          image: uiTilesImage,
-          rectangle: { x: 0, y: 0, width: tileSize, height: tileSize },
-          flips: { diagonal: false, horizontal: false, vertical: false },
-        });
-      }
-    } else {
-      loadImage(uiTilesImageName);
-    }
-
-    return displayTiles;
-  };
+  const getDisplayTiles = makeGetDisplayTiles(
+    state.world.layers,
+    tileMap,
+    imageStore,
+    ownCursorCoords,
+    tileSize,
+  );
 
   return (
     <div>
