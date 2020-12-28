@@ -141,6 +141,7 @@ export const AppComponent: React.FC = () => {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
           }
         }
+        world.layers = world.layers.filter((layer) => layer.visible);
       }),
     [
       state.world,
@@ -166,20 +167,6 @@ export const AppComponent: React.FC = () => {
   }, [worldForGlTiledWithoutLayers, imageStore.assetCache]);
 
   useEffect(() => {
-    const tilemapWithPrivate = (tilemap as unknown) as Omit<
-      glTiled.GLTilemap,
-      "_layers"
-    > & {
-      _layers: glTiled.TGLLayer[];
-    };
-    const privateLayersByDesc = new Map(
-      tilemapWithPrivate._layers.map((privateLayer, i) => [
-        tilemap.desc.layers[i],
-        privateLayer,
-      ]),
-    );
-    const layerDescsWithoutPrivate = new Set();
-
     const newLayers: glTiled.ILayer[] = worldForGlTiled.layers as any; // TODO avoid cast
     const addedLayers = newLayers.filter(
       (newLayer) => !tilemap.desc.layers.includes(newLayer),
@@ -191,35 +178,9 @@ export const AppComponent: React.FC = () => {
       tilemap.destroyLayerFromDesc(layer);
     }
     for (const layer of addedLayers) {
-      const oldPrivateLayersLength = tilemapWithPrivate._layers.length;
       tilemap.createLayerFromDesc(layer);
-      const newPrivateLayersLength = tilemapWithPrivate._layers.length;
-      if (newPrivateLayersLength == oldPrivateLayersLength + 1) {
-        privateLayersByDesc.set(
-          layer,
-          tilemapWithPrivate._layers[newPrivateLayersLength - 1],
-        );
-      } else if (newPrivateLayersLength == oldPrivateLayersLength) {
-        layerDescsWithoutPrivate.add(layer);
-      } else {
-        throw new Error("unexpected change to private layers");
-      }
     }
-
     tilemap.desc.layers = [...newLayers];
-    tilemapWithPrivate._layers = newLayers
-      .map((newLayer) => {
-        const privateLayer = privateLayersByDesc.get(newLayer);
-        if (
-          privateLayer === undefined &&
-          !layerDescsWithoutPrivate.has(newLayer)
-        ) {
-          throw new Error("could not find private layer for desc");
-        }
-        return privateLayer;
-      })
-      .filter((v) => v)
-      .map((v) => v!);
   }, [tilemap, worldForGlTiled.layers]);
 
   const windowSize = useWindowSize();
