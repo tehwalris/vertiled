@@ -37,10 +37,10 @@ function extractTileImage(tile: DisplayTile, ctx: CanvasRenderingContext2D) {
     ctx.scale(1, -1);
   }
   if (tile.flips.horizontal) {
-    ctx.scale(1, -1);
+    ctx.scale(-1, 1);
   }
   if (tile.flips.vertical) {
-    ctx.scale(-1, 1);
+    ctx.scale(1, -1);
   }
   ctx.translate(-tileSize / 2, -tileSize / 2);
 
