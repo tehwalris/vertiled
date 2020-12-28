@@ -141,14 +141,14 @@ export const AppComponent: React.FC = () => {
           offset={{ x: 30, y: 15 }}
           tileSize={tileSize}
           onMouseClick={(c) => {
-            const layerId = 11;
-
-            runAction({
-              type: ActionType.SetTile,
-              layerId,
-              index: getIndexInLayerFromTileCoord(state.world, layerId, c),
-              tileId: 10,
-            });
+            // TODO implement with cursors
+            // const layerId = 11;
+            // runAction({
+            //   type: ActionType.SetTile,
+            //   layerId,
+            //   index: getIndexInLayerFromTileCoord(state.world, layerId, c),
+            //   tileId: 10,
+            // });
           }}
         />
       </div>
