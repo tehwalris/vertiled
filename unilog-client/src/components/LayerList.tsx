@@ -6,7 +6,7 @@ interface Props {
 }
 export function LayerList({
   layers,
-  onToggleVisibility: onToggleVisability,
+  onToggleVisibility: onToggleVisibility,
 }: Props) {
   return (
     <div className="selection-list">
@@ -16,7 +16,7 @@ export function LayerList({
           <li
             key={layer.id}
             onClick={() => {
-              onToggleVisability(layer.id, !layer.visible);
+              onToggleVisibility(layer.id, !layer.visible);
             }}
             className={layer.visible ? "active" : ""}
           >
