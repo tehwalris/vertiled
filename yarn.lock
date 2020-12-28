@@ -5211,6 +5211,11 @@ getpass@^0.1.1:
   dependencies:
     assert-plus "^1.0.0"
 
+gl-tiled@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/gl-tiled/-/gl-tiled-1.0.0.tgz#b08c5986ae67807065cebebe683dac90ac92ae0c"
+  integrity sha512-dKUWhyDb+s/aXnVq07jG2W8CJi5rm8lXjHyjBnbjqIRSrsKM+wPAhgjRKRTLB/RJXzO/pWqF1lHVo02VKBD1rQ==
+
 glob-parent@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-3.1.0.tgz#9e6af6299d8d3bd2bd40430832bd113df906c5ae"

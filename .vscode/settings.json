@@ -3,6 +3,7 @@
     "Coord",
     "Tilesets",
     "immer",
+    "tilemap",
     "tileset",
     "unilog"
   ]

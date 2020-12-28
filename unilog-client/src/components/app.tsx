@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Action,
   ClientMessage,
@@ -21,6 +21,7 @@ import { useImageStore } from "../image-store";
 import { generateTileMapFromTileset, TileMap } from "../tile-map";
 import { makeGetDisplayTiles } from "../get-display-tiles";
 import { produce } from "immer";
+import * as glTiled from "gl-tiled";
 
 const styles = {
   map: {
@@ -121,22 +122,40 @@ export const AppComponent: React.FC = () => {
   const ownCursorCoords: Coordinates | undefined = { x: 40, y: 30 };
 
   const imageStore = useImageStore(httpServerURL);
+  useEffect(() => {
+    for (const tileset of state.world.tilesets) {
+      imageStore.getImage(tileset.image);
+    }
+  }, [state.world.tilesets]);
+  const assetCache = imageStore.asAssetCache();
 
-  const getDisplayTiles = makeGetDisplayTiles(
-    state.world.layers,
-    tileMap,
-    imageStore,
-    ownCursorCoords,
-    tileSize,
+  const worldForGlTiled = useMemo(
+    () =>
+      produce(state.world, (world) => {
+        for (const tileset of world.tilesets) {
+          if (!assetCache[tileset.image]) {
+            tileset.image = ""; // HACK don't load anything if the image is not in the cache
+          }
+        }
+      }),
+    [state.world, assetCache],
   );
+
+  const tilemap = useMemo(() => {
+    console.log("DEBUG new GLTilemap", state.world);
+    const tilemap = new glTiled.GLTilemap(
+      (worldForGlTiled as any) as glTiled.ITilemap, // TODO avoid cast
+      { assetCache },
+    );
+    tilemap.resizeViewport(1000, 1000);
+    return tilemap;
+  }, [worldForGlTiled, assetCache]);
 
   return (
     <div>
       <div style={styles.map}>
         <MapDisplay
-          getDisplayTiles={getDisplayTiles}
-          width={1000}
-          height={1000}
+          tilemap={tilemap}
           pixelScale={2}
           offset={{ x: 30, y: 15 }}
           tileSize={tileSize}
