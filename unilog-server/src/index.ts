@@ -20,7 +20,7 @@ app.use(express.static("../test-world"));
 
 const log: LogEntry[] = [];
 let state: State = {
-  cursors: [],
+  users: [],
   world: JSON.parse(
     readFileSync("../test-world/main.json", { encoding: "utf-8" }),
   ),

@@ -1,8 +1,7 @@
 import { produce } from "immer";
 import { getLayer, unreachable } from "./util";
-import * as R from "ramda";
 import { Action, ActionType } from "./interfaces/action";
-import { Layer, State } from "./interfaces/data";
+import { State } from "./interfaces/data";
 
 export const initialState: State = {
   world: {
@@ -27,7 +26,7 @@ export const initialState: State = {
     version: 1.4,
     width: 100,
   },
-  cursors: [],
+  users: [],
 };
 
 export const reducer = (_state: State, action: Action): State =>
@@ -47,10 +46,24 @@ export const reducer = (_state: State, action: Action): State =>
         layer.data[action.index] = action.tileId;
         break;
       }
-      case ActionType.SetCursor: {
-        throw new Error("Unimplemented");
+      case ActionType.SetSelection: {
+        const user = state.users.find((u) => u.id === action.userId);
+        if (!user) {
+          throw new Error(`unknown user: ${action.userId}`);
+        }
+        user.selection = action.selection;
+        break;
       }
-
+      case ActionType.AddUser: {
+        if (!state.users.find((u) => u.id === action.userId)) {
+          state.users.push({ id: action.userId });
+        }
+        break;
+      }
+      case ActionType.RemoveUser: {
+        state.users = state.users.filter((u) => u.id !== action.userId);
+        break;
+      }
       default:
         unreachable(action);
     }

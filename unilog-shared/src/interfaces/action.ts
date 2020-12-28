@@ -1,8 +1,16 @@
-export type Action = SetTileAction | SetCursorAction;
+import { Rectangle } from "./data";
+
+export type Action =
+  | SetTileAction
+  | SetSelectionAction
+  | AddUserAction
+  | RemoveUserAction;
 
 export enum ActionType {
   SetTile = "SetTile",
-  SetCursor = "SetCursor",
+  SetSelection = "SetSelection",
+  AddUser = "AddUser",
+  RemoveUser = "RemoveUser",
 }
 
 export interface SetTileAction {
@@ -13,9 +21,18 @@ export interface SetTileAction {
   tileId: number;
 }
 
-export interface SetCursorAction {
-  type: ActionType.SetCursor;
-  id: string;
-  x: number;
-  y: number;
+export interface SetSelectionAction {
+  type: ActionType.SetSelection;
+  userId: string;
+  selection?: Rectangle;
+}
+
+export interface AddUserAction {
+  type: ActionType.AddUser;
+  userId: string;
+}
+
+export interface RemoveUserAction {
+  type: ActionType.RemoveUser;
+  userId: string;
 }

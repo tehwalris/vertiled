@@ -12,13 +12,12 @@ export interface Rectangle extends Coordinates {
 
 export interface State {
   world: MapWorld;
-  cursors: Cursor[];
+  users: User[];
 }
 
-export interface Cursor {
-  x: number;
-  y: number;
-  userId: number;
+export interface User {
+  id: string;
+  selection?: Rectangle;
 }
 
 export interface MapWorld {
