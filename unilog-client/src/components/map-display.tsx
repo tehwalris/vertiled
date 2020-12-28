@@ -7,6 +7,7 @@ export type getDisplayTilesFunction = (
 
 interface Props {
   getDisplayTiles: getDisplayTilesFunction;
+  onMouseClick: (coordinates: Coordinates, ev: React.MouseEvent) => void;
   width: number;
   height: number;
   pixelScale: number; // number of physical pixels per sprite pixel
@@ -27,6 +28,7 @@ export const MapDisplay: React.FC<Props> = ({
   pixelScale,
   focus,
   tileSize,
+  onMouseClick,
 }) => {
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
   const canvasWidth = Math.floor((width / pixelScale) * devicePixelRatio);
@@ -97,6 +99,8 @@ export const MapDisplay: React.FC<Props> = ({
     };
   });
 
+  const canvasScale = pixelScale / devicePixelRatio;
+
   return (
     <div
       style={{
@@ -108,10 +112,31 @@ export const MapDisplay: React.FC<Props> = ({
         ref={canvas}
         width={canvasWidth}
         height={canvasHeight}
+        onClick={(ev) => {
+          ev.persist();
+          console.log("Mouseclick", ev);
+
+          const canvasRect = canvas.current?.getBoundingClientRect()!;
+
+          const canvasX = Math.floor(
+            ((ev.clientX - canvasRect.left) / canvasScale -
+              canvasWidth / 2 +
+              tileSize / 2) /
+              tileSize,
+          );
+          const canvasY = Math.floor(
+            ((ev.clientY - canvasRect.top) / canvasScale -
+              canvasHeight / 2 +
+              tileSize / 2) /
+              tileSize,
+          );
+
+          onMouseClick({ x: canvasX, y: canvasY }, ev);
+        }}
         style={{
           ...styles.canvas,
           imageRendering: "pixelated",
-          transform: `scale(${pixelScale / devicePixelRatio})`,
+          transform: `scale(${canvasScale})`,
         }}
       ></canvas>
     </div>

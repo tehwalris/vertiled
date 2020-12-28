@@ -207,8 +207,9 @@ export const AppComponent: React.FC = () => {
           width={1000}
           height={1000}
           pixelScale={2}
-          focus={{ x: 42, y: 27 }}
+          focus={{ x: 0, y: 0 }}
           tileSize={32}
+          onMouseClick={(c, ev) => console.log("Clicked mouse, cords:", c, ev)}
         />
       </div>
       <div>Remote log length: {remoteLog.length}</div>
