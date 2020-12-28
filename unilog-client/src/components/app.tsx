@@ -69,6 +69,8 @@ export const AppComponent: React.FC = () => {
   const [serverState, setServerState] = useState(initialState);
   const [tileMap, setTileMap] = useState<Record<number, TileResource>>({});
 
+  const [selectedTileSet, setSelectedTileSet] = useState(0);
+
   function addToRemoteLog(entry: LogEntry) {
     setRemoteLog((old) =>
       R.sortBy(
@@ -257,6 +259,30 @@ export const AppComponent: React.FC = () => {
           }}
         />
       </div>
+      <div className="selection-list">
+        <h3>Tilesets</h3>
+        <ul>
+          {state.world.tilesets.map((tileset, i) => (
+            <li
+              key={i}
+              onClick={() => setSelectedTileSet(i)}
+              className={selectedTileSet === i ? "active" : ""}
+            >
+              {tileset.name}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="selection-list">
+        <h3>Layers</h3>
+        <ul>
+          {state.world.layers.map((layer, i) => (
+            <li key={i}>{layer.name}</li>
+          ))}
+        </ul>
+      </div>
+
       <div>Remote log length: {remoteLog.length}</div>
       <div>Local log length: {localLog.length}</div>
     </div>
