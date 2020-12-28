@@ -156,36 +156,14 @@ export const AppComponent: React.FC = () => {
     ],
   );
 
-  const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
-    ...worldForGlTiled,
-    layers: EMPTY_LAYERS,
-  }));
-
   const tilemap = useMemo(() => {
     const tilemap = new glTiled.GLTilemap(
-      ({ ...worldForGlTiledWithoutLayers } as any) as glTiled.ITilemap, // TODO avoid cast
+      ({ ...worldForGlTiled } as any) as glTiled.ITilemap, // TODO avoid cast
       { assetCache: imageStore.assetCache },
     );
     tilemap.repeatTiles = false;
     return tilemap;
-  }, [worldForGlTiledWithoutLayers, imageStore.assetCache]);
-
-  useEffect(() => {
-    const newLayers: glTiled.ILayer[] = worldForGlTiled.layers as any; // TODO avoid cast
-    const addedLayers = newLayers.filter(
-      (newLayer) => !tilemap.desc.layers.includes(newLayer),
-    );
-    const removedLayers = tilemap.desc.layers.filter(
-      (oldLayer) => !newLayers.includes(oldLayer),
-    );
-    for (const layer of removedLayers) {
-      tilemap.destroyLayerFromDesc(layer);
-    }
-    for (const layer of addedLayers) {
-      tilemap.createLayerFromDesc(layer);
-    }
-    tilemap.desc.layers = [...newLayers];
-  }, [tilemap, worldForGlTiled.layers]);
+  }, [worldForGlTiled, imageStore.assetCache]);
 
   const windowSize = useWindowSize();
 
