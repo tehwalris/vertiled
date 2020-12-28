@@ -69,6 +69,12 @@ export interface Layer {
   objects?: any[];
 }
 
+export interface RegularLayer extends Layer, Rectangle {
+  width: number;
+  height: number;
+  data: number[];
+}
+
 export interface Tileset {
   columns: number;
   firstgid: number;

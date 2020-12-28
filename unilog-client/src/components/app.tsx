@@ -6,7 +6,7 @@ import {
   Action,
   ActionType,
   ClientMessage,
-  Coordinates,
+  Coordinates, extractCursor,
   getLayer,
   initialState,
   Layer,
@@ -136,6 +136,8 @@ export const AppComponent: React.FC = () => {
     handleEndSelect,
   } = useSelection(state.world.tilesets, imageStore);
 
+  const myState = state.users.find(u => u.id === userId);
+
   const worldForGlTiled = useMemo(
     () =>
       produce(state.world, (world) => {
@@ -189,6 +191,16 @@ export const AppComponent: React.FC = () => {
           }}
           onPointerUp={(c, ev) => {
             handleEndSelect(userId, runAction);
+            
+            const selection = myState?.selection;
+            if (selection && selection.width >= 1 && selection.height >= 1) {
+              const cursor = extractCursor(state.world, selection);
+              runAction({
+                type: ActionType.SetCursor,
+                userId: userId,
+                cursor: cursor
+              });
+            }
           }}
           onPointerMove={(c, ev) => {
             handleMoveSelect(userId, state.users, c, runAction);
