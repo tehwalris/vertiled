@@ -152,40 +152,41 @@ export const AppComponent: React.FC = () => {
           }}
         />
       </div>
-      <div className="selection-list">
-        <h3>Tilesets</h3>
-        <ul>
-          {state.world.tilesets.map((tileset, i) => (
-            <li
-              key={i}
-              onClick={() => setSelectedTileSet(i)}
-              className={selectedTileSet === i ? "active" : ""}
-            >
-              {tileset.name}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="selection-list">
-        <h3>Layers</h3>
-        <ul>
-          {state.world.layers.map((layer, i) => (
-            <li
-              key={layer.id}
-              onClick={() => {
-                runAction({
-                  type: ActionType.SetLayerVisibility,
-                  layerId: layer.id,
-                  visibility: !layer.visible,
-                });
-              }}
-              className={layer.visible ? "active" : ""}
-            >
-              {layer.name}
-            </li>
-          ))}
-        </ul>
+      <div className="overlay">
+        <div className="selection-list">
+          <h3>Tilesets</h3>
+          <ul>
+            {state.world.tilesets.map((tileset, i) => (
+              <li
+                key={i}
+                onClick={() => setSelectedTileSet(i)}
+                className={selectedTileSet === i ? "active" : ""}
+              >
+                {tileset.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="selection-list">
+          <h3>Layers</h3>
+          <ul>
+            {state.world.layers.map((layer, i) => (
+              <li
+                key={layer.id}
+                onClick={() => {
+                  runAction({
+                    type: ActionType.SetLayerVisibility,
+                    layerId: layer.id,
+                    visibility: !layer.visible,
+                  });
+                }}
+                className={layer.visible ? "active" : ""}
+              >
+                {layer.name}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div>Remote log length: {remoteLog.length}</div>

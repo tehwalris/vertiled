@@ -16,6 +16,10 @@ code {
   width: 300px;
 }
 
+.selection-list ul {
+  padding: 0px;
+}
+
 .selection-list li.active {
   background-color: #aaa;
 }
@@ -24,6 +28,17 @@ code {
   list-style: none;
   cursor: pointer;
   background-color: #ddd;
-  margin: 5px;
+  margin: 0px 0px;
   padding: 5px;
+  color: black;
+}
+
+.overlay {
+  padding: 5px 20px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  height: 100vh;
+  color: white;
 }
