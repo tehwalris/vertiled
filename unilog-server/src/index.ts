@@ -1,5 +1,6 @@
 import {
   Action,
+  ActionType,
   ClientMessage,
   InitialServerMessage,
   LogEntry,
@@ -11,6 +12,7 @@ import {
 } from "unilog-shared";
 import WebSocket from "ws";
 import express from "express";
+import { v4 as genId } from "uuid";
 
 import { FAKE_ACTIONS } from "./fake";
 import { readFileSync } from "fs";
@@ -46,12 +48,17 @@ wss.on("connection", (ws) => {
     ws.send(JSON.stringify(msg));
   }
 
-  // Send initial state to
-  const initMsg: InitialServerMessage = {
+  const userId = genId();
+  pushToLog({ type: ActionType.AddUser, userId });
+  send({
     type: MessageType.InitialServer,
     initialState: state,
-  };
-  send(initMsg);
+    userId,
+  });
+
+  ws.on("close", () => {
+    pushToLog({ type: ActionType.RemoveUser, userId });
+  });
 
   ws.on("message", (_msg) => {
     const msg: ClientMessage = JSON.parse(_msg.toString());

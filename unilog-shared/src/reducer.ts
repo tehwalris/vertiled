@@ -60,9 +60,10 @@ export const reducer = (_state: State, action: Action): State =>
         break;
       }
       case ActionType.AddUser: {
-        if (!state.users.find((u) => u.id === action.userId)) {
-          state.users.push({ id: action.userId });
+        if (state.users.find((u) => u.id === action.userId)) {
+          throw new Error(`user already exists: ${action.userId}`);
         }
+        state.users.push({ id: action.userId });
         break;
       }
       case ActionType.RemoveUser: {
