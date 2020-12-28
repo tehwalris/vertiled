@@ -172,7 +172,7 @@ export const AppComponent: React.FC = () => {
   const mySelectionTileId = uiFirstGid;
   const othersSelectionTileId = uiFirstGid + 1;
 
-  const [isSelecting, setIsSelecting] = useState(false);
+  const [isSelecting, setIsSelecting] = useState<Coordinates>();
 
   const imageStore = useImageStore(httpServerURL);
   useEffect(() => {
@@ -242,7 +242,7 @@ export const AppComponent: React.FC = () => {
           offset={{ x: 30, y: 15 }}
           tileSize={tileSize}
           onPointerDown={(c, ev) => {
-            setIsSelecting(true);
+            setIsSelecting(c);
             runAction({
               type: ActionType.SetSelection,
               userId,
@@ -254,7 +254,7 @@ export const AppComponent: React.FC = () => {
             });
           }}
           onPointerUp={(c, ev) => {
-            setIsSelecting(false);
+            setIsSelecting(undefined);
             runAction({
               type: ActionType.SetSelection,
               userId,
@@ -269,11 +269,18 @@ export const AppComponent: React.FC = () => {
               if (!oldSelection) {
                 return;
               }
+
+              const { x, y } = isSelecting;
+              const x1 = Math.min(x, c.x);
+              const x2 = Math.max(x, c.x);
+              const y1 = Math.min(y, c.y);
+              const y2 = Math.max(y, c.y);
+
               const newSelection = {
-                x: oldSelection.x,
-                y: oldSelection.y,
-                width: c.x - oldSelection.x + 1,
-                height: c.y - oldSelection.y + 1,
+                x: x1,
+                y: y1,
+                width: x2 - x1 + 1,
+                height: y2 - y1 + 1,
               };
               if (
                 oldSelection.width !== newSelection.width ||
