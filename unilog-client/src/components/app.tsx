@@ -1,3 +1,5 @@
+import * as glTiled from "gl-tiled";
+import { produce } from "immer";
 import * as R from "ramda";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -16,15 +18,9 @@ import {
   unreachable,
   User,
 } from "unilog-shared";
-import { makeGetDisplayTiles } from "../get-display-tiles";
 import { useImageStore } from "../image-store";
-import { generateTileMapFromTileset, TileMap, TileResource } from "../tile-map";
 import { useWebSocket } from "../use-web-socket";
 import { MapDisplay } from "./map-display";
-import { v4 as genId } from "uuid";
-
-import { produce } from "immer";
-import * as glTiled from "gl-tiled";
 
 const styles = {
   map: {
@@ -46,13 +42,56 @@ const wsServerURL = `ws://${serverOrigin}`;
 const httpServerURL = `//${serverOrigin}`;
 const tileSize = 32;
 
+function addCursorLayer(
+  layers: Layer[],
+  users: User[],
+  currentUser: string,
+  mySelectionTileId: number,
+  othersSelectionTileId: number,
+) {
+  //we assume that all layers start at one and that the first layer has a width and height
+  const referenceLayer = layers[0];
+
+  if (!referenceLayer) {
+    return layers;
+  }
+
+  const data = new Array(referenceLayer.height! * referenceLayer.width!).fill(
+    0,
+  );
+
+  for (const user of users) {
+    if (user.selection) {
+      const tile =
+        user.id === currentUser ? mySelectionTileId : othersSelectionTileId;
+      const { x, y, width, height } = user.selection;
+      const x1 = Math.min(x, x + width);
+      const x2 = Math.max(x, x + width);
+      const y1 = Math.min(y, y + height);
+      const y2 = Math.max(y, y + height);
+
+      for (let i = x1; i < x2; i++) {
+        for (let j = y1; j < y2; j++) {
+          data[i + j * referenceLayer.width!] = tile;
+        }
+      }
+    }
+  }
+
+  layers.push({
+    ...referenceLayer,
+    id: Math.max(...layers.map((l) => l.id)) + 1,
+    data,
+    name: "selection-ui",
+  });
+}
+
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
   const [localLog, setLocalLog] = useState<LogEntry[]>([]);
   const nextLocalId = useRef<number>(-1);
 
   const [serverState, setServerState] = useState(initialState);
-  const [tileMap, setTileMap] = useState<TileMap>({});
 
   const [selectedTileSet, setSelectedTileSet] = useState(0);
 
@@ -71,7 +110,6 @@ export const AppComponent: React.FC = () => {
     const msg = JSON.parse(_msg.data) as ServerMessage;
     switch (msg.type) {
       case MessageType.InitialServer: {
-        setTileMap(generateTileMapFromTileset(msg.initialState.world.tilesets));
         setUserId(msg.userId);
         setServerState(msg.initialState);
         break;
@@ -126,110 +164,63 @@ export const AppComponent: React.FC = () => {
 
   // TODO get from synced state
 
-  const imageStore = useImageStore(httpServerURL);
-
-  const highestId = Math.max(...Object.keys(tileMap).map((s) => parseInt(s)));
-
-  const mySelectionTileId = 1;
-  const othersSelectionTileId = highestId + 2;
-
-  function addCursorLayer(layers: Layer[], users: User[]): Layer[] {
-    //we assume that all layers start at one and that the first layer has a width and height
-    const referenceLayer = layers[0];
-
-    if (!referenceLayer) {
-      return layers;
-    }
-
-    const data = new Array(referenceLayer.height! * referenceLayer.width!).fill(
-      0,
-    );
-
-    for (const user of users) {
-      if (user.selection) {
-        const tile =
-          user.id === userId ? mySelectionTileId : othersSelectionTileId;
-        const { x, y, width, height } = user.selection;
-        const x1 = Math.min(x, x + width);
-        const x2 = Math.max(x, x + width);
-        const y1 = Math.min(y, y + height);
-        const y2 = Math.max(y, y + height);
-
-        for (let i = x1; i < x2; i++) {
-          for (let j = y1; j < y2; j++) {
-            data[i + j * referenceLayer.width!] = tile;
-          }
-        }
-      }
-    }
-
-    console.log({
-      ...referenceLayer,
-      id: state.world.nextlayerid,
-      data,
-      name: "selection-ui",
-    });
-
-    return [
-      ...layers,
-      {
-        ...referenceLayer,
-        id: state.world.nextlayerid,
-        data,
-        name: "selection-ui",
-      },
-    ];
-  }
-
-  function addUiTiles(
-    tileset: Record<number, TileResource>,
-  ): Record<number, TileResource> {
-    const mySelectionTile = {
-      image: "ui-tiles.png",
-      rectangle: { x: 0, y: 0, width: tileSize, height: tileSize },
-      flips: { diagonal: false, horizontal: false, vertical: false },
-      properties: [],
-      idWithoutFlags: mySelectionTileId,
-    };
-    const othersSelectionTile = {
-      image: "ui-tiles.png",
-      rectangle: { x: 0, y: 1, width: tileSize, height: tileSize },
-      flips: { diagonal: false, horizontal: false, vertical: false },
-      properties: [],
-      idWithoutFlags: othersSelectionTileId,
-    };
-    return {
-      ...tileset,
-      [mySelectionTileId]: mySelectionTile,
-      [othersSelectionTileId]: othersSelectionTile,
-    };
-  }
-
-  const getDisplayTiles = makeGetDisplayTiles(
-    addCursorLayer(state.world.layers, state.users),
-    addUiTiles(tileMap),
-    imageStore,
-    tileSize,
+  const uiFirstGid = state.world.tilesets.reduce(
+    (a, b) => Math.max(a, b.firstgid + b.tilecount),
+    1,
   );
 
+  const mySelectionTileId = uiFirstGid;
+  const othersSelectionTileId = uiFirstGid + 1;
+
   const [isSelecting, setIsSelecting] = useState(false);
+
+  const imageStore = useImageStore(httpServerURL);
   useEffect(() => {
     for (const tileset of state.world.tilesets) {
       imageStore.getImage(tileset.image);
     }
-  }, [state.world.tilesets]);
+    imageStore.getImage("ui-tiles.png");
+  }, [state.world.tilesets, imageStore]);
   const assetCache = imageStore.asAssetCache();
 
   const worldForGlTiled = useMemo(
     () =>
       produce(state.world, (world) => {
+        addCursorLayer(
+          world.layers,
+          state.users,
+          userId,
+          mySelectionTileId,
+          othersSelectionTileId,
+        );
+        world.tilesets.push({
+          columns: 9,
+          firstgid: uiFirstGid,
+          image: "ui-tiles.png",
+          imageheight: 32,
+          imagewidth: 288,
+          margin: 0,
+          name: "ui-tiles",
+          spacing: 0,
+          tilecount: 9,
+          tileheight: 32,
+          tilewidth: 32,
+        });
         for (const tileset of world.tilesets) {
           if (!assetCache[tileset.image]) {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
           }
         }
       }),
-    [state.world, assetCache],
+    [
+      state.world,
+      assetCache,
+      uiFirstGid,
+      state.users,
+      mySelectionTileId,
+      othersSelectionTileId,
+      userId,
+    ],
   );
 
   const tilemap = useMemo(() => {
