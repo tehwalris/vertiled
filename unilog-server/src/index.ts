@@ -16,8 +16,10 @@ import { v4 as genId } from "uuid";
 
 import { FAKE_ACTIONS } from "./fake";
 import { readFileSync } from "fs";
+import cors from "cors";
 
 const app = express();
+app.use(cors());
 app.use(express.static("../test-world"));
 
 const log: LogEntry[] = [];
