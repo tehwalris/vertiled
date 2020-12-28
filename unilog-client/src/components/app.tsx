@@ -37,7 +37,7 @@ export function getIndexInLayerFromTileCoord(
   return layer.width! * (c.y - layer.y) + (c.x - layer.x);
 }
 
-const serverOrigin = "localhost:8080";
+const serverOrigin = `${window.location.hostname}:8080`;
 const wsServerURL = `ws://${serverOrigin}`;
 const httpServerURL = `//${serverOrigin}`;
 const tileSize = 32;
