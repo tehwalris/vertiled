@@ -46,7 +46,7 @@ export const reducer = (_state: State, action: Action): State =>
         if (!layer.data || !layer.width || !layer.height) {
           throw new Error(`layer ${action.layerId} has no data field`);
         }
-        if (layer.height * layer.width >= action.index) {
+        if (layer.height * layer.width < action.index) {
           throw new Error(
             `index ${action.index} is out of bounds, Layer: ${action.layerId} w: ${layer.width}, h: ${layer.height}`,
           );

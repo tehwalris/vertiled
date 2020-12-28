@@ -12,10 +12,12 @@ import {
   Tile,
   Tileset,
   Property,
+  ActionType,
 } from "unilog-shared";
 import { Rectangle, TileFlips } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
 import { getDisplayTilesFunction, MapDisplay } from "./map-display";
+import { v4 as genId } from "uuid";
 
 const styles = {
   map: {
@@ -209,7 +211,16 @@ export const AppComponent: React.FC = () => {
           pixelScale={2}
           focus={{ x: 0, y: 0 }}
           tileSize={32}
-          onMouseClick={(c, ev) => console.log("Clicked mouse, cords:", c, ev)}
+          onMouseClick={(c, ev) => {
+            console.log("Clicked mouse, cords:", c, ev);
+            runAction({
+              type: ActionType.SetTile,
+              id: genId(),
+              layerId: 11,
+              index: 0,
+              tileId: 390,
+            });
+          }}
         />
       </div>
       <div>Remote log length: {remoteLog.length}</div>
