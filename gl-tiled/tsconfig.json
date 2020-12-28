@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "es2015",
+        "moduleResolution": "node",
+        "strict": true,
+        "sourceMap": false,
+        "declaration": true,
+        "removeComments": false
+    },
+    "typedocOptions": {
+        "mode": "file",
+        "out": "docs",
+        "excludeExternals": true,
+        "excludeNotExported": true,
+        "excludePrivate": true,
+        "exclude": ["node_modules/**"]
+    },
+    "include": [
+        "src/**/*",
+        "bundles/**/*"
+    ]
+}

@@ -1,0 +1,62 @@
+{
+  "name": "gl-tiled",
+  "version": "1.0.0",
+  "main": "./dist/gl-tiled.js",
+  "types": "./dist/bundles/gl-tiled/index.d.ts",
+  "description": "A Tiled editor renderer for WebGL.",
+  "author": "Chad Engler <chad@pantherdev.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/englercj/gl-tiled",
+  "bugs": "https://github.com/englercj/gl-tiled/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/englercj/gl-tiled.git"
+  },
+  "keywords": [
+    "gl",
+    "webgl",
+    "html5",
+    "tilemap",
+    "tile",
+    "tiled",
+    "map",
+    "render",
+    "2d",
+    "tmx"
+  ],
+  "files": [
+    "dist/",
+    "src/",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "cross-env NODE_ENV=production rollup -c rollup.config.ts",
+    "watch": "rollup -w -c rollup.config.ts",
+    "docs": "typedoc",
+    "prepublishOnly": "npm run build",
+    "postpublish": "npm run deploy",
+    "predeploy": "rimraf ./docs && npm run docs && touch ./docs/.nojekyll && node ./scripts/copy-demo.js",
+    "deploy": "gh-pages --dotfiles -d docs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^11.0.2",
+    "@rollup/plugin-node-resolve": "^7.1.1",
+    "cross-env": "^7.0.2",
+    "fs-extra": "^8.1.0",
+    "gh-pages": "^2.2.0",
+    "glob": "^7.1.6",
+    "resource-loader": "^4.0.0-rc4",
+    "rimraf": "^3.0.2",
+    "rollup": "^1.32.1",
+    "rollup-plugin-preprocess": "^0.0.4",
+    "rollup-plugin-string": "^3.0.0",
+    "rollup-plugin-typescript2": "^0.26.0",
+    "stats.js": "^0.17.0",
+    "typedoc": "^0.16.11",
+    "typedoc-md-theme": "^1.0.1",
+    "typescript": "^3.8.3"
+  }
+}

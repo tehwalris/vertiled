@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+        <title>WebGL Tiled Test</title>
+
+        <style>
+            * {
+                box-sizing: content-box;
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+            }
+            html, body {
+                background: #EAEAEA;
+                margin: 0; padding: 0;
+                width: 100%; height: 100%;
+            }
+            #view {
+                position: absolute;
+                width: 100%; height: 100%;
+                top: 0; left: 0;
+                margin: 0; padding: 0;
+                cursor: grab;
+                cursor: -webkit-grab;
+                cursor: -moz-grab;
+                cursor: -ms-grab;
+                background: #000;
+            }
+            #view:active {
+                cursor: grabbing;
+                cursor: -webkit-grabbing;
+                cursor: -moz-grabbing;
+                cursor: -ms-grabbing;
+            }
+            #debug-txt, #show-layer-data, #switch {
+                position: fixed;
+                z-index: 99;
+                right: 0;
+            }
+            #debug-txt { top: 0; }
+            #show-layer-data { top: 20px; }
+            #switch { top: 40px; }
+            .white { color:#fff; }
+        </style>
+    </head>
+    <body>
+        <span id="debug-txt" onclick="this.classList.toggle('white')"></span>
+        <button id="show-layer-data">Show Layer Data Textures</button>
+        <select id="switch"></select>
+
+        <!-- main view -->
+        <canvas id="view"></canvas>
+
+        <!-- data view -->
+        <div id="data-view" style="display: none"></div>
+
+        <script src="../node_modules/resource-loader/dist/resource-loader.js"></script>
+        <script src="../node_modules/stats.js/build/stats.min.js"></script>
+
+        <script src="../dist/gl-tiled.js"></script>
+        <script src="../dist/gl-tiled.resource-loader.js"></script>
+
+        <script src="demo.js"></script>
+    </body>
+</html>

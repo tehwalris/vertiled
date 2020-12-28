@@ -4,7 +4,8 @@
     "packages": [
       "unilog-client",
       "unilog-server",
-      "unilog-shared"
+      "unilog-shared",
+      "gl-tiled"
     ],
     "nohoist": [
       "**"
