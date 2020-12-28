@@ -15,9 +15,15 @@ export interface State {
   users: User[];
 }
 
+export interface Cursor {
+  frame: Rectangle;
+  contents: {layerId: number, data: number[]}[];
+}
+
 export interface User {
   id: string;
   selection?: Rectangle;
+  cursor?: Cursor;
 }
 
 export interface MapWorld {
