@@ -27,8 +27,8 @@ export function makeGetDisplayTiles(
     const tiles = hitLayers.map((l) => l.data![y * l.width! + x]);
 
     const displayTiles: DisplayTile[] = tiles
-      .map((tileIdwithFlags) => {
-        const { idWithoutFlags, flips } = splitGid(tileIdwithFlags);
+      .map((tileIdWithFlags) => {
+        const { idWithoutFlags, flips } = splitGid(tileIdWithFlags);
         if (idWithoutFlags === 0) {
           // Background tile
           return undefined;
