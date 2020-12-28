@@ -112,7 +112,7 @@ wss.on("connection", (ws) => {
 // `server` is a vanilla Node.js HTTP server, so use
 // the same ws upgrade process described here:
 // https://www.npmjs.com/package/ws#multiple-servers-sharing-a-single-https-server
-const server = app.listen(8080);
+const server = app.listen(8088);
 server.on("upgrade", (request, socket, head) => {
   wss.handleUpgrade(request, socket, head, (socket) => {
     wss.emit("connection", socket, request);
