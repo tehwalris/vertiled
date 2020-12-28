@@ -2,9 +2,12 @@ import { Layer } from "unilog-shared";
 
 interface Props {
   layers: Layer[];
-  onToggleVisability: (layerId: number, v: boolean) => void;
+  onToggleVisibility: (layerId: number, v: boolean) => void;
 }
-export function LayerList({ layers, onToggleVisability }: Props) {
+export function LayerList({
+  layers,
+  onToggleVisibility: onToggleVisability,
+}: Props) {
   return (
     <div className="selection-list">
       <h3>Layers</h3>

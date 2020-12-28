@@ -223,7 +223,7 @@ export const AppComponent: React.FC = () => {
         >
           <LayerList
             layers={state.world.layers}
-            onToggleVisability={(id, v) => {
+            onToggleVisibility={(id, v) => {
               runAction({
                 type: ActionType.SetLayerVisibility,
                 layerId: id,
