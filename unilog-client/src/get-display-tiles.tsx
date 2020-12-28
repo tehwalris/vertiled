@@ -1,6 +1,6 @@
-import { Layer, Tileset } from "unilog-shared";
+import { Coordinates, Layer, Tileset } from "unilog-shared";
 import { ImageStore } from "./image-store";
-import { Coordinates, DisplayTile, TileFlips } from "./interfaces";
+import { DisplayTile, TileFlips } from "./interfaces";
 import { TileMap } from "./tile-map";
 
 export type getDisplayTilesFunction = (

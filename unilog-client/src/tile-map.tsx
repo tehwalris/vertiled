@@ -1,5 +1,4 @@
-import { Property, Tileset } from "unilog-shared";
-import { Rectangle } from "./interfaces";
+import { Property, Rectangle, Tileset } from "unilog-shared";
 
 export type TileMap = Record<number, TileResource>;
 

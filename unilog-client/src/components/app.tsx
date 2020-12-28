@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Action,
   ClientMessage,
@@ -9,14 +9,11 @@ import {
   ServerMessage,
   unreachable,
   initialState,
-  Tile,
-  Tileset,
-  Property,
   ActionType,
   MapWorld,
   getLayer,
+  Coordinates,
 } from "unilog-shared";
-import { Coordinates, DisplayTile, Rectangle, TileFlips } from "../interfaces";
 import { useWebSocket } from "../use-web-socket";
 import { MapDisplay } from "./map-display";
 import { v4 as genId } from "uuid";
@@ -142,7 +139,7 @@ export const AppComponent: React.FC = () => {
           pixelScale={2}
           offset={{ x: 30, y: 15 }}
           tileSize={tileSize}
-          onMouseClick={(c, ev) => {
+          onMouseClick={(c) => {
             const layerId = 11;
 
             runAction({

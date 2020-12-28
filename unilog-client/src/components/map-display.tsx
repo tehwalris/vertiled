@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Coordinates, DisplayTile } from "../interfaces";
+import { DisplayTile } from "../interfaces";
 import { getDisplayTilesFunction } from "../get-display-tiles";
+import { Coordinates } from "unilog-shared";
 
 interface Props {
   getDisplayTiles: getDisplayTilesFunction;
