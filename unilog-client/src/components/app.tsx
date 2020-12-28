@@ -23,6 +23,7 @@ import { MapDisplay } from "./map-display";
 import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
 import { useWindowSize } from "../useWindowSize";
+import { useShallowMemo } from "../use-shallow-memo";
 
 export function getIndexInLayerFromTileCoord(
   world: MapWorld,
@@ -114,81 +115,47 @@ export const AppComponent: React.FC = () => {
     }
   }, serverState);
 
-  // TODO get from synced state
-
-  const uiFirstGid = state.world.tilesets.reduce(
-    (a, b) => Math.max(a, b.firstgid + b.tilecount),
-    1,
-  );
-
-  const mySelectionTileId = uiFirstGid;
-  const othersSelectionTileId = uiFirstGid + 1;
-
-  const {
-    addSelectionLayer: addCursorLayer,
-    handleStartSelect,
-    handleMoveSelect,
-    handleEndSelect,
-  } = useSelection();
-
   const imageStore = useImageStore(httpServerURL);
   useEffect(() => {
     for (const tileset of state.world.tilesets) {
       imageStore.getImage(tileset.image);
     }
-    imageStore.getImage("ui-tiles.png");
   }, [state.world.tilesets, imageStore]);
   const assetCache = imageStore.asAssetCache();
+
+  const {
+    addSelectionToWorld,
+    handleStartSelect,
+    handleMoveSelect,
+    handleEndSelect,
+  } = useSelection(state.world.tilesets, imageStore);
 
   const worldForGlTiled = useMemo(
     () =>
       produce(state.world, (world) => {
-        addCursorLayer(
-          world.layers,
-          state.users,
-          userId,
-          mySelectionTileId,
-          othersSelectionTileId,
-        );
-        world.tilesets.push({
-          columns: 9,
-          firstgid: uiFirstGid,
-          image: "ui-tiles.png",
-          imageheight: 32,
-          imagewidth: 288,
-          margin: 0,
-          name: "ui-tiles",
-          spacing: 0,
-          tilecount: 9,
-          tileheight: 32,
-          tilewidth: 32,
-        });
+        addSelectionToWorld(world, state.users, userId);
         for (const tileset of world.tilesets) {
           if (!assetCache[tileset.image]) {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
           }
         }
       }),
-    [
-      state.world,
-      assetCache,
-      uiFirstGid,
-      state.users,
-      mySelectionTileId,
-      othersSelectionTileId,
-      userId,
-      addCursorLayer,
-    ],
+    [state.world, assetCache, state.users, userId, addSelectionToWorld],
   );
+
+  const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
+    ...worldForGlTiled,
+    layers: [],
+  }));
 
   const tilemap = useMemo(() => {
     const tilemap = new glTiled.GLTilemap(
-      (worldForGlTiled as any) as glTiled.ITilemap, // TODO avoid cast
+      (worldForGlTiledWithoutLayers as any) as glTiled.ITilemap, // TODO avoid cast
       { assetCache },
     );
     tilemap.repeatTiles = false;
     return tilemap;
-  }, [worldForGlTiled, assetCache]);
+  }, [worldForGlTiledWithoutLayers, assetCache]);
 
   const windowSize = useWindowSize();
 

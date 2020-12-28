@@ -1,8 +1,10 @@
-import { Rectangle } from "./data";
+import {Coordinates, Cursor, Rectangle} from "./data";
 
 export type Action =
   | SetTileAction
   | SetSelectionAction
+  | SetCursorAction
+  | MoveCursorAction
   | AddUserAction
   | RemoveUserAction
   | SetLayerVisibilityAction;
@@ -10,6 +12,8 @@ export type Action =
 export enum ActionType {
   SetTile = "SetTile",
   SetSelection = "SetSelection",
+  SetCursor = "SetCursor",
+  MoveCursor = "MoveCursor",
   AddUser = "AddUser",
   RemoveUser = "RemoveUser",
   SetLayerVisibility = "SetLayerVisibility",
@@ -27,6 +31,18 @@ export interface SetSelectionAction {
   type: ActionType.SetSelection;
   userId: string;
   selection?: Rectangle;
+}
+
+export interface SetCursorAction {
+  type: ActionType.SetCursor;
+  userId: string;
+  cursor?: Cursor;
+}
+
+export interface MoveCursorAction {
+  type: ActionType.MoveCursor;
+  userId: string;
+  offset: Coordinates;
 }
 
 export interface SetLayerVisibilityAction {
