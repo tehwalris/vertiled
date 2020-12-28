@@ -161,9 +161,6 @@ export const MapDisplay: React.FC<Props> = ({
         width={canvasWidth}
         height={canvasHeight}
         onClick={(ev) => {
-          ev.persist();
-          console.log("Mouseclick", ev);
-
           const canvasRect = canvas.current?.getBoundingClientRect()!;
 
           const canvasX = Math.floor(

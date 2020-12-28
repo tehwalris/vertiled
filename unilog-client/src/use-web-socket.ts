@@ -32,7 +32,7 @@ export function useWebSocket(
           console.log(
             `reconnecting in ${Math.round(RECONNECT_DELAY_MS / 1000)}s`,
           );
-          await new Promise(resolve => {
+          await new Promise((resolve) => {
             setTimeout(() => resolve(undefined), RECONNECT_DELAY_MS);
           });
           console.log("reconnecting");
@@ -46,16 +46,16 @@ export function useWebSocket(
           continue;
         }
 
-        wsRef.current.onopen = function() {
+        wsRef.current.onopen = function () {
           console.log("connected");
         };
 
         let resolveLoopBlocker: (v: undefined) => void;
-        const loopBlocker = new Promise(resolve => {
+        const loopBlocker = new Promise((resolve) => {
           resolveLoopBlocker = resolve;
         });
 
-        wsRef.current.onclose = function(ev: CloseEvent): void {
+        wsRef.current.onclose = function (ev: CloseEvent): void {
           console.warn("socket disconnected", ev);
           wsRef.current = undefined;
           resolveLoopBlocker(undefined);

@@ -245,8 +245,6 @@ export const AppComponent: React.FC = () => {
           focus={{ x: 40, y: 25 }}
           tileSize={tileSize}
           onMouseClick={(c, ev) => {
-            console.log("Clicked mouse, cords:", c, ev);
-
             const layerId = 11;
 
             runAction({
