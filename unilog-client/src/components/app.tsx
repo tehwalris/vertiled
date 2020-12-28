@@ -34,13 +34,13 @@ interface TileResource {
 
 export function splitGid(
   gid: number,
-): { idWithoutFlags: number; flags: TileFlips } {
+): { idWithoutFlags: number; flips: TileFlips } {
   return {
     idWithoutFlags: 0x1fffffff & gid,
-    flags: {
-      horizontal: (gid & 0x80000000) > 0,
-      vertical: (gid & 0x40000000) > 0,
-      diagonal: (gid & 0x20000000) > 0,
+    flips: {
+      horizontal: !!(gid & 0x80000000),
+      vertical: !!(gid & 0x40000000),
+      diagonal: !!(gid & 0x20000000),
     },
   };
 }
@@ -170,7 +170,7 @@ export const AppComponent: React.FC = () => {
 
     const tileResources = tiles
       .map((tileIdwithFlags) => {
-        const { idWithoutFlags, flags } = splitGid(tileIdwithFlags);
+        const { idWithoutFlags, flips } = splitGid(tileIdwithFlags);
         if (idWithoutFlags === 0) {
           // Background tile
           return undefined;
@@ -192,7 +192,7 @@ export const AppComponent: React.FC = () => {
         return {
           ...tileMap[idWithoutFlags],
           image: imageResources.current.get(tile.image)!,
-          flips: flags,
+          flips: flips,
         };
       })
       .filter((tile) => tile && tile.image.complete)
