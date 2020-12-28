@@ -1,4 +1,4 @@
-import { Layer, Tileset } from "unilog-shared";
+import { Tileset } from "unilog-shared";
 
 interface Props {
   tilesets: Tileset[];

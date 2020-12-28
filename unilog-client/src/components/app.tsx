@@ -22,12 +22,7 @@ import { useSelection } from "../useSelection";
 import { MapDisplay } from "./map-display";
 import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
-
-const styles = {
-  map: {
-    display: "block",
-  } as React.CSSProperties,
-};
+import { useWindowSize } from "../useWindowSize";
 
 export function getIndexInLayerFromTileCoord(
   world: MapWorld,
@@ -195,14 +190,24 @@ export const AppComponent: React.FC = () => {
     return tilemap;
   }, [worldForGlTiled, assetCache]);
 
+  const windowSize = useWindowSize();
+
+  const canvasWidth = windowSize.width - 300;
+  const menuWidth = 300;
+
   return (
     <div>
-      <div style={styles.map}>
+      <div
+        style={{
+          display: "flex",
+          width: windowSize.width,
+        }}
+      >
         <MapDisplay
           tilemap={tilemap}
-          width={1000}
-          height={1000}
-          offset={{ x: 30, y: 15 }}
+          width={canvasWidth}
+          height={windowSize.height}
+          offset={{ x: 0, y: 0 }}
           tileSize={tileSize}
           onPointerDown={(c, ev) => {
             handleStartSelect(c, userId, runAction);
@@ -214,34 +219,43 @@ export const AppComponent: React.FC = () => {
             handleMoveSelect(userId, state.users, c, runAction);
           }}
         />
-      </div>
-      <div className="overlay">
-        <TileSetList
-          tilesets={state.world.tilesets}
-          setSelectedTileSet={setSelectedTileSet}
-          selectedTileSet={selectedTileSet}
-        ></TileSetList>
-
-        <LayerList
-          layers={state.world.layers}
-          onToggleVisability={(id, v) => {
-            runAction({
-              type: ActionType.SetLayerVisibility,
-              layerId: id,
-              visibility: v,
-            });
+        <div
+          style={{
+            width: menuWidth,
+            height: windowSize.height,
+            overflow: "scroll",
+            backgroundColor: "black",
+            color: "white",
           }}
-        ></LayerList>
+        >
+          <LayerList
+            layers={state.world.layers}
+            onToggleVisability={(id, v) => {
+              runAction({
+                type: ActionType.SetLayerVisibility,
+                layerId: id,
+                visibility: v,
+              });
+            }}
+          ></LayerList>
 
-        <div>
-          <p style={{ width: 300, wordBreak: "break-all" }}>
-            {JSON.stringify(state.users)}
-          </p>
+          <TileSetList
+            tilesets={state.world.tilesets}
+            setSelectedTileSet={setSelectedTileSet}
+            selectedTileSet={selectedTileSet}
+          ></TileSetList>
+
+          <div className="selection-list">
+            <h3>Debug</h3>
+            <p style={{ width: 300, wordBreak: "break-all" }}>
+              {JSON.stringify(state.users)}
+            </p>
+            UserId: {userId}
+            <div>Remote log length: {remoteLog.length}</div>
+            <div>Local log length: {localLog.length}</div>
+          </div>
         </div>
       </div>
-      UserId: {userId}
-      <div>Remote log length: {remoteLog.length}</div>
-      <div>Local log length: {localLog.length}</div>
     </div>
   );
 };

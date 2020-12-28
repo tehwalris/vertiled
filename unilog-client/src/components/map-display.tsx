@@ -34,15 +34,17 @@ export const MapDisplay: React.FC<Props> = ({
   const canvasWidth = Math.floor(width * devicePixelRatio);
   const canvasHeight = Math.floor(height * devicePixelRatio);
 
-  useEffect(() => {
-    tilemap.resizeViewport(canvasWidth, canvasHeight);
-  }, [tilemap, canvasWidth, canvasHeight]);
-
   const render = () => {
     const gl = canvas.current?.getContext("webgl");
+
     if (!gl) {
       return;
     }
+
+    gl.viewport(0, 0, canvasWidth, canvasHeight);
+    tilemap.resizeViewport(canvasWidth, canvasHeight);
+
+    console.log("CanvasGL", gl.canvas.width, gl.canvas.height);
 
     // HACK shader compilation crashes if there are not tilesets
     if (!tilemap.tilesets.filter((tileset) => tileset.images.length).length) {
@@ -95,6 +97,8 @@ export const MapDisplay: React.FC<Props> = ({
     return { x: canvasX, y: canvasY };
   }
 
+  // Resize
+
   return (
     <div
       style={{
@@ -104,8 +108,8 @@ export const MapDisplay: React.FC<Props> = ({
     >
       <canvas
         ref={canvas}
-        width={canvasWidth}
         height={canvasHeight}
+        width={canvasWidth}
         onPointerDown={(ev) => {
           const canvasRect = canvas.current?.getBoundingClientRect()!;
           onPointerDown(
