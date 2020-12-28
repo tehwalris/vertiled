@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef } from "react";
-import { Coordinates } from "unilog-shared";
 import * as glTiled from "gl-tiled";
+import React, { useEffect, useRef } from "react";
+import { Coordinates } from "unilog-shared";
 
 interface Props {
   onPointerDown: (coordinates: Coordinates, ev: React.PointerEvent) => void;
@@ -37,17 +37,6 @@ export const MapDisplay: React.FC<Props> = ({
   useEffect(() => {
     tilemap.resizeViewport(canvasWidth, canvasHeight);
   }, [tilemap, canvasWidth, canvasHeight]);
-
-  const tempTileCtx = useMemo(() => {
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = tileSize;
-    tempCanvas.height = tileSize;
-    const tempCtx = tempCanvas.getContext("2d");
-    if (!tempCtx) {
-      throw new Error("failed to initialize context of temp canvas");
-    }
-    return tempCtx;
-  }, [tileSize]);
 
   const render = () => {
     const gl = canvas.current?.getContext("webgl");
