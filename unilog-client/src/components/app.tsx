@@ -60,7 +60,10 @@ function addCursorLayer(
     0,
   );
 
-  for (const user of users) {
+  const myUser = users.filter((user) => user.id === currentUser);
+  const otherUsers = users.filter((user) => user.id !== currentUser);
+
+  for (const user of [...otherUsers, ...myUser]) {
     if (user.selection) {
       const tile =
         user.id === currentUser ? mySelectionTileId : othersSelectionTileId;
