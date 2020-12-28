@@ -1,4 +1,4 @@
-import { Rectangle } from "unilog-shared";
+import { Action, Rectangle } from "unilog-shared";
 
 export interface TileFlips {
   horizontal: boolean;
@@ -11,3 +11,5 @@ export interface DisplayTile {
   rectangle: Rectangle;
   flips: TileFlips;
 }
+
+export type ActionRunner = (a: Action) => void;

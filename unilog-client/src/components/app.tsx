@@ -9,17 +9,16 @@ import {
   Coordinates,
   getLayer,
   initialState,
-  Layer,
   LogEntry,
   MapWorld,
   MessageType,
   reducer,
   ServerMessage,
   unreachable,
-  User,
 } from "unilog-shared";
 import { useImageStore } from "../image-store";
 import { useWebSocket } from "../use-web-socket";
+import { useSelection } from "../useSelection";
 import { MapDisplay } from "./map-display";
 
 const styles = {
@@ -41,53 +40,6 @@ const serverOrigin = `${window.location.hostname}:8080`;
 const wsServerURL = `ws://${serverOrigin}`;
 const httpServerURL = `//${serverOrigin}`;
 const tileSize = 32;
-
-function addCursorLayer(
-  layers: Layer[],
-  users: User[],
-  currentUser: string,
-  mySelectionTileId: number,
-  othersSelectionTileId: number,
-) {
-  //we assume that all layers start at one and that the first layer has a width and height
-  const referenceLayer = layers[0];
-
-  if (!referenceLayer) {
-    return layers;
-  }
-
-  const data = new Array(referenceLayer.height! * referenceLayer.width!).fill(
-    0,
-  );
-
-  const myUser = users.filter((user) => user.id === currentUser);
-  const otherUsers = users.filter((user) => user.id !== currentUser);
-
-  for (const user of [...otherUsers, ...myUser]) {
-    if (user.selection) {
-      const tile =
-        user.id === currentUser ? mySelectionTileId : othersSelectionTileId;
-      const { x, y, width, height } = user.selection;
-      const x1 = Math.min(x, x + width);
-      const x2 = Math.max(x, x + width);
-      const y1 = Math.min(y, y + height);
-      const y2 = Math.max(y, y + height);
-
-      for (let i = x1; i < x2; i++) {
-        for (let j = y1; j < y2; j++) {
-          data[i + j * referenceLayer.width!] = tile;
-        }
-      }
-    }
-  }
-
-  layers.push({
-    ...referenceLayer,
-    id: Math.max(...layers.map((l) => l.id)) + 1,
-    data,
-    name: "selection-ui",
-  });
-}
 
 export const AppComponent: React.FC = () => {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
@@ -175,7 +127,12 @@ export const AppComponent: React.FC = () => {
   const mySelectionTileId = uiFirstGid;
   const othersSelectionTileId = uiFirstGid + 1;
 
-  const [isSelecting, setIsSelecting] = useState<Coordinates>();
+  const {
+    addSelectionLayer: addCursorLayer,
+    handleStartSelect,
+    handleMoveSelect,
+    handleEndSelect,
+  } = useSelection();
 
   const imageStore = useImageStore(httpServerURL);
   useEffect(() => {
@@ -223,6 +180,7 @@ export const AppComponent: React.FC = () => {
       mySelectionTileId,
       othersSelectionTileId,
       userId,
+      addCursorLayer,
     ],
   );
 
@@ -245,65 +203,13 @@ export const AppComponent: React.FC = () => {
           offset={{ x: 30, y: 15 }}
           tileSize={tileSize}
           onPointerDown={(c, ev) => {
-            setIsSelecting(c);
-            runAction({
-              type: ActionType.SetSelection,
-              userId,
-              selection: {
-                ...c,
-                width: 1,
-                height: 1,
-              },
-            });
+            handleStartSelect(c, userId, runAction);
           }}
           onPointerUp={(c, ev) => {
-            setIsSelecting(undefined);
-            runAction({
-              type: ActionType.SetSelection,
-              userId,
-              selection: undefined,
-            });
+            handleEndSelect(userId, runAction);
           }}
           onPointerMove={(c, ev) => {
-            if (isSelecting) {
-              const oldSelection = state.users.find((u) => u.id === userId)
-                ?.selection;
-
-              if (!oldSelection) {
-                return;
-              }
-
-              const { x, y } = isSelecting;
-              const x1 = Math.min(x, c.x);
-              const x2 = Math.max(x, c.x);
-              const y1 = Math.min(y, c.y);
-              const y2 = Math.max(y, c.y);
-
-              const newSelection = {
-                x: x1,
-                y: y1,
-                width: x2 - x1 + 1,
-                height: y2 - y1 + 1,
-              };
-              if (
-                oldSelection.width !== newSelection.width ||
-                oldSelection.height !== newSelection.height
-              ) {
-                runAction({
-                  type: ActionType.SetSelection,
-                  userId,
-                  selection: newSelection,
-                });
-              }
-            }
-            // TODO implement with cursors
-            // const layerId = 11;
-            // runAction({
-            //   type: ActionType.SetTile,
-            //   layerId,
-            //   index: getIndexInLayerFromTileCoord(state.world, layerId, c),
-            //   tileId: 10,
-            // });
+            handleMoveSelect(userId, state.users, c, runAction);
           }}
         />
       </div>
