@@ -23,6 +23,7 @@ export type ServerMessage =
 export interface InitialServerMessage {
   type: MessageType.InitialServer;
   initialState: State;
+  userId: string;
 }
 
 export interface LogEntryServerMessage {
