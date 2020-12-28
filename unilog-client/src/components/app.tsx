@@ -70,6 +70,7 @@ export const AppComponent: React.FC = () => {
   const [tileMap, setTileMap] = useState<Record<number, TileResource>>({});
 
   const [selectedTileSet, setSelectedTileSet] = useState(0);
+  const [visibleLayers, setVisibleLayers] = useState<number[]>([]);
 
   function addToRemoteLog(entry: LogEntry) {
     setRemoteLog((old) =>
@@ -278,7 +279,13 @@ export const AppComponent: React.FC = () => {
         <h3>Layers</h3>
         <ul>
           {state.world.layers.map((layer, i) => (
-            <li key={i}>{layer.name}</li>
+            <li
+              key={i}
+              onClick={() => setVisibleLayers([...visibleLayers])}
+              className={visibleLayers.includes(i) ? "active" : ""}
+            >
+              {layer.name}
+            </li>
           ))}
         </ul>
       </div>
