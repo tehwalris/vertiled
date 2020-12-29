@@ -184,34 +184,20 @@ export const AppComponent: React.FC = () => {
       ({ ...worldForGlTiledWithoutLayers } as any) as glTiled.ITilemap, // TODO avoid cast
       { assetCache: imageStore.assetCache },
     );
-    tilemap.repeatTiles = false;
     return tilemap;
   }, [worldForGlTiledWithoutLayers, imageStore.assetCache]);
 
   useEffect(() => {
-    const newLayers: glTiled.ILayer[] = worldForGlTiled.layers as any; // TODO avoid cast
-    const addedLayers = newLayers.filter(
-      (newLayer) => !tilemap.desc.layers.includes(newLayer),
-    );
-    const removedLayers = tilemap.desc.layers.filter(
-      (oldLayer) => !newLayers.includes(oldLayer),
-    );
-    console.log(
-      "DEBUG add",
-      addedLayers.length,
-      addedLayers,
-      "remove",
-      removedLayers.length,
-      removedLayers,
-    );
-    for (const layer of removedLayers) {
+    for (const layer of tilemap.desc.layers) {
       tilemap.destroyLayerFromDesc(layer);
     }
-    for (const layer of addedLayers) {
+    const newLayers = (worldForGlTiled.layers as any) as glTiled.ILayer[]; // TODO avoid cast
+    for (const layer of newLayers) {
       tilemap.createLayerFromDesc(layer);
     }
     tilemap.desc.layers = [...newLayers];
 
+    // IMPORTANT This is a setter that affects all currently added layers. If repeatTiles is true (default), all layers render incorrectly.
     tilemap.repeatTiles = false;
   }, [tilemap, worldForGlTiled.layers]);
 
