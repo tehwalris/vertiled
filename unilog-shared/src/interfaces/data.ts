@@ -19,6 +19,7 @@ export interface State {
 export interface Cursor {
   frame: Rectangle;
   contents: { layerId: number; data: number[] }[];
+  initialFrame: Rectangle;
 }
 
 export interface User {

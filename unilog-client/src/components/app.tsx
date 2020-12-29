@@ -9,6 +9,7 @@ import {
   ActionType,
   ClientMessage,
   Coordinates,
+  createTilemapForTilesetPreview,
   Cursor,
   extractCursor,
   getLayer,
@@ -18,6 +19,7 @@ import {
   MessageType,
   reducer,
   ServerMessage,
+  tileSize,
   unreachable,
 } from "unilog-shared";
 import { useImageStore } from "../image-store";
@@ -245,7 +247,7 @@ export const AppComponent: React.FC = () => {
               y: 0,
               width: cursor.frame.width,
               height: cursor.frame.height,
-              offsetx: cursor.frame.x * tileSize + 20, // TODO: remove +20 once UI works
+              offsetx: cursor.frame.x * tileSize,
               offsety: cursor.frame.y * tileSize,
             };
             world.layers.push(cursorLayer);
@@ -294,7 +296,6 @@ export const AppComponent: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-
       <div>
         <div
           style={{
@@ -322,7 +323,6 @@ export const AppComponent: React.FC = () => {
                 } else if (ev.button === 2) {
                   ev.preventDefault();
 
-                  runAction({ type: ActionType.SetCursor, userId });
                   handleStartSelect(c, userId, runAction);
                 }
               }}
@@ -338,16 +338,55 @@ export const AppComponent: React.FC = () => {
                     selection.width >= 1 &&
                     selection.height >= 1
                   ) {
-                    const cursor = extractCursor(state.world, selection);
-                    runAction({ type: ActionType.SetCursor, userId, cursor });
+                    runAction({
+                      type: ActionType.SetCursor,
+                      userId,
+                      cursor: extractCursor(state.world, selection),
+                    });
                   }
                 }
               }}
               onPointerMove={(c, ev) => {
                 handleMoveSelect(userId, state.users, c, runAction);
+
+                const oldCursor = myState?.cursor;
+                if (oldCursor) {
+                  const newFrameStart: Coordinates = {
+                    x: c.x - (oldCursor.initialFrame.width - 1),
+                    y: c.y - (oldCursor.initialFrame.height - 1),
+                  };
+                  if (
+                    newFrameStart.x != oldCursor.frame.x ||
+                    newFrameStart.y != oldCursor.frame.y
+                  ) {
+                    console.log("DEBUG SetCursorOffset", newFrameStart);
+                    runAction({
+                      type: ActionType.SetCursorOffset,
+                      userId,
+                      offset: newFrameStart,
+                    });
+                  }
+                }
               }}
             />
-            <div className="overlay"></div>
+            <div className="overlay">
+              {selectedTileSet && (
+                <div>
+                  <h3>{selectedTileSet.name}</h3>
+                  <TilemapDisplay
+                    imageStore={imageStore}
+                    tilemap={createTilemapForTilesetPreview(selectedTileSet)}
+                    width={100}
+                    height={100}
+                    offset={{ x: 0, y: 0 }}
+                    tileSize={tileSize}
+                    onPointerDown={(c, ev) => {}}
+                    onPointerUp={(c, ev) => {}}
+                    onPointerMove={(c, ev) => {}}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           <Drawer

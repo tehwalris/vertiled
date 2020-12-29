@@ -1,10 +1,10 @@
-import {Coordinates, Cursor, Rectangle} from "./data";
+import { Coordinates, Cursor, Rectangle } from "./data";
 
 export type Action =
   | SetTileAction
   | SetSelectionAction
   | SetCursorAction
-  | MoveCursorAction
+  | SetCursorOffsetAction
   | AddUserAction
   | RemoveUserAction
   | SetLayerVisibilityAction;
@@ -13,7 +13,7 @@ export enum ActionType {
   SetTile = "SetTile",
   SetSelection = "SetSelection",
   SetCursor = "SetCursor",
-  MoveCursor = "MoveCursor",
+  SetCursorOffset = "SetCursorOffset",
   AddUser = "AddUser",
   RemoveUser = "RemoveUser",
   SetLayerVisibility = "SetLayerVisibility",
@@ -39,8 +39,8 @@ export interface SetCursorAction {
   cursor?: Cursor;
 }
 
-export interface MoveCursorAction {
-  type: ActionType.MoveCursor;
+export interface SetCursorOffsetAction {
+  type: ActionType.SetCursorOffset;
   userId: string;
   offset: Coordinates;
 }

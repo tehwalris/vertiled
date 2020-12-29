@@ -8,6 +8,7 @@ import {
 import { Action, ActionType } from "./interfaces/action";
 import { State, User } from "./interfaces/data";
 import assert from "assert";
+import { tileSize } from "./constants";
 
 export const initialState: State = {
   world: createEmptyTilemap(100, 100),
@@ -40,20 +41,29 @@ export const reducer = (_state: State, action: Action): State =>
         break;
       }
       case ActionType.SetSelection: {
-        requireUser(state, action).selection = action.selection;
+        const userState = requireUser(state, action);
+        userState.selection = action.selection;
+        if (action.selection) {
+          userState.cursor = undefined;
+        }
         break;
       }
       case ActionType.SetCursor: {
         // TODO: validate cursor (layers exist, bounds make sense)
-        requireUser(state, action).cursor = action.cursor;
+        const userState = requireUser(state, action);
+        userState.cursor = action.cursor;
+        if (action.cursor) {
+          userState.selection = undefined;
+        }
         break;
       }
-      case ActionType.MoveCursor: {
+      case ActionType.SetCursorOffset: {
         const cursor = requireUser(state, action).cursor;
         if (!cursor) {
-          throw new Error(
-            `can't move non-existent cursor for user ${action.userId}`,
-          );
+          // HACK don't throw here, because it's very hard to prevent
+          // SetCursorOffset from being set if the cursor has already
+          // being deleted, because of the async behavior of setState in React.
+          return;
         }
         cursor.frame.x = action.offset.x;
         cursor.frame.y = action.offset.y;

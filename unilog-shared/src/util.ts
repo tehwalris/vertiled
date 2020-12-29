@@ -140,8 +140,5 @@ export function extractCursor(world: ITilemap, frame: Rectangle): Cursor {
     .filter((v) => v)
     .map((v) => v!);
 
-  return {
-    frame: frame,
-    contents: contents,
-  };
+  return { frame, initialFrame: frame, contents };
 }
