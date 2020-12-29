@@ -432,7 +432,7 @@ export class GLTilemap
                     assertNever(layer);
             }
 
-            // if (layer.type !== ELayerType.Objectgroup)
+            if (layer.texture)
             {
                 gl.bindTexture(gl.TEXTURE_2D, layer.texture);
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
