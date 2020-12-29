@@ -24,14 +24,13 @@ import {
   SelectionTilesetInfo,
   useSelection,
 } from "../useSelection";
-import { MapDisplay } from "./map-display";
 import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
 import { useWindowSize } from "../useWindowSize";
 import { useShallowMemo } from "../use-shallow-memo";
-import { ILayer, ITilemap, ITileset } from "gl-tiled";
-
-const EMPTY_LAYERS: ILayer[] = [];
+import { GLTilemap, ILayer, ITilemap, ITileset } from "gl-tiled";
+import { createTilemapForTilesetPrview } from "unilog-shared";
+import { TilemapDisplay } from "./TilemapDisplay";
 
 export function getIndexInLayerFromTileCoord(
   world: ITilemap,
@@ -186,33 +185,6 @@ export const AppComponent: React.FC = () => {
     ],
   );
 
-  const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
-    ...worldForGlTiled,
-    layers: EMPTY_LAYERS,
-  }));
-
-  const tilemap = useMemo(() => {
-    const tilemap = new glTiled.GLTilemap(
-      ({ ...worldForGlTiledWithoutLayers } as any) as glTiled.ITilemap, // TODO avoid cast
-      { assetCache: imageStore.assetCache },
-    );
-    return tilemap;
-  }, [worldForGlTiledWithoutLayers, imageStore.assetCache]);
-
-  useEffect(() => {
-    for (const layer of tilemap.desc.layers) {
-      tilemap.destroyLayerFromDesc(layer);
-    }
-    const newLayers = (worldForGlTiled.layers as any) as glTiled.ILayer[]; // TODO avoid cast
-    for (const layer of newLayers) {
-      tilemap.createLayerFromDesc(layer);
-    }
-    tilemap.desc.layers = [...newLayers];
-
-    // IMPORTANT This is a setter that affects all currently added layers. If repeatTiles is true (default), all layers render incorrectly.
-    tilemap.repeatTiles = false;
-  }, [tilemap, worldForGlTiled.layers]);
-
   const windowSize = useWindowSize();
 
   const canvasWidth = windowSize.width - 300;
@@ -237,8 +209,9 @@ export const AppComponent: React.FC = () => {
         }}
       >
         <div className="overlayContainer">
-          <MapDisplay
-            tilemap={tilemap}
+          <TilemapDisplay
+            imageStore={imageStore}
+            tilemap={worldForGlTiled}
             width={canvasWidth}
             height={windowSize.height}
             offset={{ x: 0, y: 0 }}
@@ -267,8 +240,9 @@ export const AppComponent: React.FC = () => {
             {selectedTileSet && (
               <div>
                 <h3>{selectedTileSet.name}</h3>
-                <MapDisplay
-                  tilemap={previewTileMap}
+                <TilemapDisplay
+                  imageStore={imageStore}
+                  tilemap={createTilemapForTilesetPrview(selectedTileSet)}
                   width={100}
                   height={100}
                   offset={{ x: 0, y: 0 }}

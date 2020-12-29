@@ -1,25 +1,15 @@
 import { produce } from "immer";
-import { getLayer, isLayerRegular, unreachable } from "./util";
+import {
+  createEmptyTilemap,
+  getLayer,
+  isLayerRegular,
+  unreachable,
+} from "./util";
 import { Action, ActionType } from "./interfaces/action";
 import { State, User } from "./interfaces/data";
 
 export const initialState: State = {
-  world: {
-    height: 100,
-    infinite: false,
-    layers: [],
-    nextlayerid: 1,
-    nextobjectid: 1,
-    orientation: "orthogonal",
-    renderorder: "right-down",
-    tiledversion: "1.4.3",
-    tileheight: 32,
-    tilesets: [],
-    tilewidth: 32,
-    type: "map",
-    version: 1.4,
-    width: 100,
-  },
+  world: createEmptyTilemap(100, 100),
   users: [],
 };
 

@@ -6,7 +6,7 @@ export interface ImageStore {
   assetCache: IAssetCache;
 }
 
-export function useImageStore(baseUrl: string) {
+export function useImageStore(baseUrl: string): ImageStore {
   const imageResources = useRef<Map<string, HTMLImageElement>>(new Map());
 
   const [assetCache, setAssetCache] = useState<IAssetCache>({});
