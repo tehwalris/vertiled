@@ -397,7 +397,8 @@ export const AppComponent: React.FC = () => {
               selectedTileSet={selectedTileSet}
             ></TileSetList>
             <div className="selection-list">
-              UserId: {userId}
+              <div>Connected users: {state.users.length}</div>
+              <div>UserId: {userId}</div>
               <div>Remote log length: {remoteLog.length}</div>
               <div>Local log length: {localLog.length}</div>
             </div>
