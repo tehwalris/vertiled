@@ -25,10 +25,13 @@ code {
 }
 
 .selection-list li {
+  border-bottom: 1px solid #888;
   list-style: none;
   cursor: pointer;
   background-color: #666;
   margin: 0px 0px;
-  padding: 5px;
+  padding: 5px 10px;
   color: black;
+  display: flex;
+  justify-content: space-between;
 }
