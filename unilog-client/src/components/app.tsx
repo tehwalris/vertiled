@@ -17,6 +17,7 @@ import {
   isLayerRegular,
   LogEntry,
   MessageType,
+  Rectangle,
   reducer,
   ServerMessage,
   unreachable,
@@ -217,7 +218,15 @@ export const AppComponent: React.FC = () => {
   const worldForGlTiled = useMemo(
     () =>
       produce(state.world, (world) => {
-        addSelectionToLayers(world.layers, state.users, userId);
+        addSelectionToLayers(
+          world.layers,
+          myState?.selection,
+          state.users
+            .map((u) => u.selection)
+            .filter((v) => v)
+            .map((v) => v!),
+          userId,
+        );
         for (const tileset of world.tilesets) {
           if (!tileset.image) {
             console.warn(
@@ -283,6 +292,14 @@ export const AppComponent: React.FC = () => {
   const canvasWidth = windowSize.width - 300;
   const menuWidth = 300;
 
+  const setSelection = (selection: Rectangle | undefined) => {
+    runAction({
+      type: ActionType.SetSelection,
+      userId,
+      selection,
+    });
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -313,14 +330,14 @@ export const AppComponent: React.FC = () => {
                 } else if (ev.button === 2) {
                   ev.preventDefault();
 
-                  handleStartSelect(c, userId, runAction);
+                  handleStartSelect(c, setSelection);
                 }
               }}
               onPointerUp={(c, ev) => {
                 if (ev.button === 2) {
                   ev.preventDefault();
 
-                  handleEndSelect(userId, runAction);
+                  handleEndSelect(setSelection);
 
                   const selection = myState?.selection;
                   if (
@@ -337,7 +354,7 @@ export const AppComponent: React.FC = () => {
                 }
               }}
               onPointerMove={(c, ev) => {
-                handleMoveSelect(userId, state.users, c, runAction);
+                handleMoveSelect(c, myState?.selection, setSelection);
 
                 const oldCursor = myState?.cursor;
                 if (oldCursor) {

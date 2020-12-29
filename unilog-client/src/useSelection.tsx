@@ -1,10 +1,11 @@
 import { ILayer, ITileset } from "gl-tiled";
-import { useCallback, useRef, useState } from "react";
-import { ActionType, Coordinates, isLayerRegular, User } from "unilog-shared";
+import { useCallback, useRef } from "react";
+import { Coordinates, isLayerRegular, Rectangle } from "unilog-shared";
 import { ImageStore } from "./image-store";
-import { ActionRunner } from "./interfaces";
 
 const uiTilesImageUrl = "ui-tiles.png";
+
+type SetSelectionCallback = (selection: Rectangle | undefined) => void;
 
 export interface SelectionTilesetInfo {
   mySelectionTileId: number;
@@ -44,7 +45,12 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
   const isSelectingRef = useRef<Coordinates>();
 
   const addSelectionToLayers = useCallback(
-    (layers: ILayer[], users: User[], currentUser: string) => {
+    (
+      layers: ILayer[],
+      mySelection: Rectangle | undefined,
+      otherSelections: Rectangle[],
+      currentUser: string,
+    ) => {
       //we assume that all layers start at one and that the first layer has a width and height
       const referenceLayer = layers[0];
 
@@ -60,16 +66,18 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
         referenceLayer.height! * referenceLayer.width!,
       ).fill(0);
 
-      const myUser = users.filter((user) => user.id === currentUser);
-      const otherUsers = users.filter((user) => user.id !== currentUser);
-
-      for (const user of [...otherUsers, ...myUser]) {
-        if (user.selection) {
-          const tile =
-            user.id === currentUser
-              ? selectionTilesetInfo.mySelectionTileId
-              : selectionTilesetInfo.othersSelectionTileId;
-          const { x, y, width, height } = user.selection;
+      const allSelections: [Rectangle, boolean][] = [
+        ...otherSelections.map((s) => [s, false] as [Rectangle, boolean]),
+      ];
+      if (mySelection) {
+        allSelections.push([mySelection, true]);
+      }
+      for (const [selection, isMySelection] of allSelections) {
+        if (selection) {
+          const tile = isMySelection
+            ? selectionTilesetInfo.mySelectionTileId
+            : selectionTilesetInfo.othersSelectionTileId;
+          const { x, y, width, height } = selection;
           const x1 = Math.min(x, x + width);
           const x2 = Math.max(x, x + width);
           const y1 = Math.min(y, y + height);
@@ -93,43 +101,31 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
     [selectionTilesetInfo],
   );
 
-  function handleEndSelect(userId: string, runAction: ActionRunner) {
+  function handleEndSelect(setSelection: SetSelectionCallback) {
     isSelectingRef.current = undefined;
-    runAction({
-      type: ActionType.SetSelection,
-      userId,
-      selection: undefined,
-    });
+    setSelection(undefined);
   }
 
   function handleStartSelect(
     c: Coordinates,
-    userId: string,
-    runAction: ActionRunner,
+    setSelection: SetSelectionCallback,
   ) {
     isSelectingRef.current = c;
-    runAction({
-      type: ActionType.SetSelection,
-      userId,
-      selection: {
-        ...c,
-        width: 1,
-        height: 1,
-      },
+    setSelection({
+      ...c,
+      width: 1,
+      height: 1,
     });
   }
 
   function handleMoveSelect(
-    userId: string,
-    users: User[],
     c: Coordinates,
-    runAction: ActionRunner,
+    oldSelection: Rectangle | undefined,
+    setSelection: SetSelectionCallback,
   ) {
-    const oldSelection = users.find((u) => u.id === userId)?.selection;
     if (!isSelectingRef.current || !oldSelection) {
       return;
     }
-
     const { x, y } = isSelectingRef.current;
     const x1 = Math.min(x, c.x);
     const x2 = Math.max(x, c.x);
@@ -146,11 +142,7 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
       oldSelection.width !== newSelection.width ||
       oldSelection.height !== newSelection.height
     ) {
-      runAction({
-        type: ActionType.SetSelection,
-        userId,
-        selection: newSelection,
-      });
+      setSelection(newSelection);
     }
   }
 
