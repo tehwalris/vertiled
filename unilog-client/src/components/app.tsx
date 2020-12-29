@@ -26,6 +26,7 @@ import { TileSetList } from "./TileSetList";
 import { useWindowSize } from "../useWindowSize";
 import { useShallowMemo } from "../use-shallow-memo";
 import assert from "assert"
+import {unstable_batchedUpdates} from "react-dom"
 
 const EMPTY_LAYERS: Layer[] = [];
 
@@ -76,8 +77,10 @@ export const AppComponent: React.FC = () => {
         break;
       }
       case MessageType.RemapEntryServer: {
-        setLocalLog((old) => old.filter((e) => e.id !== msg.oldId));
-        addToRemoteLog(msg.entry);
+        unstable_batchedUpdates(() => {
+          setLocalLog((old) => old.filter((e) => e.id !== msg.oldId));
+          addToRemoteLog(msg.entry);
+        });
         break;
       }
       case MessageType.RejectEntryServer: {
