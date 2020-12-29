@@ -16,6 +16,7 @@ import {
   MessageType,
   reducer,
   ServerMessage,
+  Tileset,
   unreachable,
 } from "unilog-shared";
 import { useImageStore } from "../image-store";
@@ -26,6 +27,7 @@ import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
 import { useWindowSize } from "../useWindowSize";
 import { useShallowMemo } from "../use-shallow-memo";
+import { divide } from "lodash";
 
 const EMPTY_LAYERS: Layer[] = [];
 
@@ -50,7 +52,7 @@ export const AppComponent: React.FC = () => {
 
   const [serverState, setServerState] = useState(initialState);
 
-  const [selectedTileSet, setSelectedTileSet] = useState(0);
+  const [selectedTileSet, setSelectedTileSet] = useState<Tileset>();
 
   const [userId, setUserId] = useState("");
 
@@ -178,42 +180,54 @@ export const AppComponent: React.FC = () => {
       <div
         style={{
           display: "flex",
-          width: windowSize.width,
+          maxWidth: windowSize.width,
+          overflow: "hidden",
         }}
       >
-        <MapDisplay
-          tilemap={tilemap}
-          width={canvasWidth}
-          height={windowSize.height}
-          offset={{ x: 0, y: 0 }}
-          tileSize={tileSize}
-          onPointerDown={(c, ev) => {
-            handleStartSelect(c, userId, runAction);
-          }}
-          onPointerUp={(c, ev) => {
-            handleEndSelect(userId, runAction);
+        <div className="overlayContainer">
+          <MapDisplay
+            tilemap={tilemap}
+            width={canvasWidth}
+            height={windowSize.height}
+            offset={{ x: 0, y: 0 }}
+            tileSize={tileSize}
+            onPointerDown={(c, ev) => {
+              handleStartSelect(c, userId, runAction);
+            }}
+            onPointerUp={(c, ev) => {
+              handleEndSelect(userId, runAction);
 
-            const selection = myState?.selection;
-            if (selection && selection.width >= 1 && selection.height >= 1) {
-              const cursor = extractCursor(state.world, selection);
-              runAction({
-                type: ActionType.SetCursor,
-                userId: userId,
-                cursor: cursor,
-              });
-            }
-          }}
-          onPointerMove={(c, ev) => {
-            handleMoveSelect(userId, state.users, c, runAction);
-          }}
-        />
+              const selection = myState?.selection;
+              if (selection && selection.width >= 1 && selection.height >= 1) {
+                const cursor = extractCursor(state.world, selection);
+                runAction({
+                  type: ActionType.SetCursor,
+                  userId: userId,
+                  cursor: cursor,
+                });
+              }
+            }}
+            onPointerMove={(c, ev) => {
+              handleMoveSelect(userId, state.users, c, runAction);
+            }}
+          />
+          <div className="overlay">
+            {selectedTileSet && (
+              <div>
+                <h3>{selectedTileSet.name}</h3>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div
           style={{
             width: menuWidth,
             height: windowSize.height,
-            overflow: "scroll",
+            overflowY: "scroll",
             backgroundColor: "black",
             color: "white",
+            overflowX: "hidden",
           }}
         >
           <LayerList

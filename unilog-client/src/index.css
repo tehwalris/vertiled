@@ -35,3 +35,15 @@ code {
   display: flex;
   justify-content: space-between;
 }
+
+.overlayContainer {
+  position: relative;
+}
+.overlay {
+  background-color: black;
+  color: white;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 99;
+}

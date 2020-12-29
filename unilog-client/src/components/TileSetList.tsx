@@ -2,8 +2,8 @@ import { Tileset } from "unilog-shared";
 
 interface Props {
   tilesets: Tileset[];
-  setSelectedTileSet: (i: number) => void;
-  selectedTileSet: number;
+  setSelectedTileSet: (tileset: Tileset) => void;
+  selectedTileSet: Tileset | undefined;
 }
 export function TileSetList({
   tilesets,
@@ -16,9 +16,11 @@ export function TileSetList({
       <ul>
         {tilesets.map((tileset, i) => (
           <li
-            key={i}
-            onClick={() => setSelectedTileSet(i)}
-            className={selectedTileSet === i ? "active" : ""}
+            key={tileset.firstgid}
+            onClick={() => setSelectedTileSet(tileset)}
+            className={
+              selectedTileSet?.firstgid === tileset.firstgid ? "active" : ""
+            }
           >
             {tileset.name}
           </li>
