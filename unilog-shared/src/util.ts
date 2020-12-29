@@ -149,9 +149,10 @@ export function extractCursor(world: ITilemap, frame: Rectangle): Cursor {
 export function mergeCursorOntoLayers(
   oldLayers: ILayer[],
   cursor: Cursor,
+  defaultLayerId: number,
 ): ILayer[] {
   const cursorDataByLayerId = new Map(
-    cursor.contents.map((c) => [c.layerId, c.data]),
+    cursor.contents.map((c) => [c.layerId ?? defaultLayerId, c.data]),
   );
   return oldLayers.map((oldLayer) => {
     const cursorData = cursorDataByLayerId.get(oldLayer.id);

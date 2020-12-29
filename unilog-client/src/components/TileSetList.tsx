@@ -111,14 +111,16 @@ export function TileSetList({
                     ev.preventDefault();
                     handleEndSelect(setSelection);
                     if (selection && selectedTileSet) {
-                      onSelectTiles(
-                        extractCursor(
-                          createTilemapForTilesetPreview(selectedTileSet, [
-                            selectedTileSet,
-                          ]),
-                          selection,
-                        ),
+                      const cursor = extractCursor(
+                        createTilemapForTilesetPreview(selectedTileSet, [
+                          selectedTileSet,
+                        ]),
+                        selection,
                       );
+                      for (const item of cursor.contents) {
+                        item.layerId = undefined;
+                      }
+                      onSelectTiles(cursor);
                     }
                   }
                 }}

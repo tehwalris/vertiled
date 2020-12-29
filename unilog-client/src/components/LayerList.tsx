@@ -52,7 +52,7 @@ export function LayerList({
   return (
     <div style={{}}>
       <List subheader={<ListSubheader>Layer</ListSubheader>} dense>
-        {layers.map((layer, i) => (
+        {R.reverse(layers).map((layer, i) => (
           <ListItem
             button
             dense
@@ -61,7 +61,10 @@ export function LayerList({
             onClick={(ev) =>
               setSelectedLayerIds(
                 ev.ctrlKey
-                  ? R.uniq([...selectedLayerIds, layer.id])
+                  ? [
+                      ...selectedLayerIds.filter((id) => id !== layer.id),
+                      layer.id,
+                    ]
                   : [layer.id],
               )
             }

@@ -18,7 +18,7 @@ export interface State {
 
 export interface Cursor {
   frame: Rectangle;
-  contents: { layerId: number; data: number[] }[];
+  contents: { layerId: number | undefined; data: number[] }[];
   initialFrame: Rectangle;
 }
 

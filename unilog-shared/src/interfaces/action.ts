@@ -50,6 +50,7 @@ export interface SetCursorOffsetAction {
 export interface PasteFromCursorAction {
   type: ActionType.PasteFromCursor;
   userId: string;
+  defaultLayerId: number;
 }
 
 export interface SetLayerVisibilityAction {

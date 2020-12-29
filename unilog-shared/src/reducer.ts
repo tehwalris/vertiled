@@ -78,6 +78,7 @@ export const reducer = (_state: State, action: Action): State =>
         state.world.layers = mergeCursorOntoLayers(
           immerCurrent(state.world.layers),
           immerCurrent(userState.cursor),
+          action.defaultLayerId,
         );
         break;
       }

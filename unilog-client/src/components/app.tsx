@@ -6,7 +6,8 @@ import {
   useMediaQuery,
 } from "@material-ui/core";
 import { ITilelayer, ITilemap } from "gl-tiled";
-import { produce } from "immer";
+import { produce, current as immerCurrent } from "immer";
+import * as R from "ramda";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { unstable_batchedUpdates } from "react-dom";
 import {
@@ -20,6 +21,7 @@ import {
   initialState,
   isLayerRegular,
   LogEntry,
+  mergeCursorOntoLayers,
   MessageType,
   Rectangle,
   reducer,
@@ -218,6 +220,20 @@ export const AppComponent: React.FC = () => {
 
   const myState = state.users.find((u) => u.id === userId);
 
+  const [selectedLayerIds, setSelectedLayerIds] = useState<number[]>([]);
+  useEffect(() => {
+    if (!selectedLayerIds.length && state.world.layers.length) {
+      setSelectedLayerIds((selectedLayerIds) => {
+        if (!selectedLayerIds.length && state.world.layers.length) {
+          return [R.last(state.world.layers)!.id];
+        } else {
+          return selectedLayerIds;
+        }
+      });
+    }
+  }, [selectedLayerIds, state.world.layers]);
+  const defaultLayerId = R.last(selectedLayerIds);
+
   const worldForGlTiled = useMemo(
     () =>
       produce(state.world, (world) => {
@@ -245,23 +261,15 @@ export const AppComponent: React.FC = () => {
 
         // TODO: possibly move out of here
         function addCursorToWorld(cursor: Cursor) {
-          for (const { layerId, data } of cursor.contents) {
-            const origLayer = getLayer(world, layerId);
-            const cursorLayer: ITilelayer = {
-              ...origLayer,
-              type: "tilelayer",
-              id: nextLayerId++,
-              data,
-              // XXX: as per https://doc.mapeditor.org/en/latest/reference/json-map-format/#layer, x and y are always 0 apparently
-              x: 0,
-              y: 0,
-              width: cursor.frame.width,
-              height: cursor.frame.height,
-              offsetx: cursor.frame.x * tileSize,
-              offsety: cursor.frame.y * tileSize,
-            };
-            world.layers.push(cursorLayer);
+          if (!defaultLayerId) {
+            return;
           }
+
+          world.layers = mergeCursorOntoLayers(
+            immerCurrent(world.layers),
+            cursor,
+            defaultLayerId,
+          );
         }
 
         for (const user of state.users) {
@@ -286,6 +294,7 @@ export const AppComponent: React.FC = () => {
       state.users,
       userId,
       addSelectionToLayers,
+      defaultLayerId,
     ],
   );
 
@@ -301,19 +310,6 @@ export const AppComponent: React.FC = () => {
       selection,
     });
   };
-
-  const [selectedLayerIds, setSelectedLayerIds] = useState<number[]>([]);
-  useEffect(() => {
-    if (!selectedLayerIds.length && state.world.layers.length) {
-      setSelectedLayerIds((selectedLayerIds) => {
-        if (!selectedLayerIds.length && state.world.layers.length) {
-          return [state.world.layers[0].id];
-        } else {
-          return selectedLayerIds;
-        }
-      });
-    }
-  }, [selectedLayerIds, state.world.layers]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -339,8 +335,13 @@ export const AppComponent: React.FC = () => {
                   ev.preventDefault();
 
                   const cursor = myState?.cursor;
-                  if (cursor) {
-                    runAction({ type: ActionType.PasteFromCursor, userId });
+                  const defaultLayerId = R.last(selectedLayerIds);
+                  if (cursor && defaultLayerId !== undefined) {
+                    runAction({
+                      type: ActionType.PasteFromCursor,
+                      userId,
+                      defaultLayerId,
+                    });
                   }
                 } else if (ev.button === 2) {
                   ev.preventDefault();
