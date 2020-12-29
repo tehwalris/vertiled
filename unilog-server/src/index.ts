@@ -69,7 +69,6 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("close", () => {
-    console.log("REMOVING", userId);
     sendToOthers({
       type: MessageType.LogEntryServer,
       entry: pushToLog({ type: ActionType.RemoveUser, userId }),

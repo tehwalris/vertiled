@@ -50,7 +50,6 @@ export const MapDisplay: React.FC<Props> = ({
     }
 
     if (tilemap.gl !== gl) {
-      console.log("DEBUG tilemap.glInitialize");
       tilemap.glInitialize(gl);
     }
 
@@ -71,7 +70,6 @@ export const MapDisplay: React.FC<Props> = ({
 
   useEffect(() => {
     return () => {
-      console.log("DEBUG tilemap.glTerminate");
       tilemap.glTerminate();
     };
   }, [tilemap]);

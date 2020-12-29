@@ -179,7 +179,6 @@ export const AppComponent: React.FC = () => {
   }));
 
   const tilemap = useMemo(() => {
-    console.log("DEBUG new tilemap");
     const tilemap = new glTiled.GLTilemap(
       ({ ...worldForGlTiledWithoutLayers } as any) as glTiled.ITilemap, // TODO avoid cast
       { assetCache: imageStore.assetCache },
