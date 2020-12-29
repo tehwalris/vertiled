@@ -137,12 +137,8 @@ export const MapDisplay: React.FC<Props> = ({
             );
           })
         }
-        onPointerCancel={() => {
-          console.log("DEBUG onPointerCancel");
-        }}
-        onPointerLeave={() => {
-          console.log("DEBUG onPointerLeave");
-        }}
+        onPointerCancel={() => {}}
+        onPointerLeave={() => {}}
         onContextMenu={onContextMenu}
         style={{
           ...styles.canvas,

@@ -19,7 +19,6 @@ import {
   MessageType,
   reducer,
   ServerMessage,
-  tileSize,
   unreachable,
 } from "unilog-shared";
 import { useImageStore } from "../image-store";
@@ -359,7 +358,6 @@ export const AppComponent: React.FC = () => {
                     newFrameStart.x != oldCursor.frame.x ||
                     newFrameStart.y != oldCursor.frame.y
                   ) {
-                    console.log("DEBUG SetCursorOffset", newFrameStart);
                     runAction({
                       type: ActionType.SetCursorOffset,
                       userId,
@@ -369,24 +367,6 @@ export const AppComponent: React.FC = () => {
                 }
               }}
             />
-            <div className="overlay">
-              {selectedTileSet && (
-                <div>
-                  <h3>{selectedTileSet.name}</h3>
-                  <TilemapDisplay
-                    imageStore={imageStore}
-                    tilemap={createTilemapForTilesetPreview(selectedTileSet)}
-                    width={100}
-                    height={100}
-                    offset={{ x: 0, y: 0 }}
-                    tileSize={tileSize}
-                    onPointerDown={(c, ev) => {}}
-                    onPointerUp={(c, ev) => {}}
-                    onPointerMove={(c, ev) => {}}
-                  />
-                </div>
-              )}
-            </div>
           </div>
 
           <Drawer
