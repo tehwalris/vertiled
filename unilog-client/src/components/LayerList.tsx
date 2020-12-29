@@ -4,23 +4,62 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 
 import {
   List,
-  ListItem,
+  ListItem as UnstyledListItem,
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
   ListSubheader,
+  makeStyles,
+  withStyles,
 } from "@material-ui/core";
+import { primaryColor } from "../consts";
 
 interface Props {
   layers: ILayer[];
+  selectedLayerIds: number[];
+  setSelectedLayerIds: (selectedLayerIds: number[]) => void;
   onToggleVisibility: (layerId: number, v: boolean) => void;
 }
-export function LayerList({ layers, onToggleVisibility }: Props) {
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    width: "100%",
+    maxWidth: 360,
+    backgroundColor: theme.palette.background.paper,
+  },
+}));
+
+const ListItem = withStyles({
+  root: {
+    "&$selected": {
+      backgroundColor: primaryColor,
+      color: "white",
+    },
+    "&$selected:hover": {
+      backgroundColor: primaryColor,
+      color: "white",
+    },
+  },
+  selected: {},
+})(UnstyledListItem);
+
+export function LayerList({
+  layers,
+  selectedLayerIds,
+  setSelectedLayerIds,
+  onToggleVisibility,
+}: Props) {
   return (
     <div style={{}}>
       <List subheader={<ListSubheader>Layer</ListSubheader>} dense>
         {layers.map((layer, i) => (
-          <ListItem button dense selected={layer.visible} key={layer.id}>
+          <ListItem
+            button
+            dense
+            selected={selectedLayerIds.includes(layer.id)}
+            key={layer.id}
+            onClick={(ev) => setSelectedLayerIds([layer.id])}
+          >
             <ListItemText primary={layer.name} />
             <ListItemSecondaryAction
               onClick={() => {

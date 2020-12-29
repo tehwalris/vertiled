@@ -1,7 +1,12 @@
-import * as glTiled from "gl-tiled";
-import { ITilelayer, ITilemap, ITileset } from "gl-tiled";
+import {
+  createMuiTheme,
+  CssBaseline,
+  Drawer,
+  ThemeProvider,
+  useMediaQuery,
+} from "@material-ui/core";
+import { ITilelayer, ITilemap } from "gl-tiled";
 import { produce } from "immer";
-import * as R from "ramda";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { unstable_batchedUpdates } from "react-dom";
 import {
@@ -9,7 +14,6 @@ import {
   ActionType,
   ClientMessage,
   Coordinates,
-  createTilemapForTilesetPreview,
   Cursor,
   extractCursor,
   getLayer,
@@ -20,8 +24,10 @@ import {
   Rectangle,
   reducer,
   ServerMessage,
+  tileSize,
   unreachable,
 } from "unilog-shared";
+import { primaryColor, secondaryColor } from "../consts";
 import { useImageStore } from "../image-store";
 import { useWebSocket } from "../use-web-socket";
 import {
@@ -33,15 +39,6 @@ import { useWindowSize } from "../useWindowSize";
 import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
-
-import {
-  ThemeProvider,
-  useMediaQuery,
-  CssBaseline,
-  createMuiTheme,
-  Drawer,
-} from "@material-ui/core";
-import { tileSize } from "../consts";
 
 export function getIndexInLayerFromTileCoord(
   world: ITilemap,
@@ -67,6 +64,12 @@ export const AppComponent: React.FC = () => {
       createMuiTheme({
         palette: {
           type: prefersDarkMode ? "dark" : "light",
+          primary: {
+            main: primaryColor,
+          },
+          secondary: {
+            main: secondaryColor,
+          },
         },
       }),
     [prefersDarkMode],
@@ -299,6 +302,19 @@ export const AppComponent: React.FC = () => {
     });
   };
 
+  const [selectedLayerIds, setSelectedLayerIds] = useState<number[]>([]);
+  useEffect(() => {
+    if (!selectedLayerIds.length && state.world.layers.length) {
+      setSelectedLayerIds((selectedLayerIds) => {
+        if (!selectedLayerIds.length && state.world.layers.length) {
+          return [state.world.layers[0].id];
+        } else {
+          return selectedLayerIds;
+        }
+      });
+    }
+  }, [selectedLayerIds, state.world.layers]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -387,6 +403,8 @@ export const AppComponent: React.FC = () => {
             }}
           >
             <LayerList
+              selectedLayerIds={selectedLayerIds}
+              setSelectedLayerIds={setSelectedLayerIds}
               layers={state.world.layers}
               onToggleVisibility={(id, v) => {
                 runAction({
@@ -395,7 +413,7 @@ export const AppComponent: React.FC = () => {
                   visibility: v,
                 });
               }}
-            ></LayerList>
+            />
             <TileSetList
               tilesets={state.world.tilesets}
               imageStore={imageStore}
@@ -404,7 +422,7 @@ export const AppComponent: React.FC = () => {
               onSelectTiles={(cursor) => {
                 runAction({ type: ActionType.SetCursor, userId, cursor });
               }}
-            ></TileSetList>
+            />
             <div className="selection-list">
               <div>Connected users: {state.users.length}</div>
               <div>UserId: {userId}</div>

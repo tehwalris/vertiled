@@ -6,8 +6,8 @@ import {
   Cursor,
   extractCursor,
   Rectangle,
+  tileSize,
 } from "unilog-shared";
-import { tileSize } from "../consts";
 import { ImageStore } from "../image-store";
 import { addSelectionToTilesets, useSelection } from "../useSelection";
 import { TilemapDisplay } from "./TilemapDisplay";
