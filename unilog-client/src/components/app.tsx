@@ -1,12 +1,15 @@
 import * as glTiled from "gl-tiled";
+import { ITilelayer, ITilemap, ITileset } from "gl-tiled";
 import { produce } from "immer";
 import * as R from "ramda";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { unstable_batchedUpdates } from "react-dom";
 import {
   Action,
   ActionType,
   ClientMessage,
   Coordinates,
+  Cursor,
   extractCursor,
   getLayer,
   initialState,
@@ -17,6 +20,7 @@ import {
   ServerMessage,
   unreachable,
 } from "unilog-shared";
+import { createTilemapForTilesetPrview } from "unilog-shared";
 import { useImageStore } from "../image-store";
 import { useWebSocket } from "../use-web-socket";
 import {
@@ -24,13 +28,10 @@ import {
   SelectionTilesetInfo,
   useSelection,
 } from "../useSelection";
-import { LayerList } from "./LayerList";
-import { TileSetList } from "./TileSetList";
 import { useWindowSize } from "../useWindowSize";
-import { useShallowMemo } from "../use-shallow-memo";
-import { GLTilemap, ILayer, ITilemap, ITileset } from "gl-tiled";
-import { createTilemapForTilesetPrview } from "unilog-shared";
+import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
+import { TileSetList } from "./TileSetList";
 
 export function getIndexInLayerFromTileCoord(
   world: ITilemap,
@@ -82,8 +83,10 @@ export const AppComponent: React.FC = () => {
         break;
       }
       case MessageType.RemapEntryServer: {
-        setLocalLog((old) => old.filter((e) => e.id !== msg.oldId));
-        addToRemoteLog(msg.entry);
+        unstable_batchedUpdates(() => {
+          setLocalLog((old) => old.filter((e) => e.id !== msg.oldId));
+          addToRemoteLog(msg.entry);
+        });
         break;
       }
       case MessageType.RejectEntryServer: {
@@ -172,6 +175,42 @@ export const AppComponent: React.FC = () => {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
           }
         }
+
+        let nextLayerId = Math.max(...world.layers.map((l) => l.id)) + 1;
+
+        // TODO: possibly move out of here
+        function addCursorToWorld(cursor: Cursor) {
+          for (const { layerId, data } of cursor.contents) {
+            const origLayer = getLayer(world, layerId);
+            const cursorLayer: ITilelayer = {
+              ...origLayer,
+              type: "tilelayer",
+              id: nextLayerId++,
+              data,
+              // XXX: as per https://doc.mapeditor.org/en/latest/reference/json-map-format/#layer, x and y are always 0 apparently
+              x: 0,
+              y: 0,
+              width: cursor.frame.width,
+              height: cursor.frame.height,
+              offsetx: cursor.frame.x * tileSize + 20, // TODO: remove +20 once UI works
+              offsety: cursor.frame.y * tileSize,
+            };
+            world.layers.push(cursorLayer);
+          }
+        }
+
+        for (const user of state.users) {
+          if (user.id !== userId && user.cursor) {
+            addCursorToWorld(user.cursor);
+          }
+        }
+
+        if (myState?.cursor) {
+          addCursorToWorld(myState.cursor);
+        }
+
+        // TODO: render own selection above other people's cursors
+
         world.layers = world.layers.filter((layer) => layer.visible);
         world.tilesets = tilesetsForGlTiled;
       }),
@@ -217,9 +256,26 @@ export const AppComponent: React.FC = () => {
             offset={{ x: 0, y: 0 }}
             tileSize={tileSize}
             onPointerDown={(c, ev) => {
-              handleStartSelect(c, userId, runAction);
+              // only start a selection if we don't have a cursor
+              if (!myState?.cursor) {
+                handleStartSelect(c, userId, runAction);
+              }
             }}
             onPointerUp={(c, ev) => {
+              const cursor = myState?.cursor;
+              if (cursor) {
+                console.log(
+                  "TODO: actually place cursor (removing it for now)",
+                );
+
+                runAction({
+                  type: ActionType.SetCursor,
+                  userId: userId,
+                  cursor: undefined,
+                });
+              }
+
+              // should be harmless to call if we don't have a selection
               handleEndSelect(userId, runAction);
 
               const selection = myState?.selection;
@@ -247,29 +303,9 @@ export const AppComponent: React.FC = () => {
                   height={100}
                   offset={{ x: 0, y: 0 }}
                   tileSize={tileSize}
-                  onPointerDown={(c, ev) => {
-                    handleStartSelect(c, userId, runAction);
-                  }}
-                  onPointerUp={(c, ev) => {
-                    handleEndSelect(userId, runAction);
-
-                    const selection = myState?.selection;
-                    if (
-                      selection &&
-                      selection.width >= 1 &&
-                      selection.height >= 1
-                    ) {
-                      const cursor = extractCursor(state.world, selection);
-                      runAction({
-                        type: ActionType.SetCursor,
-                        userId: userId,
-                        cursor: cursor,
-                      });
-                    }
-                  }}
-                  onPointerMove={(c, ev) => {
-                    handleMoveSelect(userId, state.users, c, runAction);
-                  }}
+                  onPointerDown={(c, ev) => {}}
+                  onPointerUp={(c, ev) => {}}
+                  onPointerMove={(c, ev) => {}}
                 />
               </div>
             )}

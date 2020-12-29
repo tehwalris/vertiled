@@ -1,3 +1,4 @@
+import assert from "assert";
 import { ILayer, ITilelayer, ITilemap, ITileset } from "gl-tiled";
 import { Cursor, Rectangle } from ".";
 
@@ -101,6 +102,9 @@ export function extractCursor(world: ITilemap, frame: Rectangle): Cursor {
     .map((layer: ITilelayer) => {
       const data = empty.slice();
 
+      // XXX: as per https://doc.mapeditor.org/en/latest/reference/json-map-format/#layer, x and y are always 0 apparently
+      assert(layer.x === 0 && layer.y === 0);
+
       // TODO: optimize for cases w/ no overlap, check rect intersections, etc.
 
       for (let destY = 0; destY < frame.height; destY++) {
@@ -121,8 +125,8 @@ export function extractCursor(world: ITilemap, frame: Rectangle): Cursor {
             break;
           }
 
-          const destIdx = frame.height * destY + destX;
-          const srcIdx = layer.height * srcY + srcX;
+          const destIdx = frame.width * destY + destX;
+          const srcIdx = layer.width * srcY + srcX;
 
           data[destIdx] = layer.data[srcIdx];
         }

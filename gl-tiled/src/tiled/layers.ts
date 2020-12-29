@@ -1,8 +1,7 @@
-import { IObject } from './objects';
-import { IProperty } from './IProperty';
+import { IObject } from "./objects";
+import { IProperty } from "./IProperty";
 
-export interface ITilelayerChunk
-{
+export interface ITilelayerChunk {
     /** Array of unsigned int (GIDs) or base64-encoded data */
     data: number[] | string;
 
@@ -23,10 +22,9 @@ export interface ITilelayerChunk
  * Interface representing a Tiled layer.
  * See: http://doc.mapeditor.org/en/latest/reference/json-map-format/#layer
  */
-export interface ILayerBase
-{
+export interface ILayerBase {
     /** Incremental id - unique across all layers */
-    id: number
+    id: number;
 
     /** Name assigned to this layer */
     name: string;
@@ -41,16 +39,16 @@ export interface ILayerBase
     opacity: number;
 
     /** A list of properties (name, value, type). */
-    properties: IProperty[];
+    properties?: IProperty[];
 
     /** X coordinate where layer content starts (for infinite maps) (int) */
     startx?: number;
 
     /** Y coordinate where layer content starts (for infinite maps) (int) */
-    starty: number;
+    starty?: number;
 
     /** tilelayer, objectgroup, imagelayer or group */
-    type: 'tilelayer' | 'objectgroup' | 'imagelayer' | 'group';
+    type: "tilelayer" | "objectgroup" | "imagelayer" | "group";
 
     /** Whether layer is shown or hidden in editor */
     visible: boolean;
@@ -62,18 +60,17 @@ export interface ILayerBase
     y: 0;
 }
 
-export interface ITilelayer extends ILayerBase
-{
-    type: 'tilelayer';
+export interface ITilelayer extends ILayerBase {
+    type: "tilelayer";
 
     /** Array of chunks (optional). */
     chunks?: ITilelayerChunk[];
 
     /** zlib, gzip or empty (default). */
-    compression?: 'zlib' | 'gzip' | 'zstd';
+    compression?: "zlib" | "gzip" | "zstd";
 
     /** csv (default) or base64. */
-    encoding?: 'csv' | 'base64';
+    encoding?: "csv" | "base64";
 
     /** Row count. Same as map height for fixed-size maps. (int) */
     height: number;
@@ -85,24 +82,22 @@ export interface ITilelayer extends ILayerBase
     width: number;
 }
 
-export interface IObjectgroup extends ILayerBase
-{
-    type: 'objectgroup';
+export interface IObjectgroup extends ILayerBase {
+    type: "objectgroup";
 
     /**
      * Whether the objects are drawn according to the order of
      * appearance (index) or sorted by their y-coordinate (topdown).
      * Defaults to topdown.
      */
-    draworder: 'topdown' | 'index';
+    draworder: "topdown" | "index";
 
     /** Array of Objects. objectgroup only. */
     objects: IObject[];
 }
 
-export interface IImagelayer extends ILayerBase
-{
-    type: 'imagelayer';
+export interface IImagelayer extends ILayerBase {
+    type: "imagelayer";
 
     /** Image used by this layer. */
     image: string;
@@ -111,9 +106,8 @@ export interface IImagelayer extends ILayerBase
     transparentcolor?: string;
 }
 
-export interface ILayergroup extends ILayerBase
-{
-    type: 'group';
+export interface ILayergroup extends ILayerBase {
+    type: "group";
 
     /** Array of layers. */
     layers: ILayer[];

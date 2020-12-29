@@ -7,6 +7,7 @@ import {
 } from "./util";
 import { Action, ActionType } from "./interfaces/action";
 import { State, User } from "./interfaces/data";
+import assert from "assert";
 
 export const initialState: State = {
   world: createEmptyTilemap(100, 100),
@@ -43,6 +44,7 @@ export const reducer = (_state: State, action: Action): State =>
         break;
       }
       case ActionType.SetCursor: {
+        // TODO: validate cursor (layers exist, bounds make sense)
         requireUser(state, action).cursor = action.cursor;
         break;
       }
@@ -75,5 +77,11 @@ export const reducer = (_state: State, action: Action): State =>
       }
       default:
         unreachable(action);
+    }
+    for (const user of state.users) {
+      assert(
+        !(user.cursor && user.selection),
+        "Shouldn't ever have a cursor and a selection at the same time",
+      );
     }
   });
