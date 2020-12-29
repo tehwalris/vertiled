@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActionType, Coordinates, Layer, Tileset, User } from "unilog-shared";
-import { MapWorld } from "unilog-shared/src";
+import { ILayer, ITileset } from "gl-tiled";
+import { useCallback, useState } from "react";
+import { ActionType, Coordinates, isLayerRegular, User } from "unilog-shared";
 import { ImageStore } from "./image-store";
 import { ActionRunner } from "./interfaces";
 
@@ -12,7 +12,7 @@ export interface SelectionTilesetInfo {
 }
 
 export function addSelectionToTilesets(
-  tilesets: Tileset[],
+  tilesets: ITileset[],
   imageStore: ImageStore,
 ): SelectionTilesetInfo {
   const uiFirstGid = tilesets.reduce(
@@ -44,12 +44,16 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
   const [isSelecting, setIsSelecting] = useState<Coordinates>();
 
   const addSelectionToLayers = useCallback(
-    (layers: Layer[], users: User[], currentUser: string) => {
+    (layers: ILayer[], users: User[], currentUser: string) => {
       //we assume that all layers start at one and that the first layer has a width and height
       const referenceLayer = layers[0];
 
       if (!referenceLayer) {
         return layers;
+      }
+
+      if (!isLayerRegular(referenceLayer)) {
+        throw new Error(`layer ${referenceLayer} is not an ITilelayer`);
       }
 
       const data = new Array(

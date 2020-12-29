@@ -10,13 +10,11 @@ import {
   extractCursor,
   getLayer,
   initialState,
-  Layer,
+  isLayerRegular,
   LogEntry,
-  MapWorld,
   MessageType,
   reducer,
   ServerMessage,
-  Tileset,
   unreachable,
 } from "unilog-shared";
 import { useImageStore } from "../image-store";
@@ -31,16 +29,19 @@ import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
 import { useWindowSize } from "../useWindowSize";
 import { useShallowMemo } from "../use-shallow-memo";
-import { divide } from "lodash";
+import { ILayer, ITilemap, ITileset } from "gl-tiled";
 
-const EMPTY_LAYERS: Layer[] = [];
+const EMPTY_LAYERS: ILayer[] = [];
 
 export function getIndexInLayerFromTileCoord(
-  world: MapWorld,
+  world: ITilemap,
   layerId: number,
   c: Coordinates,
 ) {
   const layer = getLayer(world, layerId);
+  if (!isLayerRegular(layer)) {
+    throw new Error(`layer ${layerId} is not an ITilelayer`);
+  }
   return layer.width! * (c.y - layer.y) + (c.x - layer.x);
 }
 
@@ -56,7 +57,7 @@ export const AppComponent: React.FC = () => {
 
   const [serverState, setServerState] = useState(initialState);
 
-  const [selectedTileSet, setSelectedTileSet] = useState<Tileset>();
+  const [selectedTileSet, setSelectedTileSet] = useState<ITileset>();
 
   const [userId, setUserId] = useState("");
 
@@ -132,6 +133,10 @@ export const AppComponent: React.FC = () => {
   const imageStore = useImageStore(httpServerURL);
   useEffect(() => {
     for (const tileset of state.world.tilesets) {
+      if (!tileset.image) {
+        console.warn(`Tileset ${tileset.name} did not have an image property`);
+        continue;
+      }
       imageStore.getImage(tileset.image);
     }
   }, [state.world.tilesets, imageStore]);
@@ -158,6 +163,12 @@ export const AppComponent: React.FC = () => {
       produce(state.world, (world) => {
         addSelectionToLayers(world.layers, state.users, userId);
         for (const tileset of world.tilesets) {
+          if (!tileset.image) {
+            console.warn(
+              `Tileset ${tileset.name} did not have an image property`,
+            );
+            continue;
+          }
           if (!imageStore.assetCache[tileset.image]) {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
           }
@@ -207,6 +218,15 @@ export const AppComponent: React.FC = () => {
   const canvasWidth = windowSize.width - 300;
   const menuWidth = 300;
 
+  const previewTileMap = useMemo(() => {
+    const tilemap = new glTiled.GLTilemap(
+      ({ ...worldForGlTiled } as any) as glTiled.ITilemap, // TODO avoid cast
+      { assetCache: imageStore.assetCache },
+    );
+    tilemap.repeatTiles = false;
+    return tilemap;
+  }, [worldForGlTiled, imageStore.assetCache]);
+
   return (
     <div>
       <div
@@ -247,6 +267,36 @@ export const AppComponent: React.FC = () => {
             {selectedTileSet && (
               <div>
                 <h3>{selectedTileSet.name}</h3>
+                <MapDisplay
+                  tilemap={previewTileMap}
+                  width={100}
+                  height={100}
+                  offset={{ x: 0, y: 0 }}
+                  tileSize={tileSize}
+                  onPointerDown={(c, ev) => {
+                    handleStartSelect(c, userId, runAction);
+                  }}
+                  onPointerUp={(c, ev) => {
+                    handleEndSelect(userId, runAction);
+
+                    const selection = myState?.selection;
+                    if (
+                      selection &&
+                      selection.width >= 1 &&
+                      selection.height >= 1
+                    ) {
+                      const cursor = extractCursor(state.world, selection);
+                      runAction({
+                        type: ActionType.SetCursor,
+                        userId: userId,
+                        cursor: cursor,
+                      });
+                    }
+                  }}
+                  onPointerMove={(c, ev) => {
+                    handleMoveSelect(userId, state.users, c, runAction);
+                  }}
+                />
               </div>
             )}
           </div>

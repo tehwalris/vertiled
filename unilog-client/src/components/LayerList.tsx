@@ -1,8 +1,8 @@
-import { Layer } from "unilog-shared";
+import { ILayer } from "gl-tiled";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 interface Props {
-  layers: Layer[];
+  layers: ILayer[];
   onToggleVisibility: (layerId: number, v: boolean) => void;
 }
 export function LayerList({ layers, onToggleVisibility }: Props) {

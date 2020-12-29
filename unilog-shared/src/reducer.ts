@@ -1,16 +1,10 @@
-import {produce} from "immer";
-import {getLayer, unreachable} from "./util";
-import {Action, ActionType} from "./interfaces/action";
-import {State, User} from "./interfaces/data";
+import { produce } from "immer";
+import { getLayer, isLayerRegular, unreachable } from "./util";
+import { Action, ActionType } from "./interfaces/action";
+import { State, User } from "./interfaces/data";
 
 export const initialState: State = {
   world: {
-    compressionlevel: -1,
-    editorsettings: {
-      export: {
-        target: ".",
-      },
-    },
     height: 100,
     infinite: false,
     layers: [],
@@ -29,29 +23,29 @@ export const initialState: State = {
   users: [],
 };
 
-const requireUser = (state: State, action: {userId: string}): User => {
+const requireUser = (state: State, action: { userId: string }): User => {
   const user = state.users.find((u) => u.id === action.userId);
   if (!user) {
     throw new Error(`unknown user: ${action.userId}`);
   }
   return user;
-}
+};
 
 export const reducer = (_state: State, action: Action): State =>
   produce(_state, (state) => {
     switch (action.type) {
       case ActionType.SetTile: {
         const layer = getLayer(state.world, action.layerId);
-        if (!layer.data || !layer.width || !layer.height) {
-          throw new Error(`layer ${action.layerId} has no data field`);
+        if (!isLayerRegular(layer)) {
+          throw new Error(`layer ${action.layerId} is not an ITilelayer`);
         }
         if (layer.height * layer.width < action.index) {
           throw new Error(
             `index ${action.index} is out of bounds, Layer: ${action.layerId} w: ${layer.width}, h: ${layer.height}`,
           );
         }
-
-        layer.data[action.index] = action.tileId;
+        // TODO: Handle casee when sttring encoded
+        (layer.data as number[])[action.index] = action.tileId;
         break;
       }
       case ActionType.SetSelection: {
@@ -65,7 +59,9 @@ export const reducer = (_state: State, action: Action): State =>
       case ActionType.MoveCursor: {
         const cursor = requireUser(state, action).cursor;
         if (!cursor) {
-          throw new Error(`can't move non-existent cursor for user ${action.userId}`);
+          throw new Error(
+            `can't move non-existent cursor for user ${action.userId}`,
+          );
         }
         cursor.frame.x = action.offset.x;
         cursor.frame.y = action.offset.y;

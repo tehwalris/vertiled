@@ -1,9 +1,9 @@
-import { Tileset } from "unilog-shared";
+import { ITileset } from "gl-tiled";
 
 interface Props {
-  tilesets: Tileset[];
-  setSelectedTileSet: (tileset: Tileset) => void;
-  selectedTileSet: Tileset | undefined;
+  tilesets: ITileset[];
+  setSelectedTileSet: (tileset: ITileset) => void;
+  selectedTileSet: ITileset | undefined;
 }
 export function TileSetList({
   tilesets,
