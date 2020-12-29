@@ -112,9 +112,10 @@ export const AppComponent: React.FC = () => {
         break;
       }
       case MessageType.RemapEntryServer: {
-        // TODO batch
-        removeFromLocalLog(msg.oldId);
-        addToRemoteLog(msg.entry);
+        unstable_batchedUpdates(() => {
+          removeFromLocalLog(msg.oldId);
+          addToRemoteLog(msg.entry);
+        });
         break;
       }
       case MessageType.RejectEntryServer: {
@@ -299,12 +300,15 @@ export const AppComponent: React.FC = () => {
               } else if (ev.button === 2) {
                 ev.preventDefault();
 
+                runAction({ type: ActionType.SetCursor, userId });
                 handleStartSelect(c, userId, runAction);
               }
             }}
             onPointerUp={(c, ev) => {
-              if (ev.button === 0) {
+              if (ev.button === 2) {
                 ev.preventDefault();
+
+                handleEndSelect(userId, runAction);
 
                 const selection = myState?.selection;
                 if (
@@ -313,16 +317,8 @@ export const AppComponent: React.FC = () => {
                   selection.height >= 1
                 ) {
                   const cursor = extractCursor(state.world, selection);
-                  runAction({
-                    type: ActionType.SetCursor,
-                    userId: userId,
-                    cursor: cursor,
-                  });
+                  runAction({ type: ActionType.SetCursor, userId, cursor });
                 }
-              } else if (ev.button === 2) {
-                ev.preventDefault();
-
-                handleEndSelect(userId, runAction);
               }
             }}
             onPointerMove={(c, ev) => {
