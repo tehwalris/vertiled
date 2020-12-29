@@ -79,7 +79,6 @@ export const reducer = (_state: State, action: Action): State =>
           immerCurrent(state.world.layers),
           immerCurrent(userState.cursor),
         );
-        userState.cursor = undefined;
         break;
       }
       case ActionType.SetLayerVisibility: {
