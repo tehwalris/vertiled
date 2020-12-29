@@ -1,4 +1,5 @@
 import {Cursor, Layer, MapWorld, Rectangle, RegularLayer} from ".";
+import assert from "assert"
 
 export function unreachable(v: never): never {
   console.warn("unreachable called with", v);
@@ -23,6 +24,9 @@ export function extractCursor(world: MapWorld, frame: Rectangle): Cursor {
 
   const contents = world.layers.filter(isLayerRegular).map( (layer: RegularLayer) => {
     const data = empty.slice();
+
+    // XXX: as per https://doc.mapeditor.org/en/latest/reference/json-map-format/#layer, x and y are always 0 apparently
+    assert(layer.x === 0 && layer.y === 0);
 
     // TODO: optimize for cases w/ no overlap, check rect intersections, etc.
 

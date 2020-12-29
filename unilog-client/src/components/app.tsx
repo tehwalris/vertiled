@@ -162,12 +162,15 @@ export const AppComponent: React.FC = () => {
             const cursorLayer = {
               ...origLayer,
               id: nextLayerId++,
-              ...cursor.frame, // width, height, x, y,
               data,
+              // XXX: as per https://doc.mapeditor.org/en/latest/reference/json-map-format/#layer, x and y are always 0 apparently
+              x: 0,
+              y: 0,
+              width: cursor.frame.width,
+              height: cursor.frame.height,
               offsetx: cursor.frame.x * tileSize + 20, // TODO: remove +20 once UI works
               offsety: cursor.frame.y * tileSize,
             }
-            assert(cursorLayer.x === cursor.frame.x);
             world.layers.push(cursorLayer);
           }
         }
@@ -209,6 +212,7 @@ export const AppComponent: React.FC = () => {
   const canvasWidth = windowSize.width - 300;
   const menuWidth = 300;
 
+
   return (
     <div>
       <div
@@ -224,9 +228,25 @@ export const AppComponent: React.FC = () => {
           offset={{ x: 0, y: 0 }}
           tileSize={tileSize}
           onPointerDown={(c, ev) => {
-            handleStartSelect(c, userId, runAction);
+            // only start a selection if we don't have a cursor
+            if (!myState?.cursor) {
+              handleStartSelect(c, userId, runAction);
+            }
           }}
           onPointerUp={(c, ev) => {
+
+            const cursor = myState?.cursor;
+            if (cursor) {
+              console.log("TODO: actually place cursor (removing it for now)");
+
+              runAction({
+                type: ActionType.SetCursor,
+                userId: userId,
+                cursor: undefined
+              });
+            }
+
+            // should be harmless to call if we don't have a selection
             handleEndSelect(userId, runAction);
 
             const selection = myState?.selection;
@@ -238,6 +258,8 @@ export const AppComponent: React.FC = () => {
                 cursor: cursor,
               });
             }
+
+
           }}
           onPointerMove={(c, ev) => {
             handleMoveSelect(userId, state.users, c, runAction);
