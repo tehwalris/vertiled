@@ -1,7 +1,6 @@
 import { ILayer } from "gl-tiled";
 import React from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-
 import {
   List,
   ListItem as UnstyledListItem,
@@ -13,6 +12,7 @@ import {
   withStyles,
 } from "@material-ui/core";
 import { primaryColor } from "../consts";
+import * as R from "ramda";
 
 interface Props {
   layers: ILayer[];
@@ -58,7 +58,13 @@ export function LayerList({
             dense
             selected={selectedLayerIds.includes(layer.id)}
             key={layer.id}
-            onClick={(ev) => setSelectedLayerIds([layer.id])}
+            onClick={(ev) =>
+              setSelectedLayerIds(
+                ev.ctrlKey
+                  ? R.uniq([...selectedLayerIds, layer.id])
+                  : [layer.id],
+              )
+            }
           >
             <ListItemText primary={layer.name} />
             <ListItemSecondaryAction
