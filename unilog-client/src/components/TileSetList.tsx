@@ -4,7 +4,7 @@ import { Select, MenuItem } from "@material-ui/core";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { ImageStore } from "../image-store";
 import { tileSize } from "../consts";
-import { createTilemapForTilesetPrview } from "unilog-shared";
+import { createTilemapForTilesetPreview } from "unilog-shared";
 
 interface Props {
   tilesets: ITileset[];
@@ -36,7 +36,7 @@ export function TileSetList({
         <div>
           <TilemapDisplay
             imageStore={imageStore}
-            tilemap={createTilemapForTilesetPrview(tilesets[selectedTileSet])}
+            tilemap={createTilemapForTilesetPreview(tilesets[selectedTileSet])}
             width={100}
             height={100}
             offset={{ x: 0, y: 0 }}
