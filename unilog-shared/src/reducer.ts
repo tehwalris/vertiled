@@ -1,8 +1,9 @@
-import { produce } from "immer";
+import { produce, current as immerCurrent } from "immer";
 import {
   createEmptyTilemap,
   getLayer,
   isLayerRegular,
+  mergeCursorOntoLayers,
   unreachable,
 } from "./util";
 import { Action, ActionType } from "./interfaces/action";
@@ -67,6 +68,18 @@ export const reducer = (_state: State, action: Action): State =>
         }
         cursor.frame.x = action.offset.x;
         cursor.frame.y = action.offset.y;
+        break;
+      }
+      case ActionType.PasteFromCursor: {
+        const userState = requireUser(state, action);
+        if (!userState.cursor) {
+          throw new Error(`user ${action.userId} has no cursor`);
+        }
+        state.world.layers = mergeCursorOntoLayers(
+          immerCurrent(state.world.layers),
+          immerCurrent(userState.cursor),
+        );
+        userState.cursor = undefined;
         break;
       }
       case ActionType.SetLayerVisibility: {

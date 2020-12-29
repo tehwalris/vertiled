@@ -317,7 +317,7 @@ export const AppComponent: React.FC = () => {
 
                   const cursor = myState?.cursor;
                   if (cursor) {
-                    console.log("TODO: actually place cursor");
+                    runAction({ type: ActionType.PasteFromCursor, userId });
                   }
                 } else if (ev.button === 2) {
                   ev.preventDefault();

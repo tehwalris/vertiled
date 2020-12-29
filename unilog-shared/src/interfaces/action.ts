@@ -5,6 +5,7 @@ export type Action =
   | SetSelectionAction
   | SetCursorAction
   | SetCursorOffsetAction
+  | PasteFromCursorAction
   | AddUserAction
   | RemoveUserAction
   | SetLayerVisibilityAction;
@@ -14,6 +15,7 @@ export enum ActionType {
   SetSelection = "SetSelection",
   SetCursor = "SetCursor",
   SetCursorOffset = "SetCursorOffset",
+  PasteFromCursor = "PasteFromCursor",
   AddUser = "AddUser",
   RemoveUser = "RemoveUser",
   SetLayerVisibility = "SetLayerVisibility",
@@ -43,6 +45,11 @@ export interface SetCursorOffsetAction {
   type: ActionType.SetCursorOffset;
   userId: string;
   offset: Coordinates;
+}
+
+export interface PasteFromCursorAction {
+  type: ActionType.PasteFromCursor;
+  userId: string;
 }
 
 export interface SetLayerVisibilityAction {

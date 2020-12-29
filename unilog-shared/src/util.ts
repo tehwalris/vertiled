@@ -142,3 +142,44 @@ export function extractCursor(world: ITilemap, frame: Rectangle): Cursor {
 
   return { frame, initialFrame: frame, contents };
 }
+
+export function mergeCursorOntoLayers(
+  oldLayers: ILayer[],
+  cursor: Cursor,
+): ILayer[] {
+  const cursorDataByLayerId = new Map(
+    cursor.contents.map((c) => [c.layerId, c.data]),
+  );
+  return oldLayers.map((oldLayer) => {
+    const cursorData = cursorDataByLayerId.get(oldLayer.id);
+    if (
+      !cursorData ||
+      oldLayer.type !== "tilelayer" ||
+      typeof oldLayer.data === "string"
+    ) {
+      // TODO Why can the layer data be a string?
+      return oldLayer;
+    }
+    const newLayerData = oldLayer.data.map((oldGid, i) => {
+      const x = (oldLayer.offsetx || 0) + (i % oldLayer.width);
+      const y = (oldLayer.offsety || 0) + Math.floor(i / oldLayer.width);
+
+      const posInCursor = { x: x - cursor.frame.x, y: y - cursor.frame.y };
+      if (
+        posInCursor.x < 0 ||
+        posInCursor.x >= cursor.frame.width ||
+        posInCursor.y < 0 ||
+        posInCursor.y >= cursor.frame.height
+      ) {
+        return oldGid;
+      }
+
+      const indexInCursor = posInCursor.x + posInCursor.y * cursor.frame.width;
+      if (indexInCursor < 0 || indexInCursor >= cursorData.length) {
+        throw new Error("unexpected out of bounds in cursor data");
+      }
+      return cursorData[indexInCursor];
+    });
+    return { ...oldLayer, data: newLayerData };
+  });
+}
