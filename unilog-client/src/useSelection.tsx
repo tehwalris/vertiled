@@ -49,7 +49,6 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
       layers: ILayer[],
       mySelection: Rectangle | undefined,
       otherSelections: Rectangle[],
-      currentUser: string,
     ) => {
       //we assume that all layers start at one and that the first layer has a width and height
       const referenceLayer = layers[0];

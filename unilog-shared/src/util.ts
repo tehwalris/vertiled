@@ -46,7 +46,10 @@ export function createTilemapFromLayers(
   };
 }
 
-export function createTilemapForTilesetPreview(tileset: ITileset): ITilemap {
+export function createTilemapForTilesetPreview(
+  tileset: ITileset,
+  allTilesets: ITileset[],
+): ITilemap {
   const countwidth = tileset.imagewidth / tileset.tilewidth;
   const countheight = tileset.imageheight / tileset.tileheight;
 
@@ -56,7 +59,7 @@ export function createTilemapForTilesetPreview(tileset: ITileset): ITilemap {
 
   return {
     ...createEmptyTilemap(countheight, countwidth),
-    tilesets: [tileset],
+    tilesets: allTilesets,
     layers: [createLayer("TilesetPreview", data, countwidth, countheight, 1)],
     nextlayerid: 2,
   };

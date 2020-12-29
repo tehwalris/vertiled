@@ -225,7 +225,6 @@ export const AppComponent: React.FC = () => {
             .map((u) => u.selection)
             .filter((v) => v)
             .map((v) => v!),
-          userId,
         );
         for (const tileset of world.tilesets) {
           if (!tileset.image) {
@@ -401,7 +400,8 @@ export const AppComponent: React.FC = () => {
               tilesets={state.world.tilesets}
               imageStore={imageStore}
               setSelectedTileSet={setSelectedTileSet}
-              selectedTileSet={selectedTileSet}
+              selectedTileSetIndex={selectedTileSet}
+              onSelectTiles={() => console.log("TODO onSelectTiles")}
             ></TileSetList>
             <div className="selection-list">
               <div>Connected users: {state.users.length}</div>
