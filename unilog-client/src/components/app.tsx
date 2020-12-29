@@ -33,6 +33,15 @@ import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
 
+import {
+  ThemeProvider,
+  useMediaQuery,
+  CssBaseline,
+  createMuiTheme,
+  Drawer,
+} from "@material-ui/core";
+import { tileSize } from "../consts";
+
 export function getIndexInLayerFromTileCoord(
   world: ITilemap,
   layerId: number,
@@ -48,16 +57,27 @@ export function getIndexInLayerFromTileCoord(
 const serverOrigin = `${window.location.hostname}:8088`;
 const wsServerURL = `ws://${serverOrigin}`;
 const httpServerURL = `//${serverOrigin}`;
-const tileSize = 32;
 
 export const AppComponent: React.FC = () => {
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
+  const theme = React.useMemo(
+    () =>
+      createMuiTheme({
+        palette: {
+          type: prefersDarkMode ? "dark" : "light",
+        },
+      }),
+    [prefersDarkMode],
+  );
+
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
   const [localLog, setLocalLog] = useState<LogEntry[]>([]);
   const nextLocalId = useRef<number>(-1);
 
   const [serverState, setServerState] = useState(initialState);
 
-  const [selectedTileSet, setSelectedTileSet] = useState<ITileset>();
+  const [selectedTileSet, setSelectedTileSet] = useState<number>(0);
 
   const [userId, setUserId] = useState("");
 
@@ -239,117 +259,108 @@ export const AppComponent: React.FC = () => {
   }, [worldForGlTiled, imageStore.assetCache]);
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          maxWidth: windowSize.width,
-          overflow: "hidden",
-        }}
-      >
-        <div className="overlayContainer">
-          <TilemapDisplay
-            imageStore={imageStore}
-            tilemap={worldForGlTiled}
-            width={canvasWidth}
-            height={windowSize.height}
-            offset={{ x: 0, y: 0 }}
-            tileSize={tileSize}
-            onPointerDown={(c, ev) => {
-              // only start a selection if we don't have a cursor
-              if (!myState?.cursor) {
-                handleStartSelect(c, userId, runAction);
-              }
-            }}
-            onPointerUp={(c, ev) => {
-              const cursor = myState?.cursor;
-              if (cursor) {
-                console.log(
-                  "TODO: actually place cursor (removing it for now)",
-                );
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
 
-                runAction({
-                  type: ActionType.SetCursor,
-                  userId: userId,
-                  cursor: undefined,
-                });
-              }
-
-              // should be harmless to call if we don't have a selection
-              handleEndSelect(userId, runAction);
-
-              const selection = myState?.selection;
-              if (selection && selection.width >= 1 && selection.height >= 1) {
-                const cursor = extractCursor(state.world, selection);
-                runAction({
-                  type: ActionType.SetCursor,
-                  userId: userId,
-                  cursor: cursor,
-                });
-              }
-            }}
-            onPointerMove={(c, ev) => {
-              handleMoveSelect(userId, state.users, c, runAction);
-            }}
-          />
-          <div className="overlay">
-            {selectedTileSet && (
-              <div>
-                <h3>{selectedTileSet.name}</h3>
-                <TilemapDisplay
-                  imageStore={imageStore}
-                  tilemap={createTilemapForTilesetPrview(selectedTileSet)}
-                  width={100}
-                  height={100}
-                  offset={{ x: 0, y: 0 }}
-                  tileSize={tileSize}
-                  onPointerDown={(c, ev) => {}}
-                  onPointerUp={(c, ev) => {}}
-                  onPointerMove={(c, ev) => {}}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
+      <div>
         <div
           style={{
-            width: menuWidth,
-            height: windowSize.height,
-            overflowY: "scroll",
-            backgroundColor: "black",
-            color: "white",
-            overflowX: "hidden",
+            display: "flex",
+            maxWidth: windowSize.width,
+            overflow: "hidden",
           }}
         >
-          <LayerList
-            layers={state.world.layers}
-            onToggleVisibility={(id, v) => {
-              runAction({
-                type: ActionType.SetLayerVisibility,
-                layerId: id,
-                visibility: v,
-              });
-            }}
-          ></LayerList>
+          <div className="overlayContainer">
+            <TilemapDisplay
+              imageStore={imageStore}
+              tilemap={worldForGlTiled}
+              width={canvasWidth}
+              height={windowSize.height}
+              offset={{ x: 0, y: 0 }}
+              tileSize={tileSize}
+              onPointerDown={(c, ev) => {
+                // only start a selection if we don't have a cursor
+                if (!myState?.cursor) {
+                  handleStartSelect(c, userId, runAction);
+                }
+              }}
+              onPointerUp={(c, ev) => {
+                const cursor = myState?.cursor;
+                if (cursor) {
+                  console.log(
+                    "TODO: actually place cursor (removing it for now)",
+                  );
 
-          <TileSetList
-            tilesets={state.world.tilesets}
-            setSelectedTileSet={setSelectedTileSet}
-            selectedTileSet={selectedTileSet}
-          ></TileSetList>
+                  runAction({
+                    type: ActionType.SetCursor,
+                    userId: userId,
+                    cursor: undefined,
+                  });
+                }
 
-          <div className="selection-list">
-            <h3>Debug</h3>
-            <p style={{ width: 300, wordBreak: "break-all" }}>
-              {JSON.stringify(state.users)}
-            </p>
-            UserId: {userId}
-            <div>Remote log length: {remoteLog.length}</div>
-            <div>Local log length: {localLog.length}</div>
+                // should be harmless to call if we don't have a selection
+                handleEndSelect(userId, runAction);
+
+                const selection = myState?.selection;
+                if (
+                  selection &&
+                  selection.width >= 1 &&
+                  selection.height >= 1
+                ) {
+                  const cursor = extractCursor(state.world, selection);
+                  runAction({
+                    type: ActionType.SetCursor,
+                    userId: userId,
+                    cursor: cursor,
+                  });
+                }
+              }}
+              onPointerMove={(c, ev) => {
+                handleMoveSelect(userId, state.users, c, runAction);
+              }}
+            />
+            <div className="overlay"></div>
           </div>
+
+          <Drawer
+            variant="permanent"
+            anchor="right"
+            PaperProps={{
+              style: {
+                width: menuWidth,
+                height: windowSize.height,
+              },
+            }}
+            style={{}}
+          >
+            <LayerList
+              layers={state.world.layers}
+              onToggleVisibility={(id, v) => {
+                runAction({
+                  type: ActionType.SetLayerVisibility,
+                  layerId: id,
+                  visibility: v,
+                });
+              }}
+            ></LayerList>
+            <TileSetList
+              tilesets={state.world.tilesets}
+              imageStore={imageStore}
+              setSelectedTileSet={setSelectedTileSet}
+              selectedTileSet={selectedTileSet}
+            ></TileSetList>
+            <div className="selection-list">
+              <h3>Debug</h3>
+              <p style={{ width: 300, wordBreak: "break-all" }}>
+                {JSON.stringify(state.users)}
+              </p>
+              UserId: {userId}
+              <div>Remote log length: {remoteLog.length}</div>
+              <div>Local log length: {localLog.length}</div>
+            </div>
+          </Drawer>
         </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 };

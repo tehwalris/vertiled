@@ -16,20 +16,15 @@
  * @param message The message to display if the first param is not true.
  * @param data Extra data to log.
  */
-export function ASSERT(bool: boolean, message: string, data?: any): void
-{
-    if (!bool)
-    {
-        if (arguments.length > 2)
-        {
+export function ASSERT(bool: boolean, message: string, data?: any): void {
+    if (!bool) {
+        if (arguments.length > 2) {
             console.error(`[glTiled] ${message} - (${typeof data})`, data);
-        }
-        else
-        {
+        } else {
             console.error(`[glTiled] ${message}`);
         }
 
-        debugger;
+        //debugger;
     }
 }
 
@@ -41,16 +36,11 @@ export function ASSERT(bool: boolean, message: string, data?: any): void
  * @param message The message to display if the first param is not true.
  * @param data Extra data to log.
  */
-export function VALIDATE(bool: boolean, message: string, data?: any): void
-{
-    if (!bool)
-    {
-        if (arguments.length > 2)
-        {
+export function VALIDATE(bool: boolean, message: string, data?: any): void {
+    if (!bool) {
+        if (arguments.length > 2) {
             console.warn(`[glTiled] ${message} - (${typeof data})`, data);
-        }
-        else
-        {
+        } else {
             console.warn(`[glTiled] ${message}`);
         }
     }
