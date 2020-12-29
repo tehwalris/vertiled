@@ -19,7 +19,7 @@ export function TileSetList({
   imageStore,
 }: Props) {
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       <Select
         value={selectedTileSet}
         onChange={(ev) => {
@@ -32,23 +32,37 @@ export function TileSetList({
           </MenuItem>
         ))}
       </Select>
+
       {tilesets[selectedTileSet] && (
-        <div>
-          <TilemapDisplay
-            imageStore={imageStore}
-            tilemap={createTilemapForTilesetPreview(tilesets[selectedTileSet])}
-            width={100}
-            height={100}
-            offset={{ x: 0, y: 0 }}
-            tileSize={tileSize}
-            onPointerDown={(c, ev) => {}}
-            onPointerUp={(c, ev) => {}}
-            onPointerMove={(c, ev) => {}}
-          />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: 10,
+          }}
+        >
+          <div
+            style={{
+              border: "1px solid #888",
+              width: "min-content",
+            }}
+          >
+            <TilemapDisplay
+              imageStore={imageStore}
+              tilemap={createTilemapForTilesetPreview(
+                tilesets[selectedTileSet],
+              )}
+              width={250}
+              height={250}
+              offset={{ x: 0, y: 0 }}
+              tileSize={tileSize}
+              onPointerDown={(c, ev) => {}}
+              onPointerUp={(c, ev) => {}}
+              onPointerMove={(c, ev) => {}}
+            />
+          </div>
         </div>
       )}
-
-      <ul></ul>
     </div>
   );
 }
