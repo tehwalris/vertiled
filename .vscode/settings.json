@@ -4,6 +4,9 @@
     "Descs",
     "Tilesets",
     "immer",
+    "offsetx",
+    "offsety",
+    "tilelayer",
     "tilemap",
     "tileset",
     "unilog"

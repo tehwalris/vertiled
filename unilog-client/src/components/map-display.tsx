@@ -3,9 +3,10 @@ import React, { useEffect, useRef } from "react";
 import { Coordinates } from "unilog-shared";
 
 interface Props {
-  onPointerDown: (coordinates: Coordinates, ev: React.PointerEvent) => void;
-  onPointerMove: (coordinates: Coordinates, ev: React.PointerEvent) => void;
-  onPointerUp: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+  onPointerDown?: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+  onPointerMove?: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+  onPointerUp?: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+  onContextMenu?: (ev: React.MouseEvent) => void;
 
   width: number;
   height: number;
@@ -29,6 +30,7 @@ export const MapDisplay: React.FC<Props> = ({
   onPointerDown,
   onPointerMove,
   onPointerUp,
+  onContextMenu,
 }) => {
   const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
   const canvasWidth = Math.floor(width * devicePixelRatio);
@@ -94,8 +96,6 @@ export const MapDisplay: React.FC<Props> = ({
     return { x: canvasX, y: canvasY };
   }
 
-  // Resize
-
   return (
     <div
       style={{
@@ -107,27 +107,37 @@ export const MapDisplay: React.FC<Props> = ({
         ref={canvas}
         height={canvasHeight}
         width={canvasWidth}
-        onPointerDown={(ev) => {
-          const canvasRect = canvas.current?.getBoundingClientRect()!;
-          onPointerDown(
-            screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
-            ev,
-          );
-        }}
-        onPointerUp={(ev) => {
-          const canvasRect = canvas.current?.getBoundingClientRect()!;
-          onPointerUp(
-            screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
-            ev,
-          );
-        }}
-        onPointerMove={(ev) => {
-          const canvasRect = canvas.current?.getBoundingClientRect();
-          onPointerMove(
-            screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
-            ev,
-          );
-        }}
+        onPointerDown={
+          onPointerDown &&
+          ((ev) => {
+            const canvasRect = canvas.current?.getBoundingClientRect()!;
+            onPointerDown(
+              screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
+              ev,
+            );
+          })
+        }
+        onPointerUp={
+          onPointerUp &&
+          ((ev) => {
+            const canvasRect = canvas.current?.getBoundingClientRect()!;
+            onPointerUp(
+              screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
+              ev,
+            );
+          })
+        }
+        onPointerMove={
+          onPointerMove &&
+          ((ev) => {
+            const canvasRect = canvas.current?.getBoundingClientRect();
+            onPointerMove(
+              screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
+              ev,
+            );
+          })
+        }
+        onContextMenu={onContextMenu}
         style={{
           ...styles.canvas,
           imageRendering: "pixelated",

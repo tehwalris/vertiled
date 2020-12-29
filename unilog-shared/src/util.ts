@@ -46,7 +46,7 @@ export function createTilemapFromLayers(
   };
 }
 
-export function createTilemapForTilesetPrview(tileset: ITileset): ITilemap {
+export function createTilemapForTilesetPreview(tileset: ITileset): ITilemap {
   const countwidth = tileset.imagewidth / tileset.tilewidth;
   const countheight = tileset.imageheight / tileset.tileheight;
 

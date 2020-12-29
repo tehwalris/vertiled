@@ -126,33 +126,31 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
     runAction: ActionRunner,
   ) {
     const oldSelection = users.find((u) => u.id === userId)?.selection;
-    if (isSelecting) {
-      if (!oldSelection) {
-        return;
-      }
+    if (!isSelecting || !oldSelection) {
+      return;
+    }
 
-      const { x, y } = isSelecting;
-      const x1 = Math.min(x, c.x);
-      const x2 = Math.max(x, c.x);
-      const y1 = Math.min(y, c.y);
-      const y2 = Math.max(y, c.y);
+    const { x, y } = isSelecting;
+    const x1 = Math.min(x, c.x);
+    const x2 = Math.max(x, c.x);
+    const y1 = Math.min(y, c.y);
+    const y2 = Math.max(y, c.y);
 
-      const newSelection = {
-        x: x1,
-        y: y1,
-        width: x2 - x1 + 1,
-        height: y2 - y1 + 1,
-      };
-      if (
-        oldSelection.width !== newSelection.width ||
-        oldSelection.height !== newSelection.height
-      ) {
-        runAction({
-          type: ActionType.SetSelection,
-          userId,
-          selection: newSelection,
-        });
-      }
+    const newSelection = {
+      x: x1,
+      y: y1,
+      width: x2 - x1 + 1,
+      height: y2 - y1 + 1,
+    };
+    if (
+      oldSelection.width !== newSelection.width ||
+      oldSelection.height !== newSelection.height
+    ) {
+      runAction({
+        type: ActionType.SetSelection,
+        userId,
+        selection: newSelection,
+      });
     }
   }
 
