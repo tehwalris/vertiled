@@ -188,6 +188,8 @@ export const AppComponent: React.FC = () => {
       tilemap.createLayerFromDesc(layer);
     }
     tilemap.desc.layers = [...newLayers];
+
+    tilemap.repeatTiles = false;
   }, [tilemap, worldForGlTiled.layers]);
 
   const windowSize = useWindowSize();
