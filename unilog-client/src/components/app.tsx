@@ -20,7 +20,6 @@ import {
   ServerMessage,
   unreachable,
 } from "unilog-shared";
-import { createTilemapForTilesetPrview } from "unilog-shared";
 import { useImageStore } from "../image-store";
 import { useWebSocket } from "../use-web-socket";
 import {
@@ -73,6 +72,7 @@ export const AppComponent: React.FC = () => {
 
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
   const [localLog, setLocalLog] = useState<LogEntry[]>([]);
+  const removedLocalEntryIds = useRef(new Set<number>());
   const nextLocalId = useRef<number>(-1);
 
   const [serverState, setServerState] = useState(initialState);
@@ -82,12 +82,40 @@ export const AppComponent: React.FC = () => {
   const [userId, setUserId] = useState("");
 
   function addToRemoteLog(entry: LogEntry) {
-    setRemoteLog((old) =>
-      R.sortBy(
-        (e: LogEntry) => e.id,
-        R.uniqBy((e) => e.id, [...old, entry]),
-      ),
-    );
+    setRemoteLog((old) => {
+      if (old.length && old[old.length - 1].id >= entry.id) {
+        throw new Error(
+          "got message that is older than the newest existing one",
+        );
+      }
+      return [...old, entry];
+    });
+  }
+
+  function addToLocalLog(entry: LogEntry) {
+    setLocalLog((old) => {
+      if (removedLocalEntryIds.current.has(entry.id)) {
+        removedLocalEntryIds.current.delete(entry.id);
+        return old;
+      } else {
+        return [...old, entry];
+      }
+    });
+  }
+
+  function removeFromLocalLog(entryId: number) {
+    removedLocalEntryIds.current.add(entryId);
+    setLocalLog((oldLog) => {
+      const newLog = oldLog.filter((e) => e.id !== entryId);
+      if (newLog.length === oldLog.length) {
+        // The entry has not been deleted. This is probably because the we received the confirmation/rejection from the server before the React state updates.
+        // Record this fact so that addToLocalLog does save this entry, otherwise it will stay in the local log forever.
+        // This was done using removedLocalEntryIds.current.add(...) above.
+      } else {
+        removedLocalEntryIds.current.delete(entryId);
+      }
+      return newLog;
+    });
   }
 
   const wsRef = useWebSocket([wsServerURL], (_msg) => {
@@ -104,14 +132,14 @@ export const AppComponent: React.FC = () => {
       }
       case MessageType.RemapEntryServer: {
         unstable_batchedUpdates(() => {
-          setLocalLog((old) => old.filter((e) => e.id !== msg.oldId));
+          removeFromLocalLog(msg.oldId);
           addToRemoteLog(msg.entry);
         });
         break;
       }
       case MessageType.RejectEntryServer: {
         const entry = localLog.find((e) => e.id === msg.entryId);
-        setLocalLog((old) => old.filter((e) => e.id !== msg.entryId));
+        removeFromLocalLog(msg.entryId);
         console.warn(
           "action rejected by server",
           entry && entry.action,
@@ -136,7 +164,7 @@ export const AppComponent: React.FC = () => {
       entry: localEntry,
     };
     wsRef.current.send(JSON.stringify(msg));
-    setLocalLog((old) => [...old, localEntry]);
+    addToLocalLog(localEntry);
   };
 
   const state = useMemo(
@@ -145,7 +173,12 @@ export const AppComponent: React.FC = () => {
         try {
           return reducer(a, c.action);
         } catch (err) {
-          console.warn("ignoring action (rejected by local reducer)", a, i);
+          console.warn(
+            "ignoring action (rejected by local reducer)",
+            a,
+            i,
+            err,
+          );
           return a;
         }
       }, serverState),
@@ -279,40 +312,35 @@ export const AppComponent: React.FC = () => {
               offset={{ x: 0, y: 0 }}
               tileSize={tileSize}
               onPointerDown={(c, ev) => {
-                // only start a selection if we don't have a cursor
-                if (!myState?.cursor) {
+                if (ev.button === 0) {
+                  ev.preventDefault();
+
+                  const cursor = myState?.cursor;
+                  if (cursor) {
+                    console.log("TODO: actually place cursor");
+                  }
+                } else if (ev.button === 2) {
+                  ev.preventDefault();
+
+                  runAction({ type: ActionType.SetCursor, userId });
                   handleStartSelect(c, userId, runAction);
                 }
               }}
               onPointerUp={(c, ev) => {
-                const cursor = myState?.cursor;
-                if (cursor) {
-                  console.log(
-                    "TODO: actually place cursor (removing it for now)",
-                  );
+                if (ev.button === 2) {
+                  ev.preventDefault();
 
-                  runAction({
-                    type: ActionType.SetCursor,
-                    userId: userId,
-                    cursor: undefined,
-                  });
-                }
+                  handleEndSelect(userId, runAction);
 
-                // should be harmless to call if we don't have a selection
-                handleEndSelect(userId, runAction);
-
-                const selection = myState?.selection;
-                if (
-                  selection &&
-                  selection.width >= 1 &&
-                  selection.height >= 1
-                ) {
-                  const cursor = extractCursor(state.world, selection);
-                  runAction({
-                    type: ActionType.SetCursor,
-                    userId: userId,
-                    cursor: cursor,
-                  });
+                  const selection = myState?.selection;
+                  if (
+                    selection &&
+                    selection.width >= 1 &&
+                    selection.height >= 1
+                  ) {
+                    const cursor = extractCursor(state.world, selection);
+                    runAction({ type: ActionType.SetCursor, userId, cursor });
+                  }
                 }
               }}
               onPointerMove={(c, ev) => {

@@ -1,5 +1,5 @@
 import { ILayer, ITileset } from "gl-tiled";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ActionType, Coordinates, isLayerRegular, User } from "unilog-shared";
 import { ImageStore } from "./image-store";
 import { ActionRunner } from "./interfaces";
@@ -41,7 +41,7 @@ export function addSelectionToTilesets(
 }
 
 export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
-  const [isSelecting, setIsSelecting] = useState<Coordinates>();
+  const isSelectingRef = useRef<Coordinates>();
 
   const addSelectionToLayers = useCallback(
     (layers: ILayer[], users: User[], currentUser: string) => {
@@ -94,7 +94,7 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
   );
 
   function handleEndSelect(userId: string, runAction: ActionRunner) {
-    setIsSelecting(undefined);
+    isSelectingRef.current = undefined;
     runAction({
       type: ActionType.SetSelection,
       userId,
@@ -107,7 +107,7 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
     userId: string,
     runAction: ActionRunner,
   ) {
-    setIsSelecting(c);
+    isSelectingRef.current = c;
     runAction({
       type: ActionType.SetSelection,
       userId,
@@ -126,33 +126,31 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
     runAction: ActionRunner,
   ) {
     const oldSelection = users.find((u) => u.id === userId)?.selection;
-    if (isSelecting) {
-      if (!oldSelection) {
-        return;
-      }
+    if (!isSelectingRef.current || !oldSelection) {
+      return;
+    }
 
-      const { x, y } = isSelecting;
-      const x1 = Math.min(x, c.x);
-      const x2 = Math.max(x, c.x);
-      const y1 = Math.min(y, c.y);
-      const y2 = Math.max(y, c.y);
+    const { x, y } = isSelectingRef.current;
+    const x1 = Math.min(x, c.x);
+    const x2 = Math.max(x, c.x);
+    const y1 = Math.min(y, c.y);
+    const y2 = Math.max(y, c.y);
 
-      const newSelection = {
-        x: x1,
-        y: y1,
-        width: x2 - x1 + 1,
-        height: y2 - y1 + 1,
-      };
-      if (
-        oldSelection.width !== newSelection.width ||
-        oldSelection.height !== newSelection.height
-      ) {
-        runAction({
-          type: ActionType.SetSelection,
-          userId,
-          selection: newSelection,
-        });
-      }
+    const newSelection = {
+      x: x1,
+      y: y1,
+      width: x2 - x1 + 1,
+      height: y2 - y1 + 1,
+    };
+    if (
+      oldSelection.width !== newSelection.width ||
+      oldSelection.height !== newSelection.height
+    ) {
+      runAction({
+        type: ActionType.SetSelection,
+        userId,
+        selection: newSelection,
+      });
     }
   }
 

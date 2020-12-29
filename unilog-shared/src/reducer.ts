@@ -35,7 +35,7 @@ export const reducer = (_state: State, action: Action): State =>
             `index ${action.index} is out of bounds, Layer: ${action.layerId} w: ${layer.width}, h: ${layer.height}`,
           );
         }
-        // TODO: Handle casee when sttring encoded
+        // TODO: Handle case when string encoded
         (layer.data as number[])[action.index] = action.tileId;
         break;
       }

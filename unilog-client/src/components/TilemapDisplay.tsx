@@ -67,6 +67,7 @@ export const TilemapDisplay: React.FC<Props> = ({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onContextMenu={(ev) => ev.preventDefault()}
     ></MapDisplay>
   );
 };
