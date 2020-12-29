@@ -21,7 +21,11 @@ import {
 } from "unilog-shared";
 import { useImageStore } from "../image-store";
 import { useWebSocket } from "../use-web-socket";
-import { useSelection } from "../useSelection";
+import {
+  addSelectionToTilesets,
+  SelectionTilesetInfo,
+  useSelection,
+} from "../useSelection";
 import { MapDisplay } from "./map-display";
 import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
@@ -132,43 +136,71 @@ export const AppComponent: React.FC = () => {
     }
   }, [state.world.tilesets, imageStore]);
 
+  const [tilesetsForGlTiled, selectionTilesetInfo] = useMemo(() => {
+    let selectionTilesetInfo: SelectionTilesetInfo;
+    const tilesets = produce(state.world.tilesets, (tilesets) => {
+      selectionTilesetInfo = addSelectionToTilesets(tilesets, imageStore);
+    });
+    return [tilesets, selectionTilesetInfo!];
+  }, [state.world.tilesets, imageStore]);
+
   const {
-    addSelectionToWorld,
+    addSelectionToLayers,
     handleStartSelect,
     handleMoveSelect,
     handleEndSelect,
-  } = useSelection(state.world.tilesets, imageStore);
+  } = useSelection(selectionTilesetInfo);
 
   const myState = state.users.find((u) => u.id === userId);
 
   const worldForGlTiled = useMemo(
     () =>
       produce(state.world, (world) => {
-        addSelectionToWorld(world, state.users, userId);
+        addSelectionToLayers(world.layers, state.users, userId);
         for (const tileset of world.tilesets) {
           if (!imageStore.assetCache[tileset.image]) {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
           }
         }
         world.layers = world.layers.filter((layer) => layer.visible);
+        world.tilesets = tilesetsForGlTiled;
       }),
     [
       state.world,
+      tilesetsForGlTiled,
       imageStore.assetCache,
       state.users,
       userId,
-      addSelectionToWorld,
+      addSelectionToLayers,
     ],
   );
 
+  const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
+    ...worldForGlTiled,
+    layers: EMPTY_LAYERS,
+  }));
+
   const tilemap = useMemo(() => {
     const tilemap = new glTiled.GLTilemap(
-      ({ ...worldForGlTiled } as any) as glTiled.ITilemap, // TODO avoid cast
+      ({ ...worldForGlTiledWithoutLayers } as any) as glTiled.ITilemap, // TODO avoid cast
       { assetCache: imageStore.assetCache },
     );
-    tilemap.repeatTiles = false;
     return tilemap;
-  }, [worldForGlTiled, imageStore.assetCache]);
+  }, [worldForGlTiledWithoutLayers, imageStore.assetCache]);
+
+  useEffect(() => {
+    for (const layer of tilemap.desc.layers) {
+      tilemap.destroyLayerFromDesc(layer);
+    }
+    const newLayers = (worldForGlTiled.layers as any) as glTiled.ILayer[]; // TODO avoid cast
+    for (const layer of newLayers) {
+      tilemap.createLayerFromDesc(layer);
+    }
+    tilemap.desc.layers = [...newLayers];
+
+    // IMPORTANT This is a setter that affects all currently added layers. If repeatTiles is true (default), all layers render incorrectly.
+    tilemap.repeatTiles = false;
+  }, [tilemap, worldForGlTiled.layers]);
 
   const windowSize = useWindowSize();
 

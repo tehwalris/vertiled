@@ -44,15 +44,12 @@ export const MapDisplay: React.FC<Props> = ({
     gl.viewport(0, 0, canvasWidth, canvasHeight);
     tilemap.resizeViewport(canvasWidth, canvasHeight);
 
-    console.log("CanvasGL", gl.canvas.width, gl.canvas.height);
-
     // HACK shader compilation crashes if there are not tilesets
     if (!tilemap.tilesets.filter((tileset) => tileset.images.length).length) {
       return;
     }
 
     if (tilemap.gl !== gl) {
-      console.log("DEBUG tilemap.glInitialize");
       tilemap.glInitialize(gl);
     }
 
@@ -63,12 +60,6 @@ export const MapDisplay: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    return () => {
-      tilemap.glTerminate();
-    };
-  }, [tilemap]);
-
-  useEffect(() => {
     const frameRequestHandle = requestAnimationFrame(() => {
       render();
     });
@@ -76,6 +67,12 @@ export const MapDisplay: React.FC<Props> = ({
       cancelAnimationFrame(frameRequestHandle);
     };
   });
+
+  useEffect(() => {
+    return () => {
+      tilemap.glTerminate();
+    };
+  }, [tilemap]);
 
   const canvasScale = 1 / devicePixelRatio;
 
