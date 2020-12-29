@@ -6,23 +6,45 @@ import { ActionRunner } from "./interfaces";
 
 const uiTilesImageUrl = "ui-tiles.png";
 
-export function useSelection(tilesets: Tileset[], imageStore: ImageStore) {
-  const [isSelecting, setIsSelecting] = useState<Coordinates>();
+export interface SelectionTilesetInfo {
+  mySelectionTileId: number;
+  othersSelectionTileId: number;
+}
 
+export function addSelectionToTilesets(
+  tilesets: Tileset[],
+  imageStore: ImageStore,
+): SelectionTilesetInfo {
   const uiFirstGid = tilesets.reduce(
     (a, b) => Math.max(a, b.firstgid + b.tilecount),
     1,
   );
+  const selectionTilesetInfo: SelectionTilesetInfo = {
+    mySelectionTileId: uiFirstGid,
+    othersSelectionTileId: uiFirstGid + 1,
+  };
+  imageStore.getImage(uiTilesImageUrl);
+  tilesets.push({
+    columns: 9,
+    firstgid: uiFirstGid,
+    image: "ui-tiles.png",
+    imageheight: 32,
+    imagewidth: 288,
+    margin: 0,
+    name: "ui-tiles",
+    spacing: 0,
+    tilecount: 9,
+    tileheight: 32,
+    tilewidth: 32,
+  });
+  return selectionTilesetInfo;
+}
 
-  useEffect(() => {
-    imageStore.getImage(uiTilesImageUrl);
-  }, [imageStore]);
+export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
+  const [isSelecting, setIsSelecting] = useState<Coordinates>();
 
-  const addSelectionToWorld = useCallback(
-    ({ layers, tilesets }: MapWorld, users: User[], currentUser: string) => {
-      const mySelectionTileId = uiFirstGid;
-      const othersSelectionTileId = uiFirstGid + 1;
-
+  const addSelectionToLayers = useCallback(
+    (layers: Layer[], users: User[], currentUser: string) => {
       //we assume that all layers start at one and that the first layer has a width and height
       const referenceLayer = layers[0];
 
@@ -40,7 +62,9 @@ export function useSelection(tilesets: Tileset[], imageStore: ImageStore) {
       for (const user of [...otherUsers, ...myUser]) {
         if (user.selection) {
           const tile =
-            user.id === currentUser ? mySelectionTileId : othersSelectionTileId;
+            user.id === currentUser
+              ? selectionTilesetInfo.mySelectionTileId
+              : selectionTilesetInfo.othersSelectionTileId;
           const { x, y, width, height } = user.selection;
           const x1 = Math.min(x, x + width);
           const x2 = Math.max(x, x + width);
@@ -61,21 +85,8 @@ export function useSelection(tilesets: Tileset[], imageStore: ImageStore) {
         data,
         name: "selection-ui",
       });
-      tilesets.push({
-        columns: 9,
-        firstgid: uiFirstGid,
-        image: "ui-tiles.png",
-        imageheight: 32,
-        imagewidth: 288,
-        margin: 0,
-        name: "ui-tiles",
-        spacing: 0,
-        tilecount: 9,
-        tileheight: 32,
-        tilewidth: 32,
-      });
     },
-    [uiFirstGid],
+    [selectionTilesetInfo],
   );
 
   function handleEndSelect(userId: string, runAction: ActionRunner) {
@@ -142,7 +153,7 @@ export function useSelection(tilesets: Tileset[], imageStore: ImageStore) {
   }
 
   return {
-    addSelectionToWorld,
+    addSelectionToLayers,
     handleMoveSelect,
     handleEndSelect,
     handleStartSelect,
