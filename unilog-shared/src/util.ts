@@ -44,8 +44,8 @@ export function extractCursor(world: MapWorld, frame: Rectangle): Cursor {
           break;
         }
 
-        const destIdx = frame.height * destY + destX;
-        const srcIdx = layer.height * srcY + srcX;
+        const destIdx = frame.width * destY + destX;
+        const srcIdx = layer.width * srcY + srcX;
 
         data[destIdx] = layer.data[srcIdx];
       }

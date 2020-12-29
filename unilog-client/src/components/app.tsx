@@ -6,7 +6,7 @@ import {
   Action,
   ActionType,
   ClientMessage,
-  Coordinates, extractCursor,
+  Coordinates, Cursor, extractCursor,
   getLayer,
   initialState,
   Layer,
@@ -25,6 +25,7 @@ import { LayerList } from "./LayerList";
 import { TileSetList } from "./TileSetList";
 import { useWindowSize } from "../useWindowSize";
 import { useShallowMemo } from "../use-shallow-memo";
+import assert from "assert"
 
 const EMPTY_LAYERS: Layer[] = [];
 
@@ -147,6 +148,39 @@ export const AppComponent: React.FC = () => {
             tileset.image = ""; // HACK don't load anything if the image is not in the cache
           }
         }
+
+
+        let nextLayerId = Math.max(...world.layers.map((l) => l.id)) + 1;
+
+        // TODO: possibly move out of here
+        function addCursorToWorld(cursor: Cursor) {
+          for (const {layerId, data} of cursor.contents) {
+            const origLayer = getLayer(world, layerId)
+            const cursorLayer = {
+              ...origLayer,
+              id: nextLayerId++,
+              ...cursor.frame, // width, height, x, y,
+              data,
+              offsetx: cursor.frame.x * tileSize + 20, // TODO: remove +20 once UI works
+              offsety: cursor.frame.y * tileSize,
+            }
+            assert(cursorLayer.x === cursor.frame.x);
+            world.layers.push(cursorLayer);
+          }
+        }
+
+        for (const user of state.users) {
+          if (user.id !== userId && user.cursor) {
+            addCursorToWorld(user.cursor);
+          }
+        }
+
+        if (myState?.cursor) {
+          addCursorToWorld(myState.cursor);
+        }
+
+        // TODO: render own selection above other people's cursors
+
         world.layers = world.layers.filter((layer) => layer.visible);
       }),
     [

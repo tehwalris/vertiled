@@ -59,6 +59,7 @@ export const reducer = (_state: State, action: Action): State =>
         break;
       }
       case ActionType.SetCursor: {
+        // TODO: validate cursor (layers exist, bounds make sense)
         requireUser(state, action).cursor = action.cursor;
         break;
       }
