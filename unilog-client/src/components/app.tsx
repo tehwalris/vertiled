@@ -397,10 +397,6 @@ export const AppComponent: React.FC = () => {
               selectedTileSet={selectedTileSet}
             ></TileSetList>
             <div className="selection-list">
-              <h3>Debug</h3>
-              <p style={{ width: 300, wordBreak: "break-all" }}>
-                {JSON.stringify(state.users)}
-              </p>
               UserId: {userId}
               <div>Remote log length: {remoteLog.length}</div>
               <div>Local log length: {localLog.length}</div>
