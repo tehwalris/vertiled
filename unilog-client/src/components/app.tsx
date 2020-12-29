@@ -283,15 +283,6 @@ export const AppComponent: React.FC = () => {
   const canvasWidth = windowSize.width - 300;
   const menuWidth = 300;
 
-  const previewTileMap = useMemo(() => {
-    const tilemap = new glTiled.GLTilemap(
-      ({ ...worldForGlTiled } as any) as glTiled.ITilemap, // TODO avoid cast
-      { assetCache: imageStore.assetCache },
-    );
-    tilemap.repeatTiles = false;
-    return tilemap;
-  }, [worldForGlTiled, imageStore.assetCache]);
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -378,7 +369,6 @@ export const AppComponent: React.FC = () => {
                 height: windowSize.height,
               },
             }}
-            style={{}}
           >
             <LayerList
               layers={state.world.layers}
