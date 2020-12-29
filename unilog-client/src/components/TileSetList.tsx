@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import {
   createTilemapForTilesetPreview,
   Cursor,
+  extractCursor,
   Rectangle,
 } from "unilog-shared";
 import { tileSize } from "../consts";
@@ -23,6 +24,7 @@ export function TileSetList({
   selectedTileSetIndex,
   setSelectedTileSet,
   imageStore,
+  onSelectTiles,
 }: Props) {
   const selectedTileSet = tilesets[selectedTileSetIndex] as
     | ITileset
@@ -108,6 +110,16 @@ export function TileSetList({
                   if (ev.button === 0) {
                     ev.preventDefault();
                     handleEndSelect(setSelection);
+                    if (selection && selectedTileSet) {
+                      onSelectTiles(
+                        extractCursor(
+                          createTilemapForTilesetPreview(selectedTileSet, [
+                            selectedTileSet,
+                          ]),
+                          selection,
+                        ),
+                      );
+                    }
                   }
                 }}
                 onPointerMove={(c, ev) => {

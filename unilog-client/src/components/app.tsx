@@ -401,7 +401,9 @@ export const AppComponent: React.FC = () => {
               imageStore={imageStore}
               setSelectedTileSet={setSelectedTileSet}
               selectedTileSetIndex={selectedTileSet}
-              onSelectTiles={() => console.log("TODO onSelectTiles")}
+              onSelectTiles={(cursor) => {
+                runAction({ type: ActionType.SetCursor, userId, cursor });
+              }}
             ></TileSetList>
             <div className="selection-list">
               <div>Connected users: {state.users.length}</div>
