@@ -289,98 +289,80 @@ export const AppComponent: React.FC = () => {
                 tileSize={tileSize}
                 onPointerDown={(c, ev) => {
                   pointerIsDownRef.current = true;
-                  switch (editingMode) {
-                    case EditingMode.Clone: {
-                      if (ev.button === 0) {
-                        ev.preventDefault();
+                  if (ev.button === 0 && editingMode === EditingMode.Clone) {
+                    ev.preventDefault();
 
-                        const cursor = myState?.cursor;
-                        const defaultLayerId = R.last(selectedLayerIds);
-                        if (cursor && defaultLayerId !== undefined) {
-                          runAction((userId) => ({
-                            type: ActionType.PasteFromCursor,
-                            userId,
-                            defaultLayerId,
-                          }));
-                        }
-                      } else if (ev.button === 2) {
-                        ev.preventDefault();
+                    const cursor = myState?.cursor;
+                    const defaultLayerId = R.last(selectedLayerIds);
+                    if (cursor && defaultLayerId !== undefined) {
+                      runAction((userId) => ({
+                        type: ActionType.PasteFromCursor,
+                        userId,
+                        defaultLayerId,
+                      }));
+                    }
+                  } else if (
+                    ev.button === 2 &&
+                    editingMode === EditingMode.Clone
+                  ) {
+                    ev.preventDefault();
 
-                        handleStartSelect(c, setSelection);
-                      }
-                      break;
-                    }
-                    case EditingMode.Erase: {
-                      break;
-                    }
+                    handleStartSelect(c, setSelection);
                   }
                 }}
                 onPointerUp={(c, ev) => {
                   pointerIsDownRef.current = false;
-                  switch (editingMode) {
-                    case EditingMode.Clone: {
-                      if (ev.button === 2) {
-                        ev.preventDefault();
+                  if (ev.button === 2 && editingMode === EditingMode.Clone) {
+                    ev.preventDefault();
 
-                        handleEndSelect(setSelection);
+                    handleEndSelect(setSelection);
 
-                        const selection = myState?.selection;
-                        if (
-                          selection &&
-                          selection.width >= 1 &&
-                          selection.height >= 1
-                        ) {
-                          const cursor = extractCursor(state.world, selection);
-                          cursor.contents = cursor.contents.filter(
-                            (c) =>
-                              c.layerId === undefined ||
-                              selectedLayerIds.includes(c.layerId),
-                          );
-                          setCursor(cursor);
-                        }
-                      }
-                      break;
-                    }
-                    case EditingMode.Erase: {
-                      break;
+                    const selection = myState?.selection;
+                    if (
+                      selection &&
+                      selection.width >= 1 &&
+                      selection.height >= 1
+                    ) {
+                      const cursor = extractCursor(state.world, selection);
+                      cursor.contents = cursor.contents.filter(
+                        (c) =>
+                          c.layerId === undefined ||
+                          selectedLayerIds.includes(c.layerId),
+                      );
+                      setCursor(cursor);
                     }
                   }
                 }}
                 onPointerMove={(c, ev) => {
-                  switch (editingMode) {
-                    case EditingMode.Clone: {
-                      handleMoveSelect(c, myState?.selection, setSelection);
+                  if (editingMode === EditingMode.Clone) {
+                    handleMoveSelect(c, myState?.selection, setSelection);
 
-                      const oldCursor = myState?.cursor;
-                      if (oldCursor) {
-                        const newFrameStart: Coordinates = {
-                          x: c.x - (oldCursor.initialFrame.width - 1),
-                          y: c.y - (oldCursor.initialFrame.height - 1),
-                        };
-                        if (
-                          newFrameStart.x !== oldCursor.frame.x ||
-                          newFrameStart.y !== oldCursor.frame.y
-                        ) {
-                          runAction((userId) => ({
-                            type: ActionType.SetCursorOffset,
-                            userId,
-                            offset: newFrameStart,
-                          }));
-                        }
-                      }
-                      break;
-                    }
-                    case EditingMode.Erase: {
-                      setSelection({ x: c.x, y: c.y, width: 1, height: 1 });
-                      if (pointerIsDownRef.current) {
-                        runAction(() => ({
-                          type: ActionType.SetTile,
-                          layerIds: selectedLayerIds,
-                          coordinates: c,
-                          tileId: 0,
+                    const oldCursor = myState?.cursor;
+                    if (oldCursor) {
+                      const newFrameStart: Coordinates = {
+                        x: c.x - (oldCursor.initialFrame.width - 1),
+                        y: c.y - (oldCursor.initialFrame.height - 1),
+                      };
+                      if (
+                        newFrameStart.x !== oldCursor.frame.x ||
+                        newFrameStart.y !== oldCursor.frame.y
+                      ) {
+                        runAction((userId) => ({
+                          type: ActionType.SetCursorOffset,
+                          userId,
+                          offset: newFrameStart,
                         }));
                       }
-                      break;
+                    }
+                  } else if (editingMode === EditingMode.Erase) {
+                    setSelection({ x: c.x, y: c.y, width: 1, height: 1 });
+                    if (pointerIsDownRef.current) {
+                      runAction(() => ({
+                        type: ActionType.SetTile,
+                        layerIds: selectedLayerIds,
+                        coordinates: c,
+                        tileId: 0,
+                      }));
                     }
                   }
                 }}
