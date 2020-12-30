@@ -1,7 +1,7 @@
 import { Coordinates, Cursor, Rectangle } from "./data";
 
 export type Action =
-  | SetTileAction
+  | FillRectangleAction
   | SetSelectionAction
   | SetCursorAction
   | SetCursorOffsetAction
@@ -11,7 +11,7 @@ export type Action =
   | SetLayerVisibilityAction;
 
 export enum ActionType {
-  SetTile = "SetTile",
+  FillRectangle = "FillRectangle",
   SetSelection = "SetSelection",
   SetCursor = "SetCursor",
   SetCursorOffset = "SetCursorOffset",
@@ -21,10 +21,10 @@ export enum ActionType {
   SetLayerVisibility = "SetLayerVisibility",
 }
 
-export interface SetTileAction {
-  type: ActionType.SetTile;
+export interface FillRectangleAction {
+  type: ActionType.FillRectangle;
   layerIds: number[];
-  coordinates: Coordinates;
+  rectangle: Rectangle;
   tileId: number;
 }
 

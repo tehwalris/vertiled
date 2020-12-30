@@ -27,24 +27,37 @@ const requireUser = (state: State, action: { userId: string }): User => {
 export const reducer = (_state: State, action: Action): State =>
   produce(_state, (state) => {
     switch (action.type) {
-      case ActionType.SetTile: {
-        const c = action.coordinates;
+      case ActionType.FillRectangle: {
         for (const layerId of action.layerIds) {
           const layer = getLayer(state.world, layerId);
           if (!isLayerRegular(layer)) {
             throw new Error(`layer ${layerId} is not an ITilelayer`);
           }
-          if (c.x < 0 || c.x >= layer.width || c.y < 0 || c.y >= layer.width) {
-            continue;
-          }
           if (typeof layer.data === "string") {
             throw new Error("layer.data with type string is not supported");
           }
-          const i = c.x + c.y * layer.width;
-          if (i < 0 || i >= layer.data.length) {
-            throw new Error("out-of-bounds index for data array (unexpected)");
+          for (
+            let x = action.rectangle.x;
+            x < action.rectangle.x + action.rectangle.width;
+            x++
+          ) {
+            for (
+              let y = action.rectangle.y;
+              y < action.rectangle.y + action.rectangle.height;
+              y++
+            ) {
+              if (x < 0 || x >= layer.width || y < 0 || y >= layer.width) {
+                continue;
+              }
+              const i = x + y * layer.width;
+              if (i < 0 || i >= layer.data.length) {
+                throw new Error(
+                  "out-of-bounds index for data array (unexpected)",
+                );
+              }
+              layer.data[i] = action.tileId;
+            }
           }
-          layer.data[i] = action.tileId;
         }
         break;
       }
