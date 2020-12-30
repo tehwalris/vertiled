@@ -96,7 +96,7 @@ const useStyles = makeStyles((theme) => ({
   },
   drawerPaper: {
     width: drawerWidth,
-    overflow: "hidden",
+    overflowX: "hidden",
   },
 
   button: {
