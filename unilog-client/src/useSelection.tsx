@@ -82,21 +82,18 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
             ? selectionTilesetInfo.mySelectionTileId
             : selectionTilesetInfo.othersSelectionTileId;
           const { x, y, width, height } = selection;
-          const x1 = Math.min(x, x + width);
-          const x2 = Math.max(x, x + width);
-          const y1 = Math.min(y, y + height);
-          const y2 = Math.max(y, y + height);
+          const clampX = (x: number) =>
+            Math.max(0, Math.min(referenceLayer.width - 1, x));
+          const clampY = (y: number) =>
+            Math.max(0, Math.min(referenceLayer.height - 1, y));
+          const x1 = clampX(Math.min(x, x + width));
+          const x2 = clampX(Math.max(x, x + width));
+          const y1 = clampX(Math.min(y, y + height));
+          const y2 = clampX(Math.max(y, y + height));
 
           for (let x = x1; x < x2; x++) {
             for (let y = y1; y < y2; y++) {
-              if (
-                x >= 0 &&
-                x < referenceLayer.width &&
-                y >= 0 &&
-                y < referenceLayer.height
-              ) {
-                data[x + y * referenceLayer.width] = tile;
-              }
+              data[x + y * referenceLayer.width] = tile;
             }
           }
         }
