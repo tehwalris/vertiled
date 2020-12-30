@@ -46,9 +46,13 @@ export function getIndexInLayerFromTileCoord(
   return layer.width! * (c.y - layer.y) + (c.x - layer.x);
 }
 
-const serverOrigin = `${window.location.hostname}:8088`;
+const serverOrigin =
+  process.env.NODE_ENV === "development"
+    ? `${window.location.hostname}:8088`
+    : window.location.host;
 const wsServerURL = `ws://${serverOrigin}`;
 const httpServerURL = `//${serverOrigin}`;
+const imageStoreURL = `//${serverOrigin}/world`;
 
 export const AppComponent: React.FC = () => {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
@@ -74,7 +78,7 @@ export const AppComponent: React.FC = () => {
 
   const [selectedTileSet, setSelectedTileSet] = useState<number>(0);
 
-  const imageStore = useImageStore(httpServerURL);
+  const imageStore = useImageStore(imageStoreURL);
   useEffect(() => {
     for (const tileset of state.world.tilesets) {
       if (!tileset.image) {

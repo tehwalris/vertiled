@@ -431,8 +431,9 @@ export class GLTilemap
                 default:
                     assertNever(layer);
             }
-
+            // @if DEBUG
             ASSERT(layer.gl === this.gl, 'Layer has mismatched or missing OpenGL context');
+            // @endif
             if (layer.texture)
             {
                 gl.bindTexture(gl.TEXTURE_2D, layer.texture);

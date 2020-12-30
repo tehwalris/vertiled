@@ -2,10 +2,10 @@
   "private": true,
   "workspaces": {
     "packages": [
-      "unilog-client",
-      "unilog-server",
+      "gl-tiled",
       "unilog-shared",
-      "gl-tiled"
+      "unilog-client",
+      "unilog-server"
     ],
     "nohoist": [
       "**"
