@@ -16,7 +16,13 @@ import clsx from "clsx";
 import { produce } from "immer";
 import downloadFile from "js-file-download";
 import * as R from "ramda";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { FiMenu } from "react-icons/fi";
 import {
   ActionType,
@@ -245,6 +251,8 @@ export const AppComponent: React.FC = () => {
     [runAction],
   );
 
+  const pointerIsDownRef = useRef(false);
+
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root}>
@@ -280,6 +288,7 @@ export const AppComponent: React.FC = () => {
                 offset={{ x: 0, y: 0 }}
                 tileSize={tileSize}
                 onPointerDown={(c, ev) => {
+                  pointerIsDownRef.current = true;
                   switch (editingMode) {
                     case EditingMode.Clone: {
                       if (ev.button === 0) {
@@ -307,6 +316,7 @@ export const AppComponent: React.FC = () => {
                   }
                 }}
                 onPointerUp={(c, ev) => {
+                  pointerIsDownRef.current = false;
                   switch (editingMode) {
                     case EditingMode.Clone: {
                       if (ev.button === 2) {
@@ -361,6 +371,15 @@ export const AppComponent: React.FC = () => {
                       break;
                     }
                     case EditingMode.Erase: {
+                      setSelection({ x: c.x, y: c.y, width: 1, height: 1 });
+                      if (pointerIsDownRef.current) {
+                        runAction(() => ({
+                          type: ActionType.SetTile,
+                          layerIds: selectedLayerIds,
+                          coordinates: c,
+                          tileId: 0,
+                        }));
+                      }
                       break;
                     }
                   }

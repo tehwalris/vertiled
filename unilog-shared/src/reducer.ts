@@ -28,20 +28,23 @@ export const reducer = (_state: State, action: Action): State =>
   produce(_state, (state) => {
     switch (action.type) {
       case ActionType.SetTile: {
+        const c = action.coordinates;
         for (const layerId of action.layerIds) {
           const layer = getLayer(state.world, layerId);
           if (!isLayerRegular(layer)) {
             throw new Error(`layer ${layerId} is not an ITilelayer`);
           }
-          if (layer.height * layer.width < action.index) {
-            throw new Error(
-              `index ${action.index} is out of bounds, Layer: ${layerId} w: ${layer.width}, h: ${layer.height}`,
-            );
+          if (c.x < 0 || c.x >= layer.width || c.y < 0 || c.y >= layer.width) {
+            continue;
           }
           if (typeof layer.data === "string") {
             throw new Error("layer.data with type string is not supported");
           }
-          layer.data[action.index] = action.tileId;
+          const i = c.x + c.y * layer.width;
+          if (i < 0 || i >= layer.data.length) {
+            throw new Error("out-of-bounds index for data array (unexpected)");
+          }
+          layer.data[i] = action.tileId;
         }
         break;
       }
