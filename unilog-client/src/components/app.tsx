@@ -338,6 +338,15 @@ export const AppComponent: React.FC = () => {
                         defaultLayerId,
                       }));
                     }
+                  } else if (ev.button === 0 && EditingMode.Erase) {
+                    ev.preventDefault();
+
+                    runAction(() => ({
+                      type: ActionType.SetTile,
+                      layerIds: selectedLayerIds,
+                      coordinates: c,
+                      tileId: 0,
+                    }));
                   } else if (
                     ev.button === 2 &&
                     editingMode === EditingMode.Clone
