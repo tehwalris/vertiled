@@ -281,9 +281,10 @@ export const AppComponent: React.FC = () => {
             <ToggleButtonGroup
               value={editingMode}
               exclusive
-              onChange={(ev: any, newMode: EditingMode) =>
-                setEditingMode(newMode)
-              }
+              onChange={(ev: any, newMode: EditingMode) => {
+                if (!newMode) return;
+                setEditingMode(newMode);
+              }}
               aria-label="text alignment"
             >
               <ToggleButton value="Clone">
