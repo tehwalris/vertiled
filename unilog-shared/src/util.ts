@@ -182,7 +182,7 @@ export function mergeCursorOntoLayers(
       if (indexInCursor < 0 || indexInCursor >= cursorData.length) {
         throw new Error("unexpected out of bounds in cursor data");
       }
-      return cursorData[indexInCursor];
+      return cursorData[indexInCursor] || oldGid;
     });
     return { ...oldLayer, data: newLayerData };
   });
