@@ -421,6 +421,16 @@ export const AppComponent: React.FC = () => {
                           userId,
                           offset: newFrameStart,
                         }));
+                        if (pointerIsDownRef.current) {
+                          const defaultLayerId = R.last(selectedLayerIds);
+                          if (defaultLayerId !== undefined) {
+                            runAction((userId) => ({
+                              type: ActionType.PasteFromCursor,
+                              userId,
+                              defaultLayerId,
+                            }));
+                          }
+                        }
                       }
                     }
                   } else if (editingMode === EditingMode.Erase) {
