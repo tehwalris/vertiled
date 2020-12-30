@@ -64,7 +64,7 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
         throw new Error(`layer ${referenceLayer} is not an ITilelayer`);
       }
 
-      const data = referenceLayer.data.map(() => 0);
+      const data = new Uint32Array(referenceLayer.data.length);
 
       const allSelections: [Rectangle, boolean][] = [
         ...otherSelections.map((s) => [s, false] as [Rectangle, boolean]),
@@ -105,7 +105,7 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
       return {
         ...referenceLayer,
         id: Math.max(...layers.map((l) => l.id)) + 1,
-        data,
+        data: (data as any) as number[], // HACK This is actually a Int32Array
         name: "selection-ui",
       };
     },
