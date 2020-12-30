@@ -309,8 +309,8 @@ export const AppComponent: React.FC = () => {
               <TilemapDisplay
                 imageStore={imageStore}
                 tilemap={worldForGlTiled}
-                width={canvasWidth}
-                height={windowSize.height - 64}
+                width={windowSize.width}
+                height={windowSize.height}
                 offset={panOffset}
                 tileSize={tileSize}
                 onPointerDown={(c, ev, nonOffsetCoordinates) => {
