@@ -8,9 +8,11 @@ import { useShallowMemo } from "../use-shallow-memo";
 import { MapDisplay, PointerEventHandler } from "./map-display";
 
 interface Props {
+  id?: string;
   onPointerDown: PointerEventHandler;
   onPointerUp: PointerEventHandler;
   onPointerMove: PointerEventHandler;
+  onWheel: React.WheelEventHandler;
   imageStore: ImageStore;
   width: number;
   height: number;
@@ -22,6 +24,7 @@ interface Props {
 const EMPTY_LAYERS: ILayer[] = [];
 
 export const TilemapDisplay: React.FC<Props> = ({
+  id,
   tilemap,
   width,
   height,
@@ -31,6 +34,7 @@ export const TilemapDisplay: React.FC<Props> = ({
   onPointerDown,
   onPointerMove,
   onPointerUp,
+  onWheel,
 }) => {
   const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
     ...tilemap,
@@ -85,6 +89,7 @@ export const TilemapDisplay: React.FC<Props> = ({
 
   return (
     <MapDisplay
+      id={id}
       tilemap={glTilemap}
       width={width}
       height={height}
@@ -93,6 +98,7 @@ export const TilemapDisplay: React.FC<Props> = ({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onWheel={onWheel}
       onContextMenu={(ev) => ev.preventDefault()}
     ></MapDisplay>
   );

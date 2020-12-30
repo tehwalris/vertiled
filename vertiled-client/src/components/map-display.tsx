@@ -9,11 +9,12 @@ export type PointerEventHandler = (
 ) => void;
 
 interface Props {
+  id?: string;
   onPointerDown?: PointerEventHandler;
   onPointerUp?: PointerEventHandler;
   onPointerMove?: PointerEventHandler;
+  onWheel: React.WheelEventHandler;
   onContextMenu?: (ev: React.MouseEvent) => void;
-
   width: number;
   height: number;
   tilemap: glTiled.GLTilemap;
@@ -28,6 +29,7 @@ const styles = {
 };
 
 export const MapDisplay: React.FC<Props> = ({
+  id,
   tilemap,
   width,
   height,
@@ -37,6 +39,7 @@ export const MapDisplay: React.FC<Props> = ({
   onPointerMove,
   onPointerUp,
   onContextMenu,
+  onWheel,
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const canvasWidth = Math.floor(width * devicePixelRatio);
@@ -110,9 +113,11 @@ export const MapDisplay: React.FC<Props> = ({
       }}
     >
       <canvas
+        id={id}
         ref={canvas}
         height={canvasHeight}
         width={canvasWidth}
+        onWheel={onWheel}
         onPointerDown={tryMakePointerCallback(onPointerDown)}
         onPointerUp={tryMakePointerCallback(onPointerUp)}
         onPointerMove={tryMakePointerCallback(onPointerMove)}

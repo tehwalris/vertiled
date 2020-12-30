@@ -121,6 +121,7 @@ function _TileSetList({
                 height={250}
                 offset={{ x: 0, y: 0 }}
                 tileSize={tileSize}
+                onWheel={() => {}}
                 onPointerDown={(c, ev) => {
                   if (ev.button === 0) {
                     ev.preventDefault();

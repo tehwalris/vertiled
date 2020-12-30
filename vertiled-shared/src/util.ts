@@ -1,6 +1,6 @@
 import assert from "assert";
-import { ILayer, ITilelayer, ITilemap, ITileset } from "gl-tiled";
-import { Coordinates, Cursor, Rectangle } from ".";
+import { ILayer, ITilelayer, ITilemap, ITileset, TilesetFlags } from "gl-tiled";
+import { Coordinates, Cursor, CursorContent, Rectangle } from ".";
 import * as R from "ramda";
 import { tileSize } from "./constants";
 
@@ -278,4 +278,45 @@ export function addCursorOnNewLayers(
   }
 
   return newLayers;
+}
+
+export enum MirrorDirection {
+  Vertical = "Vertical",
+  Horizontal = "Horizontal",
+}
+
+export function mirrorLayer(
+  l: CursorContent,
+  d: MirrorDirection,
+  w: number,
+  h: number,
+): CursorContent {
+  return {
+    layerId: l.layerId,
+    data: l.data.map((_, i, a) => {
+      const x = i % w;
+      const y = Math.floor(i / w);
+      const value =
+        a[
+          d === MirrorDirection.Horizontal
+            ? w - x - 1 + y * w
+            : (h - y - 1) * w + x
+        ];
+
+      const flags =
+        d === MirrorDirection.Horizontal
+          ? TilesetFlags.FlippedHorizontal
+          : TilesetFlags.FlippedVertical;
+      return value ^ flags;
+    }),
+  };
+}
+
+export function mirrorCursor(c: Cursor, d: MirrorDirection): Cursor {
+  return {
+    ...c,
+    contents: c.contents.map((l) =>
+      mirrorLayer(l, d, c.frame.width, c.frame.height),
+    ),
+  };
 }

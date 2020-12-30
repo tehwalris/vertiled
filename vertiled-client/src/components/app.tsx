@@ -36,6 +36,8 @@ import {
   extractCursor,
   Rectangle,
   tileSize,
+  mirrorCursor,
+  MirrorDirection,
 } from "vertiled-shared";
 import { primaryColor, secondaryColor } from "../consts";
 import { useImageStore } from "../image-store";
@@ -49,7 +51,12 @@ import { useWindowSize } from "../useWindowSize";
 import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
-import { BiEraser, BiEditAlt } from "react-icons/bi";
+import {
+  BiEraser,
+  BiEditAlt,
+  BiRightArrowCircle,
+  BiDownArrowCircle,
+} from "react-icons/bi";
 
 const serverOrigin =
   process.env.NODE_ENV === "development"
@@ -61,6 +68,8 @@ const wsServerURL = `${
 const imageStoreURL = `//${serverOrigin}/world`;
 
 const drawerWidth = 300;
+
+const MAIN_CANVAS_ID = "mainCanvas";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -87,11 +96,11 @@ const useStyles = makeStyles((theme) => ({
   },
   drawerPaper: {
     width: drawerWidth,
-    overflow: "hidden",
+    overflowX: "hidden",
   },
 
   button: {
-    height: theme.spacing(5),
+    padding: 11,
   },
   content: {
     flexGrow: 1,
@@ -280,6 +289,48 @@ export const AppComponent: React.FC = () => {
   }>();
   const [panOffset, setPanOffset] = useState<Coordinates>({ x: 0, y: 0 });
 
+  const wheelHandlerRef = useRef<Coordinates>();
+
+  useEffect(() => {
+    const wheelHandler = (e: WheelEvent) => {
+      if (!e.target || (e.target as any)?.id !== MAIN_CANVAS_ID) {
+        return;
+      }
+      e.stopPropagation();
+      if (e.ctrlKey) {
+        //zoom += e.deltaY;
+      } else {
+        if (wheelHandlerRef.current) {
+          wheelHandlerRef.current = {
+            x: wheelHandlerRef.current.x + e.deltaX,
+            y: wheelHandlerRef.current.y + e.deltaY,
+          };
+        } else {
+          wheelHandlerRef.current = {
+            x: e.deltaX,
+            y: e.deltaY,
+          };
+          requestAnimationFrame(() => {
+            setPanOffset((old) => {
+              if (!wheelHandlerRef.current) {
+                throw new Error("wheelHandlerRef is not defined");
+              }
+              return {
+                x: old.x + (wheelHandlerRef.current.x * 2) / tileSize,
+                y: old.y + (wheelHandlerRef.current.y * 2) / tileSize,
+              };
+            });
+            wheelHandlerRef.current = undefined;
+          });
+        }
+      }
+    };
+    window.addEventListener("wheel", wheelHandler, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", wheelHandler);
+    };
+  });
+
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root}>
@@ -297,11 +348,46 @@ export const AppComponent: React.FC = () => {
             <Divider style={{ marginLeft: "auto" }}></Divider>
             <Box mr={1}>
               <ButtonGroup>
-                <Button value="Clone" className={classes.button}>
-                  <BiEditAlt />
+                <Button
+                  className={classes.button}
+                  onClick={() => {
+                    if (!userId) return;
+                    const user = state.users.find((u) => u.id === userId);
+                    const cursor = user?.cursor;
+                    if (!cursor) return;
+                    runAction((userId) => {
+                      const newC = mirrorCursor(
+                        cursor,
+                        MirrorDirection.Horizontal,
+                      );
+                      console.log("newC", newC);
+                      return {
+                        type: ActionType.SetCursor,
+                        userId,
+                        cursor: newC,
+                      };
+                    });
+                  }}
+                >
+                  <BiRightArrowCircle />
                 </Button>
-                <Button value="Erase">
-                  <BiEraser />
+                <Button
+                  className={classes.button}
+                  onClick={() => {
+                    if (!userId) return;
+                    const user = state.users.find((u) => u.id === userId);
+                    const cursor = user?.cursor;
+                    if (!cursor) return;
+                    runAction((userId) => {
+                      return {
+                        type: ActionType.SetCursor,
+                        userId,
+                        cursor: mirrorCursor(cursor, MirrorDirection.Vertical),
+                      };
+                    });
+                  }}
+                >
+                  <BiDownArrowCircle />
                 </Button>
               </ButtonGroup>
             </Box>
@@ -336,12 +422,14 @@ export const AppComponent: React.FC = () => {
           <div className={classes.mainDisplayContainer}>
             <div className="overlayContainer">
               <TilemapDisplay
+                id={MAIN_CANVAS_ID}
                 imageStore={imageStore}
                 tilemap={worldForGlTiled}
                 width={windowSize.width}
                 height={windowSize.height}
                 offset={panOffset}
                 tileSize={tileSize}
+                onWheel={(e) => {}}
                 onPointerDown={(c, ev, nonOffsetCoordinates) => {
                   if (pointerIsDownRef.current) {
                     return;
@@ -477,6 +565,7 @@ export const AppComponent: React.FC = () => {
             </div>
 
             <Drawer
+              id="test"
               anchor="right"
               className={classes.drawer}
               open={isDrawerOpen}
