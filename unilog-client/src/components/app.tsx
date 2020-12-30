@@ -222,8 +222,6 @@ export const AppComponent: React.FC = () => {
 
   const windowSize = useWindowSize();
 
-  const canvasWidth = windowSize.width - 300;
-
   const setSelection = (selection: Rectangle | undefined) => {
     runAction((userId) => ({
       type: ActionType.SetSelection,
@@ -233,18 +231,18 @@ export const AppComponent: React.FC = () => {
   };
 
   const setLayerVisibility = useCallback(
-    (id, v) => {
+    (layerId: number, visibility: boolean) => {
       runAction(() => ({
         type: ActionType.SetLayerVisibility,
-        layerId: id,
-        visibility: v,
+        layerId,
+        visibility,
       }));
     },
     [runAction],
   );
 
   const setCursor = useCallback(
-    (cursor) => {
+    (cursor: Cursor) => {
       runAction((userId) => ({
         type: ActionType.SetCursor,
         userId,
@@ -252,6 +250,13 @@ export const AppComponent: React.FC = () => {
       }));
     },
     [runAction],
+  );
+  const onTileSetListSetCursor = useCallback(
+    (cursor) => {
+      setEditingMode(EditingMode.Clone);
+      setCursor(cursor);
+    },
+    [setCursor],
   );
 
   const pointerIsDownRef = useRef(false);
@@ -456,7 +461,7 @@ export const AppComponent: React.FC = () => {
                 imageStore={imageStore}
                 setSelectedTileSet={setSelectedTileSet}
                 selectedTileSetIndex={selectedTileSet}
-                onSelectTiles={setCursor}
+                onSelectTiles={onTileSetListSetCursor}
               />
               <div className="selection-list">
                 <div>Connected users: {state.users.length}</div>
