@@ -30,13 +30,18 @@ This will start the frontend (most likely) on [localhost:3000](localhost:3000) a
 
 **This project is not for serious public deployments**. It is something we quickly hacked together, so it is only suitable for using with a group of friends. There is no access control or secure separation of users built in, so you should deploy this application only on your local network or behind a VPN. You might want to add a proxy server in front for authentication and HTTPS.
 
-First build the client and server:
+To run it locally:
 
 ```bash
-cd gl-tiled && yarn build
-cd unilog-shared && yarn build
-cd unilog-server && yarn build
-cd unilog-client && yarn build
+yarn
+yarn workspaces build
+cd unilog-server
+node dist/index.js
 ```
 
-Now you'll need to host the static assets for the client ([`unilog-client/build`](`unilog-client/build`)) using something like nginx. The server can be run using `node unilog-server/dist/index.js` (port 8088).
+or via docker:
+
+```bash
+docker build -t multi-user-tile-editor .
+docker run -p 80:5000 multi-user-tile-editor:latest
+```
