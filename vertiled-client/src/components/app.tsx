@@ -341,8 +341,8 @@ export const AppComponent: React.FC = () => {
                     //zoom += e.deltaY;
                   } else {
                     setPanOffset((old) => ({
-                      x: old.x + (e.deltaX * 2) / tileSize,
-                      y: old.y + (e.deltaY * 2) / tileSize,
+                      x: old.x + (e.deltaX * 4) / tileSize,
+                      y: old.y + (e.deltaY * 4) / tileSize,
                     }));
                   }
                 }}
