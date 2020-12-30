@@ -9,6 +9,7 @@ export type PointerEventHandler = (
 ) => void;
 
 interface Props {
+  id?: string;
   onPointerDown?: PointerEventHandler;
   onPointerUp?: PointerEventHandler;
   onPointerMove?: PointerEventHandler;
@@ -28,6 +29,7 @@ const styles = {
 };
 
 export const MapDisplay: React.FC<Props> = ({
+  id,
   tilemap,
   width,
   height,
@@ -111,6 +113,7 @@ export const MapDisplay: React.FC<Props> = ({
       }}
     >
       <canvas
+        id={id}
         ref={canvas}
         height={canvasHeight}
         width={canvasWidth}

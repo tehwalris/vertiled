@@ -62,6 +62,8 @@ const imageStoreURL = `//${serverOrigin}/world`;
 
 const drawerWidth = 300;
 
+const MAIN_CANVAS_ID = "mainCanvas";
+
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
@@ -273,6 +275,48 @@ export const AppComponent: React.FC = () => {
   }>();
   const [panOffset, setPanOffset] = useState<Coordinates>({ x: 0, y: 0 });
 
+  const wheelHandlerRef = useRef<Coordinates>();
+
+  useEffect(() => {
+    const wheelHandler = (e: WheelEvent) => {
+      if (!e.target || (e.target as any)?.id !== MAIN_CANVAS_ID) {
+        return;
+      }
+      e.stopPropagation();
+      if (e.ctrlKey) {
+        //zoom += e.deltaY;
+      } else {
+        if (wheelHandlerRef.current) {
+          wheelHandlerRef.current = {
+            x: wheelHandlerRef.current.x + e.deltaX,
+            y: wheelHandlerRef.current.y + e.deltaY,
+          };
+        } else {
+          wheelHandlerRef.current = {
+            x: e.deltaX,
+            y: e.deltaY,
+          };
+          requestAnimationFrame(() => {
+            setPanOffset((old) => {
+              if (!wheelHandlerRef.current) {
+                throw new Error("wheelHandlerRef is not defined");
+              }
+              return {
+                x: old.x + (wheelHandlerRef.current.x * 2) / tileSize,
+                y: old.y + (wheelHandlerRef.current.y * 2) / tileSize,
+              };
+            });
+            wheelHandlerRef.current = undefined;
+          });
+        }
+      }
+    };
+    window.addEventListener("wheel", wheelHandler, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", wheelHandler);
+    };
+  });
+
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root}>
@@ -329,23 +373,14 @@ export const AppComponent: React.FC = () => {
           <div className={classes.mainDisplayContainer}>
             <div className="overlayContainer">
               <TilemapDisplay
+                id={MAIN_CANVAS_ID}
                 imageStore={imageStore}
                 tilemap={worldForGlTiled}
                 width={windowSize.width}
                 height={windowSize.height}
                 offset={panOffset}
                 tileSize={tileSize}
-                onWheel={(e) => {
-                  e.preventDefault();
-                  if (e.ctrlKey) {
-                    //zoom += e.deltaY;
-                  } else {
-                    setPanOffset((old) => ({
-                      x: old.x + (e.deltaX * 4) / tileSize,
-                      y: old.y + (e.deltaY * 4) / tileSize,
-                    }));
-                  }
-                }}
+                onWheel={(e) => {}}
                 onPointerDown={(c, ev, nonOffsetCoordinates) => {
                   pointerIsDownRef.current = true;
                   if (ev.button === 1) {
@@ -471,6 +506,7 @@ export const AppComponent: React.FC = () => {
             </div>
 
             <Drawer
+              id="test"
               anchor="right"
               className={classes.drawer}
               open={isDrawerOpen}
