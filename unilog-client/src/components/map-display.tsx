@@ -2,10 +2,16 @@ import * as glTiled from "gl-tiled";
 import React, { useEffect, useRef } from "react";
 import { Coordinates } from "unilog-shared";
 
+export type PointerEventHandler = (
+  coordinates: Coordinates,
+  ev: React.PointerEvent,
+  nonOffsetCoordinates: Coordinates,
+) => void;
+
 interface Props {
-  onPointerDown?: (coordinates: Coordinates, ev: React.PointerEvent) => void;
-  onPointerMove?: (coordinates: Coordinates, ev: React.PointerEvent) => void;
-  onPointerUp?: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+  onPointerDown?: PointerEventHandler;
+  onPointerUp?: PointerEventHandler;
+  onPointerMove?: PointerEventHandler;
   onContextMenu?: (ev: React.MouseEvent) => void;
 
   width: number;
@@ -21,6 +27,10 @@ const styles = {
   } as React.CSSProperties,
 };
 
+function coordsToFloored(coords: Coordinates) {
+  return { x: Math.floor(coords.x), y: Math.floor(coords.y) };
+}
+
 export const MapDisplay: React.FC<Props> = ({
   tilemap,
   width,
@@ -32,7 +42,7 @@ export const MapDisplay: React.FC<Props> = ({
   onPointerUp,
   onContextMenu,
 }) => {
-  const canvas: React.Ref<HTMLCanvasElement> = useRef(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
   const canvasWidth = Math.floor(width * devicePixelRatio);
   const canvasHeight = Math.floor(height * devicePixelRatio);
 
@@ -78,22 +88,22 @@ export const MapDisplay: React.FC<Props> = ({
 
   const canvasScale = 1 / devicePixelRatio;
 
-  function screenCoordsToTileCoords(
-    rect: DOMRect | undefined,
-    x: number,
-    y: number,
-  ): Coordinates {
-    if (!rect) {
-      throw new Error("error getting canvas DOMRect");
-    }
-    const canvasX = Math.floor(
-      (x - rect.left) / canvasScale / tileSize + offset.x,
+  function tryMakePointerCallback(cb: PointerEventHandler | undefined) {
+    return (
+      cb &&
+      ((ev: React.PointerEvent) => {
+        const canvasRect = canvas?.current?.getBoundingClientRect()!;
+        const nonOffsetCoordinates = {
+          x: (ev.clientX - canvasRect.left) / canvasScale / tileSize,
+          y: (ev.clientY - canvasRect.top) / canvasScale / tileSize,
+        };
+        const offsetCoordinates = {
+          x: Math.floor(nonOffsetCoordinates.x + offset.x),
+          y: Math.floor(nonOffsetCoordinates.y + offset.y),
+        };
+        cb(offsetCoordinates, ev, nonOffsetCoordinates);
+      })
     );
-    const canvasY = Math.floor(
-      (y - rect.top) / canvasScale / tileSize + offset.y,
-    );
-
-    return { x: canvasX, y: canvasY };
   }
 
   return (
@@ -107,36 +117,9 @@ export const MapDisplay: React.FC<Props> = ({
         ref={canvas}
         height={canvasHeight}
         width={canvasWidth}
-        onPointerDown={
-          onPointerDown &&
-          ((ev) => {
-            const canvasRect = canvas.current?.getBoundingClientRect()!;
-            onPointerDown(
-              screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
-              ev,
-            );
-          })
-        }
-        onPointerUp={
-          onPointerUp &&
-          ((ev) => {
-            const canvasRect = canvas.current?.getBoundingClientRect()!;
-            onPointerUp(
-              screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
-              ev,
-            );
-          })
-        }
-        onPointerMove={
-          onPointerMove &&
-          ((ev) => {
-            const canvasRect = canvas.current?.getBoundingClientRect();
-            onPointerMove(
-              screenCoordsToTileCoords(canvasRect, ev.clientX, ev.clientY),
-              ev,
-            );
-          })
-        }
+        onPointerDown={tryMakePointerCallback(onPointerDown)}
+        onPointerUp={tryMakePointerCallback(onPointerUp)}
+        onPointerMove={tryMakePointerCallback(onPointerMove)}
         onPointerCancel={() => {}}
         onPointerLeave={() => {}}
         onContextMenu={onContextMenu}
