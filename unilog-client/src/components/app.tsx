@@ -259,6 +259,8 @@ export const AppComponent: React.FC = () => {
 
         let nextLayerId = Math.max(...world.layers.map((l) => l.id)) + 1;
 
+        world.layers = immerCurrent(world.layers);
+
         // TODO: possibly move out of here
         function addCursorToWorld(cursor: Cursor) {
           if (!defaultLayerId) {
@@ -266,7 +268,7 @@ export const AppComponent: React.FC = () => {
           }
 
           world.layers = mergeCursorOntoLayers(
-            immerCurrent(world.layers),
+            world.layers,
             cursor,
             defaultLayerId,
           );
