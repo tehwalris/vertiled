@@ -82,6 +82,7 @@ export const reducer = (_state: State, action: Action): State =>
         if (!userState.cursor) {
           throw new Error(`user ${action.userId} has no cursor`);
         }
+
         state.world.layers = mergeCursorOntoLayers(
           immerCurrent(state.world.layers),
           immerCurrent(userState.cursor),

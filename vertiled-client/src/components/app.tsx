@@ -57,6 +57,7 @@ import {
   BiRightArrowCircle,
   BiDownArrowCircle,
 } from "react-icons/bi";
+import { CursorContent } from "vertiled-shared/src";
 
 const serverOrigin =
   process.env.NODE_ENV === "development"
@@ -275,6 +276,30 @@ export const AppComponent: React.FC = () => {
   );
 
   const pointerIsDownRef = useRef(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    const user = state.users.find((u) => u.id === userId);
+    const cursor = user?.cursor;
+    if (!cursor) return;
+
+    if (
+      cursor.contents.length === 1 &&
+      selectedLayerIds.length === 1 &&
+      cursor.contents[0].layerId !== selectedLayerIds[0]
+    ) {
+      // If there is only one layer in cursor and one layer selected, we paste it onto that selected layer
+      const modifiedContent: CursorContent = {
+        ...cursor.contents[0],
+        layerId: selectedLayerIds[0],
+      };
+      runAction((userId) => ({
+        type: ActionType.SetCursor,
+        cursor: { ...cursor, contents: [modifiedContent] },
+        userId,
+      }));
+    }
+  }, [runAction, selectedLayerIds, state.users, userId]);
 
   const panStartRef = useRef<{
     down: Coordinates;
