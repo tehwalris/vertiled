@@ -3,9 +3,9 @@
   "workspaces": {
     "packages": [
       "gl-tiled",
-      "unilog-shared",
-      "unilog-client",
-      "unilog-server"
+      "vertiled-shared",
+      "vertiled-client",
+      "vertiled-server"
     ],
     "nohoist": [
       "**"

@@ -11,7 +11,7 @@ import { ILayer } from "gl-tiled";
 import * as R from "ramda";
 import React from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { isLayerRegular } from "unilog-shared";
+import { isLayerRegular } from "vertiled-shared";
 import { primaryColor } from "../consts";
 
 interface Props {

@@ -1,6 +1,6 @@
 import { ILayer, ITileset } from "gl-tiled";
 import { useCallback, useRef } from "react";
-import { Coordinates, isLayerRegular, Rectangle } from "unilog-shared";
+import { Coordinates, isLayerRegular, Rectangle } from "vertiled-shared";
 import { ImageStore } from "./image-store";
 
 const uiTilesImageUrl = "ui-tiles.png";

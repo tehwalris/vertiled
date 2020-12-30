@@ -36,7 +36,7 @@ import {
   extractCursor,
   Rectangle,
   tileSize,
-} from "unilog-shared";
+} from "vertiled-shared";
 import { primaryColor, secondaryColor } from "../consts";
 import { useImageStore } from "../image-store";
 import {

@@ -1,6 +1,6 @@
 import * as glTiled from "gl-tiled";
 import React, { useEffect, useRef } from "react";
-import { Coordinates } from "unilog-shared";
+import { Coordinates } from "vertiled-shared";
 
 export type PointerEventHandler = (
   coordinates: Coordinates,

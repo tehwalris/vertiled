@@ -11,7 +11,7 @@ import {
   ServerMessage,
   State,
   unreachable,
-} from "unilog-shared";
+} from "vertiled-shared";
 import { useWebSocket } from "./use-web-socket";
 
 function reduceLog(

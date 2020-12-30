@@ -9,7 +9,7 @@ import {
   ServerMessage,
   State,
   unreachable,
-} from "unilog-shared";
+} from "vertiled-shared";
 import WebSocket from "ws";
 import express from "express";
 import { v4 as genId } from "uuid";
@@ -22,7 +22,7 @@ const app = express();
 app.use(cors());
 
 app.use("/world", express.static("../test-world"));
-app.use("/", express.static("../unilog-client/build"));
+app.use("/", express.static("../vertiled-client/build"));
 
 const log: LogEntry[] = [];
 let state: State = {

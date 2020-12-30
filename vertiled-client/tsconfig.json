@@ -17,5 +17,5 @@
     "noFallthroughCasesInSwitch": true,
     "downlevelIteration": true
   },
-  "include": ["src", "../unilog-shared/src/reducer.ts"]
+  "include": ["src", "../vertiled-shared/src/reducer.ts"]
 }

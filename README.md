@@ -1,6 +1,6 @@
-# Multi-user tile editor
+# Vertiled
 
-This is a collaborative online editor for tile-based worlds that we ([Moritz Schneider](https://github.com/bazumo), me and a few others) hacked together during [rc3](https://events.ccc.de/2020/09/04/rc3-remote-chaos-experience/). It supports maps in the [Tiled (TMX) map format](https://doc.mapeditor.org/en/stable/reference/tmx-map-format/), but only a subset of their features. The tile rendering is done by (a slightly modified) [gl-tiled](https://github.com/englercj/gl-tiled).
+Vertiled is a collaborative online editor for tile-based worlds that we ([Moritz Schneider](https://github.com/bazumo), me and a few others) hacked together during [rc3](https://events.ccc.de/2020/09/04/rc3-remote-chaos-experience/). It supports maps in the [Tiled (TMX) map format](https://doc.mapeditor.org/en/stable/reference/tmx-map-format/), but only a subset of their features. The tile rendering is done by (a slightly modified) [gl-tiled](https://github.com/englercj/gl-tiled). The name is a play on the German word "verteilt", which means "distributed".
 
 ## Demo
 
@@ -18,10 +18,10 @@ Start the following commands, with each line in a separate terminal:
 
 ```bash
 cd gl-tiled && yarn watch
-cd unilog-shared && yarn build --watch
-cd unilog-server && yarn build --watch
-cd unilog-server && nodemon -w dist dist/index.js
-cd unilog-client && yarn start
+cd vertiled-shared && yarn build --watch
+cd vertiled-server && yarn build --watch
+cd vertiled-server && nodemon -w dist dist/index.js
+cd vertiled-client && yarn start
 ```
 
 This will start the frontend (most likely) on [localhost:3000](localhost:3000) and the server on [localhost:8088](localhost:8088).
@@ -35,7 +35,7 @@ To run it locally:
 ```bash
 yarn
 yarn workspaces build
-cd unilog-server
+cd vertiled-server
 node dist/index.js
 ```
 

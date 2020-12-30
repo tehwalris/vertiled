@@ -1,7 +1,7 @@
 import { GLTilemap, ILayer, ITilemap, TGLLayer } from "gl-tiled";
 import React, { useEffect, useMemo } from "react";
-import { Coordinates } from "unilog-shared";
-import { isLayerRegular } from "unilog-shared";
+import { Coordinates } from "vertiled-shared";
+import { isLayerRegular } from "vertiled-shared";
 import { neutralWorldColor } from "../consts";
 import { ImageStore } from "../image-store";
 import { useShallowMemo } from "../use-shallow-memo";

@@ -1,4 +1,4 @@
-import { Action, Rectangle } from "unilog-shared";
+import { Action, Rectangle } from "vertiled-shared";
 
 export interface TileFlips {
   horizontal: boolean;
