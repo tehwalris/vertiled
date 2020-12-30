@@ -5,8 +5,14 @@ import {
   Drawer,
   ThemeProvider,
   useMediaQuery,
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Menu,
 } from "@material-ui/core";
 import { ITilemap } from "gl-tiled";
+import { FiMenu } from "react-icons/fi";
 import { produce } from "immer";
 import downloadFile from "js-file-download";
 import * as R from "ramda";
@@ -204,124 +210,141 @@ export const AppComponent: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <div>
-        <div
-          style={{
-            display: "flex",
-            maxWidth: windowSize.width,
-            overflow: "hidden",
-          }}
-        >
-          <div className="overlayContainer">
-            <TilemapDisplay
-              imageStore={imageStore}
-              tilemap={worldForGlTiled}
-              width={canvasWidth}
-              height={windowSize.height}
-              offset={{ x: 0, y: 0 }}
-              tileSize={tileSize}
-              onPointerDown={(c, ev) => {
-                if (ev.button === 0) {
-                  ev.preventDefault();
-
-                  const cursor = myState?.cursor;
-                  const defaultLayerId = R.last(selectedLayerIds);
-                  if (cursor && defaultLayerId !== undefined) {
-                    runAction((userId) => ({
-                      type: ActionType.PasteFromCursor,
-                      userId,
-                      defaultLayerId,
-                    }));
-                  }
-                } else if (ev.button === 2) {
-                  ev.preventDefault();
-
-                  handleStartSelect(c, setSelection);
-                }
-              }}
-              onPointerUp={(c, ev) => {
-                if (ev.button === 2) {
-                  ev.preventDefault();
-
-                  handleEndSelect(setSelection);
-
-                  const selection = myState?.selection;
-                  if (
-                    selection &&
-                    selection.width >= 1 &&
-                    selection.height >= 1
-                  ) {
-                    const cursor = extractCursor(state.world, selection);
-                    cursor.contents = cursor.contents.filter(
-                      (c) =>
-                        c.layerId === undefined ||
-                        selectedLayerIds.includes(c.layerId),
-                    );
-                    setCursor(cursor);
-                  }
-                }
-              }}
-              onPointerMove={(c, ev) => {
-                handleMoveSelect(c, myState?.selection, setSelection);
-
-                const oldCursor = myState?.cursor;
-                if (oldCursor) {
-                  const newFrameStart: Coordinates = {
-                    x: c.x - (oldCursor.initialFrame.width - 1),
-                    y: c.y - (oldCursor.initialFrame.height - 1),
-                  };
-                  if (
-                    newFrameStart.x !== oldCursor.frame.x ||
-                    newFrameStart.y !== oldCursor.frame.y
-                  ) {
-                    runAction((userId) => ({
-                      type: ActionType.SetCursorOffset,
-                      userId,
-                      offset: newFrameStart,
-                    }));
-                  }
-                }
-              }}
-            />
-          </div>
-
-          <Drawer
-            variant="permanent"
-            anchor="right"
-            PaperProps={{
-              style: {
-                width: menuWidth,
-                height: windowSize.height,
-              },
+        <AppBar position="static">
+          <Toolbar variant="regular">
+            <Typography variant="h6" className="">
+              Teilt
+            </Typography>
+            <IconButton
+              edge="start"
+              className=""
+              color="inherit"
+              aria-label="menu"
+              style={{ marginLeft: "auto" }}
+            >
+              <FiMenu />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+        <div>
+          <div
+            style={{
+              display: "flex",
+              maxWidth: windowSize.width,
+              overflow: "hidden",
             }}
           >
-            <LayerList
-              selectedLayerIds={selectedLayerIds}
-              setSelectedLayerIds={setSelectedLayerIds}
-              layers={state.world.layers}
-              onToggleVisibility={setLayerVisibility}
-            />
-            <TileSetList
-              tilesets={state.world.tilesets}
-              imageStore={imageStore}
-              setSelectedTileSet={setSelectedTileSet}
-              selectedTileSetIndex={selectedTileSet}
-              onSelectTiles={setCursor}
-            />
-            <div className="selection-list">
-              <div>Connected users: {state.users.length}</div>
-              <div>UserId: {userId}</div>
-              <Button
-                onClick={() => {
-                  downloadFile(
-                    JSON.stringify(state.world, null, 2),
-                    "main.json",
-                  );
+            <div className="overlayContainer">
+              <TilemapDisplay
+                imageStore={imageStore}
+                tilemap={worldForGlTiled}
+                width={canvasWidth}
+                height={windowSize.height - 64}
+                offset={{ x: 0, y: 0 }}
+                tileSize={tileSize}
+                onPointerDown={(c, ev) => {
+                  if (ev.button === 0) {
+                    ev.preventDefault();
+
+                    const cursor = myState?.cursor;
+                    const defaultLayerId = R.last(selectedLayerIds);
+                    if (cursor && defaultLayerId !== undefined) {
+                      runAction((userId) => ({
+                        type: ActionType.PasteFromCursor,
+                        userId,
+                        defaultLayerId,
+                      }));
+                    }
+                  } else if (ev.button === 2) {
+                    ev.preventDefault();
+
+                    handleStartSelect(c, setSelection);
+                  }
                 }}
-              >
-                Download as JSON
-              </Button>
+                onPointerUp={(c, ev) => {
+                  if (ev.button === 2) {
+                    ev.preventDefault();
+
+                    handleEndSelect(setSelection);
+
+                    const selection = myState?.selection;
+                    if (
+                      selection &&
+                      selection.width >= 1 &&
+                      selection.height >= 1
+                    ) {
+                      const cursor = extractCursor(state.world, selection);
+                      cursor.contents = cursor.contents.filter(
+                        (c) =>
+                          c.layerId === undefined ||
+                          selectedLayerIds.includes(c.layerId),
+                      );
+                      setCursor(cursor);
+                    }
+                  }
+                }}
+                onPointerMove={(c, ev) => {
+                  handleMoveSelect(c, myState?.selection, setSelection);
+
+                  const oldCursor = myState?.cursor;
+                  if (oldCursor) {
+                    const newFrameStart: Coordinates = {
+                      x: c.x - (oldCursor.initialFrame.width - 1),
+                      y: c.y - (oldCursor.initialFrame.height - 1),
+                    };
+                    if (
+                      newFrameStart.x !== oldCursor.frame.x ||
+                      newFrameStart.y !== oldCursor.frame.y
+                    ) {
+                      runAction((userId) => ({
+                        type: ActionType.SetCursorOffset,
+                        userId,
+                        offset: newFrameStart,
+                      }));
+                    }
+                  }
+                }}
+              />
             </div>
-          </Drawer>
+
+            <Drawer
+              anchor="right"
+              PaperProps={{
+                style: {
+                  width: menuWidth,
+                  height: "max-content",
+                },
+              }}
+            >
+              <LayerList
+                selectedLayerIds={selectedLayerIds}
+                setSelectedLayerIds={setSelectedLayerIds}
+                layers={state.world.layers}
+                onToggleVisibility={setLayerVisibility}
+              />
+              <TileSetList
+                tilesets={state.world.tilesets}
+                imageStore={imageStore}
+                setSelectedTileSet={setSelectedTileSet}
+                selectedTileSetIndex={selectedTileSet}
+                onSelectTiles={setCursor}
+              />
+              <div className="selection-list">
+                <div>Connected users: {state.users.length}</div>
+                <div>UserId: {userId}</div>
+                <Button
+                  onClick={() => {
+                    downloadFile(
+                      JSON.stringify(state.world, null, 2),
+                      "main.json",
+                    );
+                  }}
+                >
+                  Download as JSON
+                </Button>
+              </div>
+            </Drawer>
+          </div>
         </div>
       </div>
     </ThemeProvider>
