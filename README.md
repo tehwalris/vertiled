@@ -4,7 +4,7 @@ Vertiled is a collaborative online editor for tile-based worlds that we ([Moritz
 
 ## Demo
 
-You can try a [**demo instance here**](https://multi-user-tile-editor.do.walr.is/).
+You can try a [**demo instance here**](https://vertiled.do.walr.is/).
 
 ## Getting started
 
@@ -42,6 +42,6 @@ node dist/index.js
 or via docker:
 
 ```bash
-docker build -t multi-user-tile-editor .
-docker run -p 80:5000 multi-user-tile-editor:latest
+docker build -t vertiled .
+docker run -p 80:5000 vertiled:latest
 ```
