@@ -44,17 +44,17 @@ export function addSelectionToTilesets(
 export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
   const isSelectingRef = useRef<Coordinates>();
 
-  const addSelectionToLayers = useCallback(
+  const makeSelectionLayer = useCallback(
     (
       layers: ILayer[],
       mySelection: Rectangle | undefined,
       otherSelections: Rectangle[],
-    ) => {
-      //we assume that all layers start at one and that the first layer has a width and height
-      const referenceLayer = layers[0];
-
+    ): ILayer | undefined => {
+      const referenceLayer = layers.find(
+        (l) => isLayerRegular(l) && typeof l.data !== "string",
+      );
       if (!referenceLayer) {
-        return layers;
+        return undefined;
       }
 
       if (
@@ -72,6 +72,10 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
       if (mySelection) {
         allSelections.push([mySelection, true]);
       }
+      if (!allSelections) {
+        return undefined;
+      }
+
       for (const [selection, isMySelection] of allSelections) {
         if (selection) {
           const tile = isMySelection
@@ -98,12 +102,12 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
         }
       }
 
-      layers.push({
+      return {
         ...referenceLayer,
         id: Math.max(...layers.map((l) => l.id)) + 1,
         data,
         name: "selection-ui",
-      });
+      };
     },
     [selectionTilesetInfo],
   );
@@ -154,7 +158,7 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
   }
 
   return {
-    addSelectionToLayers,
+    makeSelectionLayer,
     handleMoveSelect,
     handleEndSelect,
     handleStartSelect,

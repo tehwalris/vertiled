@@ -35,7 +35,7 @@ const ListItem = withStyles({
   selected: {},
 })(UnstyledListItem);
 
-export function LayerList({
+function _LayerList({
   layers,
   selectedLayerIds,
   setSelectedLayerIds,
@@ -79,7 +79,7 @@ export function LayerList({
             >
               <IconButton
                 edge="end"
-                aria-label="toggle visability"
+                aria-label="toggle visibility"
                 size="small"
               >
                 {layer.visible ? <FiEye /> : <FiEyeOff />}
@@ -91,3 +91,5 @@ export function LayerList({
     </div>
   );
 }
+
+export const LayerList = React.memo(_LayerList);

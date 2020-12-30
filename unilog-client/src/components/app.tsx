@@ -7,14 +7,15 @@ import {
   useMediaQuery,
 } from "@material-ui/core";
 import { ITilemap } from "gl-tiled";
-import { current as immerCurrent, produce } from "immer";
+import { produce } from "immer";
 import downloadFile from "js-file-download";
 import * as R from "ramda";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActionType,
   addCursorOnNewLayers,
   Coordinates,
+  Cursor,
   extractCursor,
   getLayer,
   isLayerRegular,
@@ -88,17 +89,23 @@ export const AppComponent: React.FC = () => {
       imageStore.getImage(tileset.image);
     }
   }, [state.world.tilesets, imageStore]);
+  const imageStoreAssetCache = imageStore.assetCache;
 
   const [tilesetsForGlTiled, selectionTilesetInfo] = useMemo(() => {
     let selectionTilesetInfo: SelectionTilesetInfo;
     const tilesets = produce(state.world.tilesets, (tilesets) => {
       selectionTilesetInfo = addSelectionToTilesets(tilesets, imageStore);
+      for (const tileset of tilesets) {
+        if (tileset.image && !imageStoreAssetCache[tileset.image]) {
+          tileset.image = "";
+        }
+      }
     });
     return [tilesets, selectionTilesetInfo!];
-  }, [state.world.tilesets, imageStore]);
+  }, [state.world.tilesets, imageStore, imageStoreAssetCache]);
 
   const {
-    addSelectionToLayers,
+    makeSelectionLayer,
     handleStartSelect,
     handleMoveSelect,
     handleEndSelect,
@@ -118,52 +125,43 @@ export const AppComponent: React.FC = () => {
   }, [selectedLayerIds, state.world.layers]);
   const defaultLayerId = R.last(selectedLayerIds);
 
-  const worldForGlTiled = produce(state.world, (world) => {
-    addSelectionToLayers(
-      world.layers,
-      myState?.selection,
-      state.users
-        .map((u) => u.selection)
-        .filter((v) => v)
-        .map((v) => v!),
-    );
-    for (const tileset of world.tilesets) {
-      if (!tileset.image) {
-        console.warn(`Tileset ${tileset.name} did not have an image property`);
-        continue;
-      }
-      if (!imageStore.assetCache[tileset.image]) {
-        tileset.image = ""; // HACK don't load anything if the image is not in the cache
-      }
-    }
+  const selectionLayer = makeSelectionLayer(
+    state.world.layers,
+    myState?.selection,
+    state.users
+      .map((u) => u.selection)
+      .filter((v) => v)
+      .map((v) => v!),
+  );
 
-    world.layers = immerCurrent(world.layers);
-
-    if (defaultLayerId) {
-      for (const user of state.users) {
-        if (user.id !== userId && user.cursor) {
-          world.layers = addCursorOnNewLayers(
-            world.layers,
-            user.cursor,
-            defaultLayerId,
-          );
-        }
-      }
-
-      if (myState?.cursor) {
-        world.layers = addCursorOnNewLayers(
-          world.layers,
-          myState.cursor,
-          defaultLayerId,
-        );
+  let worldForGlTiled = {
+    ...state.world,
+    layers: [...state.world.layers],
+    tilesets: tilesetsForGlTiled,
+  };
+  if (selectionLayer) {
+    worldForGlTiled.layers.push(selectionLayer);
+  }
+  if (defaultLayerId) {
+    const addCursor = (cursor: Cursor) => {
+      worldForGlTiled.layers = addCursorOnNewLayers(
+        worldForGlTiled.layers,
+        cursor,
+        defaultLayerId,
+      );
+    };
+    for (const user of state.users) {
+      if (user.id !== userId && user.cursor) {
+        addCursor(user.cursor);
       }
     }
-
-    // TODO: render own selection above other people's cursors
-
-    world.layers = world.layers.filter((layer) => layer.visible);
-    world.tilesets = tilesetsForGlTiled;
-  });
+    if (myState?.cursor) {
+      addCursor(myState.cursor);
+    }
+  }
+  worldForGlTiled.layers = worldForGlTiled.layers.filter(
+    (layer) => layer.visible,
+  );
 
   const windowSize = useWindowSize();
 
@@ -177,6 +175,28 @@ export const AppComponent: React.FC = () => {
       selection,
     }));
   };
+
+  const setLayerVisibility = useCallback(
+    (id, v) => {
+      runAction(() => ({
+        type: ActionType.SetLayerVisibility,
+        layerId: id,
+        visibility: v,
+      }));
+    },
+    [runAction],
+  );
+
+  const setCursor = useCallback(
+    (cursor) => {
+      runAction((userId) => ({
+        type: ActionType.SetCursor,
+        userId,
+        cursor,
+      }));
+    },
+    [runAction],
+  );
 
   return (
     <ThemeProvider theme={theme}>
@@ -234,11 +254,7 @@ export const AppComponent: React.FC = () => {
                         c.layerId === undefined ||
                         selectedLayerIds.includes(c.layerId),
                     );
-                    runAction((userId) => ({
-                      type: ActionType.SetCursor,
-                      userId,
-                      cursor,
-                    }));
+                    setCursor(cursor);
                   }
                 }
               }}
@@ -280,26 +296,14 @@ export const AppComponent: React.FC = () => {
               selectedLayerIds={selectedLayerIds}
               setSelectedLayerIds={setSelectedLayerIds}
               layers={state.world.layers}
-              onToggleVisibility={(id, v) => {
-                runAction(() => ({
-                  type: ActionType.SetLayerVisibility,
-                  layerId: id,
-                  visibility: v,
-                }));
-              }}
+              onToggleVisibility={setLayerVisibility}
             />
             <TileSetList
               tilesets={state.world.tilesets}
               imageStore={imageStore}
               setSelectedTileSet={setSelectedTileSet}
               selectedTileSetIndex={selectedTileSet}
-              onSelectTiles={(cursor) => {
-                runAction((userId) => ({
-                  type: ActionType.SetCursor,
-                  userId,
-                  cursor,
-                }));
-              }}
+              onSelectTiles={setCursor}
             />
             <div className="selection-list">
               <div>Connected users: {state.users.length}</div>
