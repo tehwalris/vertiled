@@ -6,6 +6,7 @@ import {
   ListItemText,
   ListSubheader,
   withStyles,
+  Tooltip,
 } from "@material-ui/core";
 import { ILayer } from "gl-tiled";
 import * as R from "ramda";
@@ -72,19 +73,21 @@ function _LayerList({
                   : undefined
               }
             />
-            <ListItemSecondaryAction
-              onClick={() => {
-                onToggleVisibility(layer.id, !layer.visible);
-              }}
-            >
-              <IconButton
-                edge="end"
-                aria-label="toggle visibility"
-                size="small"
+            <Tooltip title="Toggle visibility" aria-label="Toggle visibility">
+              <ListItemSecondaryAction
+                onClick={() => {
+                  onToggleVisibility(layer.id, !layer.visible);
+                }}
               >
-                {layer.visible ? <FiEye /> : <FiEyeOff />}
-              </IconButton>
-            </ListItemSecondaryAction>
+                <IconButton
+                  edge="end"
+                  aria-label="Toggle visibility"
+                  size="small"
+                >
+                  {layer.visible ? <FiEye /> : <FiEyeOff />}
+                </IconButton>
+              </ListItemSecondaryAction>
+            </Tooltip>
           </ListItem>
         ))}
       </List>

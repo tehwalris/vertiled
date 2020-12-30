@@ -12,6 +12,7 @@ import {
   Box,
   ButtonGroup,
   Typography,
+  Tooltip,
   useMediaQuery,
 } from "@material-ui/core";
 
@@ -369,47 +370,61 @@ export const AppComponent: React.FC = () => {
             <Divider style={{ marginLeft: "auto" }}></Divider>
             <Box mr={1}>
               <ButtonGroup>
-                <Button
-                  className={classes.button}
-                  onClick={() => {
-                    if (!userId) return;
-                    const user = state.users.find((u) => u.id === userId);
-                    const cursor = user?.cursor;
-                    if (!cursor) return;
-                    runAction((userId) => {
-                      const newC = mirrorCursor(
-                        cursor,
-                        MirrorDirection.Horizontal,
-                      );
-                      console.log("newC", newC);
-                      return {
-                        type: ActionType.SetCursor,
-                        userId,
-                        cursor: newC,
-                      };
-                    });
-                  }}
+                <Tooltip
+                  title="Mirror Horizontally"
+                  aria-label="Mirror Horizontally"
                 >
-                  <BiRightArrowCircle />
-                </Button>
-                <Button
-                  className={classes.button}
-                  onClick={() => {
-                    if (!userId) return;
-                    const user = state.users.find((u) => u.id === userId);
-                    const cursor = user?.cursor;
-                    if (!cursor) return;
-                    runAction((userId) => {
-                      return {
-                        type: ActionType.SetCursor,
-                        userId,
-                        cursor: mirrorCursor(cursor, MirrorDirection.Vertical),
-                      };
-                    });
-                  }}
+                  <Button
+                    className={classes.button}
+                    onClick={() => {
+                      if (!userId) return;
+                      const user = state.users.find((u) => u.id === userId);
+                      const cursor = user?.cursor;
+                      if (!cursor) return;
+                      runAction((userId) => {
+                        const newC = mirrorCursor(
+                          cursor,
+                          MirrorDirection.Horizontal,
+                        );
+                        console.log("newC", newC);
+                        return {
+                          type: ActionType.SetCursor,
+                          userId,
+                          cursor: newC,
+                        };
+                      });
+                    }}
+                  >
+                    <BiRightArrowCircle />
+                  </Button>
+                </Tooltip>
+
+                <Tooltip
+                  title="Mirror Vertically"
+                  aria-label="Mirror Vertically"
                 >
-                  <BiDownArrowCircle />
-                </Button>
+                  <Button
+                    className={classes.button}
+                    onClick={() => {
+                      if (!userId) return;
+                      const user = state.users.find((u) => u.id === userId);
+                      const cursor = user?.cursor;
+                      if (!cursor) return;
+                      runAction((userId) => {
+                        return {
+                          type: ActionType.SetCursor,
+                          userId,
+                          cursor: mirrorCursor(
+                            cursor,
+                            MirrorDirection.Vertical,
+                          ),
+                        };
+                      });
+                    }}
+                  >
+                    <BiDownArrowCircle />
+                  </Button>
+                </Tooltip>
               </ButtonGroup>
             </Box>
 
@@ -422,12 +437,17 @@ export const AppComponent: React.FC = () => {
               }}
               aria-label="text alignment"
             >
-              <ToggleButton value="Clone">
-                <BiEditAlt />
-              </ToggleButton>
-              <ToggleButton value="Erase">
-                <BiEraser />
-              </ToggleButton>
+              <Tooltip title="Clone" aria-label="Clone">
+                <ToggleButton value="Clone">
+                  <BiEditAlt />
+                </ToggleButton>
+              </Tooltip>
+
+              <Tooltip title="Erease" aria-label="Erease">
+                <ToggleButton value="Erase">
+                  <BiEraser />
+                </ToggleButton>
+              </Tooltip>
             </ToggleButtonGroup>
 
             <IconButton
