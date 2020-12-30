@@ -297,32 +297,28 @@ export const AppComponent: React.FC = () => {
         return;
       }
       e.stopPropagation();
-      if (e.ctrlKey) {
-        //zoom += e.deltaY;
+      if (wheelHandlerRef.current) {
+        wheelHandlerRef.current = {
+          x: wheelHandlerRef.current.x + e.deltaX,
+          y: wheelHandlerRef.current.y + e.deltaY,
+        };
       } else {
-        if (wheelHandlerRef.current) {
-          wheelHandlerRef.current = {
-            x: wheelHandlerRef.current.x + e.deltaX,
-            y: wheelHandlerRef.current.y + e.deltaY,
-          };
-        } else {
-          wheelHandlerRef.current = {
-            x: e.deltaX,
-            y: e.deltaY,
-          };
-          requestAnimationFrame(() => {
-            setPanOffset((old) => {
-              if (!wheelHandlerRef.current) {
-                throw new Error("wheelHandlerRef is not defined");
-              }
-              return {
-                x: old.x + (wheelHandlerRef.current.x * 2) / tileSize,
-                y: old.y + (wheelHandlerRef.current.y * 2) / tileSize,
-              };
-            });
-            wheelHandlerRef.current = undefined;
+        wheelHandlerRef.current = {
+          x: e.deltaX,
+          y: e.deltaY,
+        };
+        requestAnimationFrame(() => {
+          setPanOffset((old) => {
+            if (!wheelHandlerRef.current) {
+              throw new Error("wheelHandlerRef is not defined");
+            }
+            return {
+              x: old.x + (wheelHandlerRef.current.x * 2) / tileSize,
+              y: old.y + (wheelHandlerRef.current.y * 2) / tileSize,
+            };
           });
-        }
+          wheelHandlerRef.current = undefined;
+        });
       }
     };
     window.addEventListener("wheel", wheelHandler, { passive: true });
