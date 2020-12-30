@@ -1,4 +1,10 @@
-import { makeStyles, MenuItem, Select } from "@material-ui/core";
+import {
+  makeStyles,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+} from "@material-ui/core";
 import { ITileset } from "gl-tiled";
 import React, { useMemo, useState } from "react";
 import {
@@ -29,6 +35,9 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "center",
     marginTop: 10,
+  },
+  select: {
+    margin: theme.spacing(2),
   },
 }));
 
@@ -83,18 +92,23 @@ function _TileSetList({
 
   return (
     <div className={classes.container}>
-      <Select
-        value={selectedTileSetIndex}
-        onChange={(ev) => {
-          setSelectedTileSet(ev.target.value as number);
-        }}
-      >
-        {tilesets.map((tileset, i) => (
-          <MenuItem key={i} value={i}>
-            {tileset.name}
-          </MenuItem>
-        ))}
-      </Select>
+      <FormControl variant="outlined" className={classes.select}>
+        <InputLabel id="tilesets-select-label">Tileset</InputLabel>
+        <Select
+          labelId="tilesets-select-label"
+          value={selectedTileSetIndex}
+          onChange={(ev) => {
+            setSelectedTileSet(ev.target.value as number);
+          }}
+          label="Tileset"
+        >
+          {tilesets.map((tileset, i) => (
+            <MenuItem key={i} value={i}>
+              {tileset.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
       {tilesets[selectedTileSetIndex] && (
         <div className={classes.previweContainer}>

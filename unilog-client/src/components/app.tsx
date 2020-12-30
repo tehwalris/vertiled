@@ -81,13 +81,13 @@ const useStyles = makeStyles((theme) => ({
   drawer: {
     width: drawerWidth,
     flexShrink: 0,
+    overflowX: "hidden",
   },
   drawerPaper: {
     width: drawerWidth,
+    overflow: "hidden",
   },
-  drawerContainer: {
-    overflow: "auto",
-  },
+
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
