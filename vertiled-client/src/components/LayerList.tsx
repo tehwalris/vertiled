@@ -75,7 +75,8 @@ function _LayerList({
             />
             <Tooltip title="Toggle visibility" aria-label="Toggle visibility">
               <ListItemSecondaryAction
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   onToggleVisibility(layer.id, !layer.visible);
                 }}
               >
