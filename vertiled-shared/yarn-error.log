@@ -1,0 +1,49 @@
+Arguments: 
+  /usr/local/Cellar/node/14.4.0/bin/node /usr/local/Cellar/yarn/1.22.4/libexec/bin/yarn.js run watch
+
+PATH: 
+  /usr/local/lib/node_modules/npm/node_modules/npm-lifecycle/node-gyp-bin:/Users/moritz/ccc/unilog/node_modules/.bin:/var/folders/92/vbthytmx42g5lm7hd2m82cn80000gn/T/yarn--1609351581781-0.036435317400659084:/Users/moritz/ccc/unilog/node_modules/.bin:/Users/moritz/.config/yarn/link/node_modules/.bin:/Users/moritz/ccc/unilog/node_modules/.bin:/usr/local/Cellar/node/14.4.0/libexec/lib/node_modules/npm/bin/node-gyp-bin:/usr/local/Cellar/node/14.4.0/lib/node_modules/npm/bin/node-gyp-bin:/usr/local/Cellar/node/14.4.0/bin/node_modules/npm/bin/node-gyp-bin:/Users/moritz/.opam/default/bin:/Users/moritz/.cargo/bin:/Users/moritz/bin:/Users/moritz/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Users/moritz/.opam/default/bin:/Users/moritz/.cargo/bin:/Users/moritz/bin:/Users/moritz/go/bin:/usr/local/opt/go/libexec/bin:/Users/moritz/go/bin:/usr/local/opt/go/libexec/bin
+
+Yarn version: 
+  1.22.4
+
+Node version: 
+  14.4.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/moritz/ccc/unilog/vertiled-shared/package.json: Unexpected string in JSON at position 148
+      at JSON.parse (<anonymous>)
+      at /usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:310:30)
+      at /usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "vertiled-shared",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+      "build": "tsc"
+      "watch": "tsc -w"
+    },
+    "dependencies": {
+      "@types/node": "^14.14.16",
+      "immer": "^8.0.0",
+      "ramda": "^0.27.1"
+    },
+    "devDependencies": {
+      "@types/ramda": "^0.27.34",
+      "typescript": "^4.1.3"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

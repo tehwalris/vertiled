@@ -10,5 +10,15 @@
     "nohoist": [
       "**"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^5.3.0"
+  },
+  "scripts": {
+    "watch-gl-tiled": "cd gl-tiled && yarn run watch",
+    "watch-shared": "cd vertiled-shared && yarn run watch",
+    "watch-server": "cd vertiled-server && yarn run watch",
+    "watch-client": "cd vertiled-client && yarn run watch",
+    "watch": "concurrently \"npm:watch-*\""
   }
 }
