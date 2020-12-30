@@ -9,6 +9,8 @@ import {
   makeStyles,
   ThemeProvider,
   Toolbar,
+  Box,
+  ButtonGroup,
   Typography,
   useMediaQuery,
 } from "@material-ui/core";
@@ -88,11 +90,15 @@ const useStyles = makeStyles((theme) => ({
     overflow: "hidden",
   },
 
+  button: {
+    height: theme.spacing(5),
+  },
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
     padding: theme.spacing(3),
   },
+
   mainDisplayContainer: {
     display: "flex",
     maxWidth: "100vw",
@@ -277,6 +283,16 @@ export const AppComponent: React.FC = () => {
               Vertiled
             </Typography>
             <Divider style={{ marginLeft: "auto" }}></Divider>
+            <Box mr={1}>
+              <ButtonGroup>
+                <Button value="Clone" className={classes.button}>
+                  <BiEditAlt />
+                </Button>
+                <Button value="Erase">
+                  <BiEraser />
+                </Button>
+              </ButtonGroup>
+            </Box>
 
             <ToggleButtonGroup
               value={editingMode}
