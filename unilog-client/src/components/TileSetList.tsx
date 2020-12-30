@@ -1,4 +1,4 @@
-import { MenuItem, Select } from "@material-ui/core";
+import { makeStyles, MenuItem, Select } from "@material-ui/core";
 import { ITileset } from "gl-tiled";
 import React, { useMemo, useState } from "react";
 import {
@@ -20,6 +20,18 @@ interface Props {
   onSelectTiles: (cursor: Cursor) => void;
 }
 
+const useStyles = makeStyles((theme) => ({
+  container: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  previweContainer: {
+    display: "flex",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+}));
+
 function _TileSetList({
   tilesets,
   selectedTileSetIndex,
@@ -27,6 +39,8 @@ function _TileSetList({
   imageStore,
   onSelectTiles,
 }: Props) {
+  const classes = useStyles();
+
   const selectedTileSet = tilesets[selectedTileSetIndex] as
     | ITileset
     | undefined;
@@ -68,7 +82,7 @@ function _TileSetList({
   }, [selectedTileSet, tilesetsForGlTiled, selection, makeSelectionLayer]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <div className={classes.container}>
       <Select
         value={selectedTileSetIndex}
         onChange={(ev) => {
@@ -83,20 +97,9 @@ function _TileSetList({
       </Select>
 
       {tilesets[selectedTileSetIndex] && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: 10,
-          }}
-        >
+        <div className={classes.previweContainer}>
           {tilemap && (
-            <div
-              style={{
-                border: "1px solid #888",
-                width: "min-content",
-              }}
-            >
+            <div>
               <TilemapDisplay
                 imageStore={imageStore}
                 tilemap={tilemap}

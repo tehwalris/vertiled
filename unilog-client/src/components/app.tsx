@@ -12,6 +12,8 @@ import {
   Typography,
   useMediaQuery,
 } from "@material-ui/core";
+
+import { ToggleButtonGroup, ToggleButton } from "@material-ui/lab";
 import clsx from "clsx";
 import { produce } from "immer";
 import downloadFile from "js-file-download";
@@ -45,6 +47,7 @@ import { useWindowSize } from "../useWindowSize";
 import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
+import { BiEraser, BiEditAlt } from "react-icons/bi";
 
 const serverOrigin =
   process.env.NODE_ENV === "development"
@@ -265,12 +268,29 @@ export const AppComponent: React.FC = () => {
         >
           <Toolbar variant="regular">
             <Typography variant="h6" className="">
-              Teilt
+              Vertiled
             </Typography>
+            <Divider style={{ marginLeft: "auto" }}></Divider>
+
+            <ToggleButtonGroup
+              value={editingMode}
+              exclusive
+              onChange={(ev: any, newMode: EditingMode) =>
+                setEditingMode(newMode)
+              }
+              aria-label="text alignment"
+            >
+              <ToggleButton value="Clone">
+                <BiEditAlt />
+              </ToggleButton>
+              <ToggleButton value="Erase">
+                <BiEraser />
+              </ToggleButton>
+            </ToggleButtonGroup>
+
             <IconButton
               color="inherit"
               aria-label="menu"
-              style={{ marginLeft: "auto" }}
               onClick={() => setDrawerOpen(!isDrawerOpen)}
             >
               <FiMenu />
