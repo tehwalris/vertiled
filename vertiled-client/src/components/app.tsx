@@ -134,7 +134,9 @@ export const AppComponent: React.FC = () => {
 
   const [isDrawerOpen, setDrawerOpen] = useState(true);
 
-  const [state, userId, runAction] = useUnilog(wsServerURL);
+  const { state, userId, runAction, startUndoGroup, endUndoGroup } = useUnilog(
+    wsServerURL,
+  );
   const myState = state.users.find((u) => u.id === userId);
 
   const [editingMode, setEditingMode] = useState(EditingMode.Clone);
@@ -336,7 +338,11 @@ export const AppComponent: React.FC = () => {
                 offset={panOffset}
                 tileSize={tileSize}
                 onPointerDown={(c, ev, nonOffsetCoordinates) => {
+                  if (pointerIsDownRef.current) {
+                    return;
+                  }
                   pointerIsDownRef.current = true;
+
                   if (ev.button === 1) {
                     ev.preventDefault();
 
@@ -362,6 +368,7 @@ export const AppComponent: React.FC = () => {
                   } else if (ev.button === 0 && EditingMode.Erase) {
                     ev.preventDefault();
 
+                    startUndoGroup();
                     runAction(() => ({
                       type: ActionType.SetTile,
                       layerIds: selectedLayerIds,
@@ -378,10 +385,13 @@ export const AppComponent: React.FC = () => {
                   }
                 }}
                 onPointerUp={(c, ev) => {
+                  if (!pointerIsDownRef.current) {
+                    return;
+                  }
                   pointerIsDownRef.current = false;
                   panStartRef.current = undefined;
 
-                  if (ev.button === 2 && editingMode === EditingMode.Clone) {
+                  if (editingMode === EditingMode.Clone) {
                     ev.preventDefault();
 
                     handleEndSelect(setSelection);
@@ -400,6 +410,8 @@ export const AppComponent: React.FC = () => {
                       );
                       setCursor(cursor);
                     }
+                  } else if (editingMode === EditingMode.Erase) {
+                    endUndoGroup();
                   }
                 }}
                 onPointerMove={(c, ev, nonOffsetCoordinates) => {

@@ -3,6 +3,7 @@ import { Action } from "./action";
 
 export interface LogEntry {
   id: number;
+  undoKey?: string;
   action: Action;
 }
 

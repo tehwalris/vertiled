@@ -13,6 +13,7 @@ import {
   unreachable,
 } from "vertiled-shared";
 import { useWebSocket } from "./use-web-socket";
+import { v4 as genId } from "uuid";
 
 function reduceLog(
   logBaseState: State,
@@ -60,6 +61,8 @@ export function useUnilog(wsServerURL: string) {
   const nextLocalId = useRef<number>(-1);
 
   const [logBaseState, setLogBaseState] = useState(initialState);
+
+  const undoGroupKey = useRef<string>();
 
   const [userId, setUserId] = useState<string>();
 
@@ -153,13 +156,28 @@ export function useUnilog(wsServerURL: string) {
     }
   });
 
+  const startUndoGroup = useCallback(() => {
+    if (undoGroupKey.current) {
+      throw new Error("startUndoGroup called with existing undo group");
+    }
+    undoGroupKey.current = genId();
+  }, []);
+
+  const endUndoGroup = useCallback(() => {
+    if (!undoGroupKey.current) {
+      throw new Error("endUndoGroup called without existing undo group");
+    }
+    undoGroupKey.current = undefined;
+  }, []);
+
   const runAction = useCallback(
     (makeAction: (userId: string) => Action) => {
       if (!wsRef.current || !userId) {
         return;
       }
-      const localEntry = {
+      const localEntry: LogEntry = {
         id: nextLocalId.current,
+        undoKey: undoGroupKey.current,
         action: makeAction(userId),
       };
       nextLocalId.current--;
@@ -188,5 +206,11 @@ export function useUnilog(wsServerURL: string) {
     [userId, wsRef],
   );
 
-  return [cachedFullState, userId, runAction] as const;
+  return {
+    state: cachedFullState,
+    userId,
+    runAction,
+    startUndoGroup,
+    endUndoGroup,
+  };
 }

@@ -14,9 +14,13 @@ import WebSocket from "ws";
 import express from "express";
 import { v4 as genId } from "uuid";
 
-import { FAKE_ACTIONS } from "./fake";
 import { readFileSync } from "fs";
 import cors from "cors";
+
+interface UndoPoint {
+  firstEntryId: number;
+  stateBeforeEntry: State;
+}
 
 const app = express();
 app.use(cors());
@@ -32,16 +36,22 @@ let state: State = {
     readFileSync("../test-world/main.json", { encoding: "utf-8" }),
   ),
 };
+const undoneUndoKeys = new Set<string>();
+const undoPoints = new Map<string, UndoPoint>();
 
-function pushToLog(action: Action): LogEntry {
+function pushToLog(action: Action, undoKey: string | undefined): LogEntry {
   const nextState = reducer(state, action); // test if the reducer throws when the action is applied
   const newEntry: LogEntry = { id: log.length + 1, action };
   log.push(newEntry);
+  if (undoKey && !undoPoints.has(undoKey)) {
+    undoPoints.set(undoKey, {
+      firstEntryId: newEntry.id,
+      stateBeforeEntry: state,
+    });
+  }
   state = nextState;
   return newEntry;
 }
-
-FAKE_ACTIONS.forEach((a) => pushToLog(a));
 
 const wss = new WebSocket.Server({ noServer: true });
 
@@ -61,7 +71,7 @@ wss.on("connection", (ws) => {
   const userId = genId();
   sendToOthers({
     type: MessageType.LogEntryServer,
-    entry: pushToLog({ type: ActionType.AddUser, userId }),
+    entry: pushToLog({ type: ActionType.AddUser, userId }, undefined),
   });
 
   sendToSelf({
@@ -73,7 +83,7 @@ wss.on("connection", (ws) => {
   ws.on("close", () => {
     sendToOthers({
       type: MessageType.LogEntryServer,
-      entry: pushToLog({ type: ActionType.RemoveUser, userId }),
+      entry: pushToLog({ type: ActionType.RemoveUser, userId }, undefined),
     });
   });
 
@@ -84,7 +94,7 @@ wss.on("connection", (ws) => {
       case MessageType.SubmitEntryClient: {
         let newEntry: LogEntry;
         try {
-          newEntry = pushToLog(msg.entry.action);
+          newEntry = pushToLog(msg.entry.action, msg.entry.undoKey);
         } catch (err) {
           sendToSelf({
             type: MessageType.RejectEntryServer,
