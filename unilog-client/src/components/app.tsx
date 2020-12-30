@@ -41,18 +41,6 @@ import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
 
-export function getIndexInLayerFromTileCoord(
-  world: ITilemap,
-  layerId: number,
-  c: Coordinates,
-) {
-  const layer = getLayer(world, layerId);
-  if (!isLayerRegular(layer)) {
-    throw new Error(`layer ${layerId} is not an ITilelayer`);
-  }
-  return layer.width! * (c.y - layer.y) + (c.x - layer.x);
-}
-
 const serverOrigin =
   process.env.NODE_ENV === "development"
     ? `${window.location.hostname}:8088`
@@ -309,6 +297,7 @@ export const AppComponent: React.FC = () => {
 
             <Drawer
               anchor="right"
+              variant="permanent"
               PaperProps={{
                 style: {
                   width: menuWidth,

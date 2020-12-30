@@ -1,6 +1,6 @@
 import assert from "assert";
 import { ILayer, ITilelayer, ITilemap, ITileset } from "gl-tiled";
-import { Cursor, Rectangle } from ".";
+import { Coordinates, Cursor, Rectangle } from ".";
 import * as R from "ramda";
 import { tileSize } from "./constants";
 
@@ -28,6 +28,18 @@ export function createLayer(
     height,
     id,
   };
+}
+
+export function getIndexInLayerFromTileCoord(
+  world: ITilemap,
+  layerId: number,
+  c: Coordinates,
+) {
+  const layer = getLayer(world, layerId);
+  if (!isLayerRegular(layer)) {
+    throw new Error(`layer ${layerId} is not an ITilelayer`);
+  }
+  return layer.width! * (c.y - layer.y) + (c.x - layer.x);
 }
 
 export function createTilemapFromLayers(
