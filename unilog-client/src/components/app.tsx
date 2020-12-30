@@ -363,14 +363,9 @@ export const AppComponent: React.FC = () => {
                 }}
                 onPointerUp={(c, ev) => {
                   pointerIsDownRef.current = false;
-                  if (ev.button === 1) {
-                    ev.preventDefault();
+                  panStartRef.current = undefined;
 
-                    panStartRef.current = undefined;
-                  } else if (
-                    ev.button === 2 &&
-                    editingMode === EditingMode.Clone
-                  ) {
+                  if (ev.button === 2 && editingMode === EditingMode.Clone) {
                     ev.preventDefault();
 
                     handleEndSelect(setSelection);
