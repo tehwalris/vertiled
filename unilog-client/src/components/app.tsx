@@ -51,7 +51,9 @@ const serverOrigin =
   process.env.NODE_ENV === "development"
     ? `${window.location.hostname}:8088`
     : window.location.host;
-const wsServerURL = `ws://${serverOrigin}`;
+const wsServerURL = `${
+  window.location.protocol === "https:" ? "wss" : "ws"
+}://${serverOrigin}`;
 const httpServerURL = `//${serverOrigin}`;
 const imageStoreURL = `//${serverOrigin}/world`;
 

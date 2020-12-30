@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:15-alpine3.12
 
 WORKDIR /usr/src/app
 
@@ -7,7 +7,6 @@ COPY gl-tiled/package.json ./gl-tiled/
 COPY unilog-client/package.json ./unilog-client/
 COPY unilog-server/package.json ./unilog-server/
 COPY unilog-shared/package.json ./unilog-shared/
-
 
 RUN yarn 
 
