@@ -256,6 +256,12 @@ export const AppComponent: React.FC = () => {
 
   const pointerIsDownRef = useRef(false);
 
+  const panStartRef = useRef<{
+    down: Coordinates;
+    originalOffset: Coordinates;
+  }>();
+  const [panOffset, setPanOffset] = useState<Coordinates>({ x: 0, y: 0 });
+
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root}>
@@ -305,11 +311,21 @@ export const AppComponent: React.FC = () => {
                 tilemap={worldForGlTiled}
                 width={canvasWidth}
                 height={windowSize.height - 64}
-                offset={{ x: 0, y: 0 }}
+                offset={panOffset}
                 tileSize={tileSize}
-                onPointerDown={(c, ev) => {
+                onPointerDown={(c, ev, nonOffsetCoordinates) => {
                   pointerIsDownRef.current = true;
-                  if (ev.button === 0 && editingMode === EditingMode.Clone) {
+                  if (ev.button === 1) {
+                    ev.preventDefault();
+
+                    panStartRef.current = {
+                      down: nonOffsetCoordinates,
+                      originalOffset: panOffset,
+                    };
+                  } else if (
+                    ev.button === 0 &&
+                    editingMode === EditingMode.Clone
+                  ) {
                     ev.preventDefault();
 
                     const cursor = myState?.cursor;
@@ -332,7 +348,14 @@ export const AppComponent: React.FC = () => {
                 }}
                 onPointerUp={(c, ev) => {
                   pointerIsDownRef.current = false;
-                  if (ev.button === 2 && editingMode === EditingMode.Clone) {
+                  if (ev.button === 1) {
+                    ev.preventDefault();
+
+                    panStartRef.current = undefined;
+                  } else if (
+                    ev.button === 2 &&
+                    editingMode === EditingMode.Clone
+                  ) {
                     ev.preventDefault();
 
                     handleEndSelect(setSelection);
@@ -353,12 +376,23 @@ export const AppComponent: React.FC = () => {
                     }
                   }
                 }}
-                onPointerMove={(c, ev) => {
+                onPointerMove={(c, ev, nonOffsetCoordinates) => {
                   if (editingMode === EditingMode.Clone) {
                     handleMoveSelect(c, myState?.selection, setSelection);
 
                     const oldCursor = myState?.cursor;
-                    if (oldCursor) {
+                    if (panStartRef.current) {
+                      setPanOffset({
+                        x:
+                          panStartRef.current.originalOffset.x +
+                          panStartRef.current.down.x -
+                          nonOffsetCoordinates.x,
+                        y:
+                          panStartRef.current.originalOffset.y +
+                          panStartRef.current.down.y -
+                          nonOffsetCoordinates.y,
+                      });
+                    } else if (oldCursor) {
                       const newFrameStart: Coordinates = {
                         x: c.x - (oldCursor.initialFrame.width - 1),
                         y: c.y - (oldCursor.initialFrame.height - 1),

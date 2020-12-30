@@ -5,12 +5,12 @@ import { isLayerRegular } from "unilog-shared";
 import { neutralWorldColor } from "../consts";
 import { ImageStore } from "../image-store";
 import { useShallowMemo } from "../use-shallow-memo";
-import { MapDisplay } from "./map-display";
+import { MapDisplay, PointerEventHandler } from "./map-display";
 
 interface Props {
-  onPointerDown: (coordinates: Coordinates, ev: React.PointerEvent) => void;
-  onPointerMove: (coordinates: Coordinates, ev: React.PointerEvent) => void;
-  onPointerUp: (coordinates: Coordinates, ev: React.PointerEvent) => void;
+  onPointerDown: PointerEventHandler;
+  onPointerUp: PointerEventHandler;
+  onPointerMove: PointerEventHandler;
   imageStore: ImageStore;
   width: number;
   height: number;
