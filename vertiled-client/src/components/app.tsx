@@ -469,6 +469,7 @@ export const AppComponent: React.FC = () => {
                   ) {
                     ev.preventDefault();
 
+                    startUndoGroup();
                     const cursor = myState?.cursor;
                     const defaultLayerId = R.last(selectedLayerIds);
                     if (cursor && defaultLayerId !== undefined) {
@@ -511,7 +512,17 @@ export const AppComponent: React.FC = () => {
                     return;
                   }
 
-                  if (editingMode === EditingMode.Clone) {
+                  if (
+                    editingMode === EditingMode.Clone &&
+                    pointerDownRef.current.button === 0
+                  ) {
+                    ev.preventDefault();
+
+                    endUndoGroup();
+                  } else if (
+                    editingMode === EditingMode.Clone &&
+                    pointerDownRef.current.button === 2
+                  ) {
                     ev.preventDefault();
 
                     handleEndSelect(setSelection);
