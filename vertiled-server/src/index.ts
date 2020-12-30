@@ -129,23 +129,21 @@ wss.on("connection", (ws) => {
 
         undoneUndoKeys.add(msg.undoKey);
 
-        const seenUndoKeysDuringReduce = new Set();
         state = undoPoint.stateBeforeEntry;
         for (let i = undoPoint.firstEntryId - 1; i < log.length; i++) {
           const logEntry = log[i];
 
-          if (
-            logEntry.undoKey &&
-            !seenUndoKeysDuringReduce.has(logEntry.undoKey)
-          ) {
+          if (logEntry.undoKey) {
             const oldUndoPoint = undoPoints.get(logEntry.undoKey);
             if (!oldUndoPoint) {
               throw new Error("expected undo point to exist");
             }
-            undoPoints.set(logEntry.undoKey, {
-              ...oldUndoPoint,
-              stateBeforeEntry: state,
-            });
+            if (oldUndoPoint.firstEntryId === logEntry.id) {
+              undoPoints.set(logEntry.undoKey, {
+                ...oldUndoPoint,
+                stateBeforeEntry: state,
+              });
+            }
           }
 
           if (logEntry.undoKey && undoneUndoKeys.has(logEntry.undoKey)) {
