@@ -1,6 +1,7 @@
-import { GLTilemap, ILayer, ITilemap } from "gl-tiled";
+import { GLTilemap, ILayer, ITilemap, TGLLayer } from "gl-tiled";
 import React, { useEffect, useMemo } from "react";
 import { Coordinates } from "unilog-shared";
+import { isLayerRegular } from "unilog-shared";
 import { neutralWorldColor } from "../consts";
 import { ImageStore } from "../image-store";
 import { useShallowMemo } from "../use-shallow-memo";
@@ -45,14 +46,38 @@ export const TilemapDisplay: React.FC<Props> = ({
   }, [worldForGlTiledWithoutLayers, imageStore.assetCache]);
 
   useEffect(() => {
-    for (const layer of glTilemap.desc.layers) {
+    const newLayers: ILayer[] = tilemap.layers as any;
+    const addedLayers = newLayers.filter(
+      (newLayer) => !glTilemap.desc.layers.includes(newLayer),
+    );
+    const removedLayers = glTilemap.desc.layers.filter(
+      (oldLayer) => !newLayers.includes(oldLayer),
+    );
+
+    for (const layer of removedLayers) {
       glTilemap.destroyLayerFromDesc(layer);
     }
-    const newLayers = (tilemap.layers as any) as ILayer[]; // TODO avoid cast
-    for (const layer of newLayers) {
+    for (const layer of addedLayers) {
       glTilemap.createLayerFromDesc(layer);
     }
+
     glTilemap.desc.layers = [...newLayers];
+
+    // HACK reorder the (private) layers to match the order in our world
+    const glTilemapPrivate = (glTilemap as any) as {
+      _layers: TGLLayer[];
+    };
+    glTilemapPrivate._layers = newLayers
+      .filter((desc) => isLayerRegular(desc))
+      .map((desc) => {
+        const glLayer = glTilemapPrivate._layers.find(
+          (glLayer) => glLayer.desc === desc,
+        );
+        if (!glLayer) {
+          throw new Error("expected private layer to exist");
+        }
+        return glLayer;
+      });
 
     // IMPORTANT This is a setter that affects all currently added layers. If repeatTiles is true (default), all layers render incorrectly.
     glTilemap.repeatTiles = false;
