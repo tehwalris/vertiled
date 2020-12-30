@@ -6,6 +6,16 @@ Vertiled is a collaborative online editor for tile-based worlds that we ([Moritz
 
 You can try a [**demo instance here**](https://vertiled.do.walr.is/).
 
+## Controls
+
+There is a list of layers on the right side. **Only the selected layer is edited**. If nothing is happening, you probably have the wrong layer selected.
+
+The default tool is clone. Select an area by dragging with the right mouse button, move your mouse to position the selected tiles, then left click to place a copy.
+
+There is an erase tool. Switch to it using the button in the top right corner. Left click to erase.
+
+You can add totally new tiles using the tilesets in the right sidebar. Use the dropdown to choose a tileset. Select some tiles from the tileset preview area by dragging with the left mouse button. Now you can paste these tiles by clicking on the main map (just like when you clone tiles).
+
 ## Getting started
 
 ### Initial setup
