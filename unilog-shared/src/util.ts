@@ -202,16 +202,52 @@ export function mergeCursorOntoLayers(
   });
 }
 
+function makeCursorHighlightLayer(
+  cursor: Cursor,
+  highlightLayerId: number,
+  highlightGid: number,
+) {
+  const layer: ITilelayer & { data: number[] } = {
+    type: "tilelayer",
+    id: highlightLayerId,
+    name: "cursor-highlight",
+    width: cursor.frame.width,
+    height: cursor.frame.height,
+    x: 0,
+    y: 0,
+    offsetx: cursor.frame.x * tileSize,
+    offsety: cursor.frame.y * tileSize,
+    opacity: 1,
+    visible: true,
+    data: (new Uint32Array(
+      cursor.frame.height * cursor.frame.width,
+    ) as any) as number[], // HACK not actually a number[]
+  };
+
+  for (let x = 0; x < cursor.frame.width; x++) {
+    for (let y = 0; y < cursor.frame.height; y++) {
+      const i = x + y * cursor.frame.width;
+      if (cursor.contents.some((c) => c.data[i])) {
+        layer.data[i] = highlightGid;
+      }
+    }
+  }
+
+  return layer;
+}
+
 export function addCursorOnNewLayers(
   oldLayers: ILayer[],
   cursor: Cursor,
   defaultLayerId: number,
+  highlightGid: number,
 ): ILayer[] {
   const cursorDataByLayerId = new Map(
     cursor.contents.map((c) => [c.layerId ?? defaultLayerId, c.data]),
   );
+
   let nextLayerId = Math.max(...oldLayers.map((l) => l.id)) + 1;
-  return R.chain((oldLayer) => {
+  const newLayers = R.chain((oldLayer) => {
     const cursorData = cursorDataByLayerId.get(oldLayer.id);
     if (!cursorData) {
       return [oldLayer];
@@ -231,4 +267,15 @@ export function addCursorOnNewLayers(
     };
     return [oldLayer, cursorLayer];
   }, oldLayers);
+
+  const highlightLayer = makeCursorHighlightLayer(
+    cursor,
+    nextLayerId++,
+    highlightGid,
+  );
+  if (highlightLayer) {
+    newLayers.push(highlightLayer);
+  }
+
+  return newLayers;
 }

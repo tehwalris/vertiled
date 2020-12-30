@@ -91,6 +91,10 @@ const useStyles = makeStyles((theme) => ({
   },
   toolbar: theme.mixins.toolbar,
 }));
+enum EditingMode {
+  Clone = "Clone",
+  Erase = "Erase",
+}
 
 export const AppComponent: React.FC = () => {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
@@ -117,6 +121,8 @@ export const AppComponent: React.FC = () => {
 
   const [state, userId, runAction] = useUnilog(wsServerURL);
   const myState = state.users.find((u) => u.id === userId);
+
+  const [editingMode, setEditingMode] = useState(EditingMode.Clone);
 
   const [selectedTileSet, setSelectedTileSet] = useState<number>(0);
 
@@ -184,20 +190,21 @@ export const AppComponent: React.FC = () => {
     worldForGlTiled.layers.push(selectionLayer);
   }
   if (defaultLayerId) {
-    const addCursor = (cursor: Cursor) => {
+    const addCursor = (cursor: Cursor, highlightGid: number) => {
       worldForGlTiled.layers = addCursorOnNewLayers(
         worldForGlTiled.layers,
         cursor,
         defaultLayerId,
+        highlightGid,
       );
     };
     for (const user of state.users) {
       if (user.id !== userId && user.cursor) {
-        addCursor(user.cursor);
+        addCursor(user.cursor, selectionTilesetInfo.othersSelectionTileId);
       }
     }
     if (myState?.cursor) {
-      addCursor(myState.cursor);
+      addCursor(myState.cursor, selectionTilesetInfo.mySelectionTileId);
     }
   }
   worldForGlTiled.layers = worldForGlTiled.layers.filter(
@@ -273,64 +280,88 @@ export const AppComponent: React.FC = () => {
                 offset={{ x: 0, y: 0 }}
                 tileSize={tileSize}
                 onPointerDown={(c, ev) => {
-                  if (ev.button === 0) {
-                    ev.preventDefault();
+                  switch (editingMode) {
+                    case EditingMode.Clone: {
+                      if (ev.button === 0) {
+                        ev.preventDefault();
 
-                    const cursor = myState?.cursor;
-                    const defaultLayerId = R.last(selectedLayerIds);
-                    if (cursor && defaultLayerId !== undefined) {
-                      runAction((userId) => ({
-                        type: ActionType.PasteFromCursor,
-                        userId,
-                        defaultLayerId,
-                      }));
+                        const cursor = myState?.cursor;
+                        const defaultLayerId = R.last(selectedLayerIds);
+                        if (cursor && defaultLayerId !== undefined) {
+                          runAction((userId) => ({
+                            type: ActionType.PasteFromCursor,
+                            userId,
+                            defaultLayerId,
+                          }));
+                        }
+                      } else if (ev.button === 2) {
+                        ev.preventDefault();
+
+                        handleStartSelect(c, setSelection);
+                      }
+                      break;
                     }
-                  } else if (ev.button === 2) {
-                    ev.preventDefault();
-
-                    handleStartSelect(c, setSelection);
+                    case EditingMode.Erase: {
+                      break;
+                    }
                   }
                 }}
                 onPointerUp={(c, ev) => {
-                  if (ev.button === 2) {
-                    ev.preventDefault();
+                  switch (editingMode) {
+                    case EditingMode.Clone: {
+                      if (ev.button === 2) {
+                        ev.preventDefault();
 
-                    handleEndSelect(setSelection);
+                        handleEndSelect(setSelection);
 
-                    const selection = myState?.selection;
-                    if (
-                      selection &&
-                      selection.width >= 1 &&
-                      selection.height >= 1
-                    ) {
-                      const cursor = extractCursor(state.world, selection);
-                      cursor.contents = cursor.contents.filter(
-                        (c) =>
-                          c.layerId === undefined ||
-                          selectedLayerIds.includes(c.layerId),
-                      );
-                      setCursor(cursor);
+                        const selection = myState?.selection;
+                        if (
+                          selection &&
+                          selection.width >= 1 &&
+                          selection.height >= 1
+                        ) {
+                          const cursor = extractCursor(state.world, selection);
+                          cursor.contents = cursor.contents.filter(
+                            (c) =>
+                              c.layerId === undefined ||
+                              selectedLayerIds.includes(c.layerId),
+                          );
+                          setCursor(cursor);
+                        }
+                      }
+                      break;
+                    }
+                    case EditingMode.Erase: {
+                      break;
                     }
                   }
                 }}
                 onPointerMove={(c, ev) => {
-                  handleMoveSelect(c, myState?.selection, setSelection);
+                  switch (editingMode) {
+                    case EditingMode.Clone: {
+                      handleMoveSelect(c, myState?.selection, setSelection);
 
-                  const oldCursor = myState?.cursor;
-                  if (oldCursor) {
-                    const newFrameStart: Coordinates = {
-                      x: c.x - (oldCursor.initialFrame.width - 1),
-                      y: c.y - (oldCursor.initialFrame.height - 1),
-                    };
-                    if (
-                      newFrameStart.x !== oldCursor.frame.x ||
-                      newFrameStart.y !== oldCursor.frame.y
-                    ) {
-                      runAction((userId) => ({
-                        type: ActionType.SetCursorOffset,
-                        userId,
-                        offset: newFrameStart,
-                      }));
+                      const oldCursor = myState?.cursor;
+                      if (oldCursor) {
+                        const newFrameStart: Coordinates = {
+                          x: c.x - (oldCursor.initialFrame.width - 1),
+                          y: c.y - (oldCursor.initialFrame.height - 1),
+                        };
+                        if (
+                          newFrameStart.x !== oldCursor.frame.x ||
+                          newFrameStart.y !== oldCursor.frame.y
+                        ) {
+                          runAction((userId) => ({
+                            type: ActionType.SetCursorOffset,
+                            userId,
+                            offset: newFrameStart,
+                          }));
+                        }
+                      }
+                      break;
+                    }
+                    case EditingMode.Erase: {
+                      break;
                     }
                   }
                 }}

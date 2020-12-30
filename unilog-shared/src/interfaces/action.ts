@@ -24,7 +24,7 @@ export enum ActionType {
 export interface SetTileAction {
   type: ActionType.SetTile;
   id: string;
-  layerId: number;
+  layerIds: number[];
   index: number;
   tileId: number;
 }
