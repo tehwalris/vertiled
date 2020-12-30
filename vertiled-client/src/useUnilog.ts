@@ -1,6 +1,7 @@
 import * as R from "ramda";
 import { useCallback, useRef, useState } from "react";
 import { unstable_batchedUpdates } from "react-dom";
+import { v4 as genId } from "uuid";
 import {
   Action,
   ClientMessage,
@@ -13,8 +14,6 @@ import {
   unreachable,
 } from "vertiled-shared";
 import { useWebSocket } from "./use-web-socket";
-import { v4 as genId } from "uuid";
-import { Server } from "tls";
 
 function reduceLog(
   logBaseState: State,
