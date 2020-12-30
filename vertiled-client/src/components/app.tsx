@@ -282,7 +282,7 @@ export const AppComponent: React.FC = () => {
     [setCursor],
   );
 
-  const pointerIsDownRef = useRef(false);
+  const pointerDownRef = useRef<{ button: number }>();
 
   useEffect(() => {
     if (!userId) return;
@@ -452,10 +452,9 @@ export const AppComponent: React.FC = () => {
                 tileSize={tileSize}
                 onWheel={(e) => {}}
                 onPointerDown={(c, ev, nonOffsetCoordinates) => {
-                  if (pointerIsDownRef.current) {
+                  if (pointerDownRef.current) {
                     return;
                   }
-                  pointerIsDownRef.current = true;
 
                   if (ev.button === 1) {
                     ev.preventDefault();
@@ -484,9 +483,9 @@ export const AppComponent: React.FC = () => {
 
                     startUndoGroup();
                     runAction(() => ({
-                      type: ActionType.SetTile,
+                      type: ActionType.FillRectangle,
                       layerIds: selectedLayerIds,
-                      coordinates: c,
+                      rectangle: { x: c.x, y: c.y, width: 1, height: 1 },
                       tileId: 0,
                     }));
                   } else if (
@@ -496,14 +495,21 @@ export const AppComponent: React.FC = () => {
                     ev.preventDefault();
 
                     handleStartSelect(c, setSelection);
+                  } else if (
+                    ev.button === 2 &&
+                    editingMode === EditingMode.Erase
+                  ) {
+                    ev.preventDefault();
+
+                    handleStartSelect(c, setSelection);
                   }
+
+                  pointerDownRef.current = { button: ev.button };
                 }}
                 onPointerUp={(c, ev) => {
-                  if (!pointerIsDownRef.current) {
+                  if (!pointerDownRef.current) {
                     return;
                   }
-                  pointerIsDownRef.current = false;
-                  panStartRef.current = undefined;
 
                   if (editingMode === EditingMode.Clone) {
                     ev.preventDefault();
@@ -524,9 +530,35 @@ export const AppComponent: React.FC = () => {
                       );
                       setCursor(cursor);
                     }
-                  } else if (editingMode === EditingMode.Erase) {
+                  } else if (
+                    editingMode === EditingMode.Erase &&
+                    pointerDownRef.current.button === 0
+                  ) {
+                    ev.preventDefault();
+
                     endUndoGroup();
+                  } else if (
+                    editingMode === EditingMode.Erase &&
+                    pointerDownRef.current.button === 2
+                  ) {
+                    ev.preventDefault();
+
+                    const rectangleToErase = myState?.selection;
+                    if (rectangleToErase) {
+                      startUndoGroup();
+                      runAction(() => ({
+                        type: ActionType.FillRectangle,
+                        layerIds: selectedLayerIds,
+                        rectangle: rectangleToErase,
+                        tileId: 0,
+                      }));
+                      endUndoGroup();
+                    }
+                    handleEndSelect(setSelection);
                   }
+
+                  pointerDownRef.current = undefined;
+                  panStartRef.current = undefined;
                 }}
                 onPointerMove={(c, ev, nonOffsetCoordinates) => {
                   if (panStartRef.current) {
@@ -558,7 +590,7 @@ export const AppComponent: React.FC = () => {
                           userId,
                           offset: newFrameStart,
                         }));
-                        if (pointerIsDownRef.current) {
+                        if (pointerDownRef.current) {
                           const defaultLayerId = R.last(selectedLayerIds);
                           if (defaultLayerId !== undefined) {
                             runAction((userId) => ({
@@ -571,14 +603,15 @@ export const AppComponent: React.FC = () => {
                       }
                     }
                   } else if (editingMode === EditingMode.Erase) {
-                    setSelection({ x: c.x, y: c.y, width: 1, height: 1 });
-                    if (pointerIsDownRef.current) {
+                    if (pointerDownRef.current?.button === 0) {
                       runAction(() => ({
-                        type: ActionType.SetTile,
+                        type: ActionType.FillRectangle,
                         layerIds: selectedLayerIds,
-                        coordinates: c,
+                        rectangle: { x: c.x, y: c.y, width: 1, height: 1 },
                         tileId: 0,
                       }));
+                    } else if (pointerDownRef.current?.button === 2) {
+                      handleMoveSelect(c, myState?.selection, setSelection);
                     }
                   }
                 }}
