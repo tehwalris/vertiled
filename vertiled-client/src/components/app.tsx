@@ -36,6 +36,8 @@ import {
   extractCursor,
   Rectangle,
   tileSize,
+  mirrorCursor,
+  MirrorDirection,
 } from "vertiled-shared";
 import { primaryColor, secondaryColor } from "../consts";
 import { useImageStore } from "../image-store";
@@ -49,7 +51,12 @@ import { useWindowSize } from "../useWindowSize";
 import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
-import { BiEraser, BiEditAlt } from "react-icons/bi";
+import {
+  BiEraser,
+  BiEditAlt,
+  BiRightArrowCircle,
+  BiDownArrowCircle,
+} from "react-icons/bi";
 
 const serverOrigin =
   process.env.NODE_ENV === "development"
@@ -93,7 +100,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   button: {
-    height: theme.spacing(5),
+    padding: 11,
   },
   content: {
     flexGrow: 1,
@@ -334,11 +341,46 @@ export const AppComponent: React.FC = () => {
             <Divider style={{ marginLeft: "auto" }}></Divider>
             <Box mr={1}>
               <ButtonGroup>
-                <Button value="Clone" className={classes.button}>
-                  <BiEditAlt />
+                <Button
+                  className={classes.button}
+                  onClick={() => {
+                    if (!userId) return;
+                    const user = state.users.find((u) => u.id === userId);
+                    const cursor = user?.cursor;
+                    if (!cursor) return;
+                    runAction((userId) => {
+                      const newC = mirrorCursor(
+                        cursor,
+                        MirrorDirection.Horizontal,
+                      );
+                      console.log("newC", newC);
+                      return {
+                        type: ActionType.SetCursor,
+                        userId,
+                        cursor: newC,
+                      };
+                    });
+                  }}
+                >
+                  <BiRightArrowCircle />
                 </Button>
-                <Button value="Erase">
-                  <BiEraser />
+                <Button
+                  className={classes.button}
+                  onClick={() => {
+                    if (!userId) return;
+                    const user = state.users.find((u) => u.id === userId);
+                    const cursor = user?.cursor;
+                    if (!cursor) return;
+                    runAction((userId) => {
+                      return {
+                        type: ActionType.SetCursor,
+                        userId,
+                        cursor: mirrorCursor(cursor, MirrorDirection.Vertical),
+                      };
+                    });
+                  }}
+                >
+                  <BiDownArrowCircle />
                 </Button>
               </ButtonGroup>
             </Box>

@@ -16,9 +16,14 @@ export interface State {
   users: User[];
 }
 
+export interface CursorContent {
+  layerId: number | undefined;
+  data: number[];
+}
+
 export interface Cursor {
   frame: Rectangle;
-  contents: { layerId: number | undefined; data: number[] }[];
+  contents: CursorContent[];
   initialFrame: Rectangle;
 }
 
