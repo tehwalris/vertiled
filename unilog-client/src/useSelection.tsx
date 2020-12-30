@@ -57,13 +57,14 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
         return layers;
       }
 
-      if (!isLayerRegular(referenceLayer)) {
+      if (
+        !isLayerRegular(referenceLayer) ||
+        typeof referenceLayer.data === "string"
+      ) {
         throw new Error(`layer ${referenceLayer} is not an ITilelayer`);
       }
 
-      const data = new Array(
-        referenceLayer.height! * referenceLayer.width!,
-      ).fill(0);
+      const data = referenceLayer.data.map(() => 0);
 
       const allSelections: [Rectangle, boolean][] = [
         ...otherSelections.map((s) => [s, false] as [Rectangle, boolean]),
@@ -90,7 +91,7 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
                 y >= 0 &&
                 y < referenceLayer.height
               ) {
-                data[x + y * referenceLayer.width!] = tile;
+                data[x + y * referenceLayer.width] = tile;
               }
             }
           }
