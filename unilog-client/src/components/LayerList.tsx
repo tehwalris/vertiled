@@ -59,16 +59,19 @@ export function LayerList({
             dense
             selected={selectedLayerIds.includes(layer.id)}
             key={layer.id}
-            onClick={(ev) =>
-              setSelectedLayerIds(
-                ev.ctrlKey || ev.metaKey
-                  ? [
-                      ...selectedLayerIds.filter((id) => id !== layer.id),
-                      layer.id,
-                    ]
-                  : [layer.id],
-              )
-            }
+            onClick={(ev) => {
+              if (ev.ctrlKey || ev.metaKey) {
+                const newSelectedLayerIds = selectedLayerIds.filter(
+                  (id) => id !== layer.id,
+                );
+                if (!selectedLayerIds.includes(layer.id)) {
+                  newSelectedLayerIds.push(layer.id);
+                }
+                setSelectedLayerIds(newSelectedLayerIds);
+              } else {
+                setSelectedLayerIds([layer.id]);
+              }
+            }}
           >
             <ListItemText
               primary={layer.name + (isLayerRegular(layer) ? "" : " (special)")}
