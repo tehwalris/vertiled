@@ -22,19 +22,19 @@ export function addSelectionToTilesets(
   );
   const selectionTilesetInfo: SelectionTilesetInfo = {
     mySelectionTileId: uiFirstGid,
-    othersSelectionTileId: uiFirstGid + 1,
+    othersSelectionTileId: uiFirstGid + 9,
   };
   imageStore.getImage(uiTilesImageUrl);
   tilesets.push({
     columns: 9,
     firstgid: uiFirstGid,
     image: "ui-tiles.png",
-    imageheight: 32,
+    imageheight: 64,
     imagewidth: 288,
     margin: 0,
     name: "ui-tiles",
     spacing: 0,
-    tilecount: 9,
+    tilecount: 18,
     tileheight: 32,
     tilewidth: 32,
   });
