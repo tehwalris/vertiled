@@ -26,6 +26,7 @@ import {
   Rectangle,
   reducer,
   ServerMessage,
+  State,
   tileSize,
   unreachable,
 } from "unilog-shared";
@@ -91,9 +92,9 @@ export const AppComponent: React.FC = () => {
   function addToRemoteLog(entry: LogEntry) {
     setRemoteLog((old) => {
       if (old.length && old[old.length - 1].id >= entry.id) {
-        throw new Error(
-          "got message that is older than the newest existing one",
-        );
+        console.error("got message that is older than the newest existing one");
+        // HACK The server was probably restarted, so reload that everyone is in sync.
+        window.location.reload();
       }
       return [...old, entry];
     });
@@ -174,9 +175,13 @@ export const AppComponent: React.FC = () => {
     addToLocalLog(localEntry);
   };
 
-  const state = useMemo(
-    () =>
-      [...remoteLog, ...localLog].reduce((a, c, i) => {
+  const cachedRemoteStateRef = useRef<{
+    lastEntryId: number;
+    reducedState: State;
+  }>();
+  const state = useMemo(() => {
+    function reduceLog(intialState: State, log: LogEntry[]) {
+      return log.reduce((a, c, i) => {
         try {
           return reducer(a, c.action);
         } catch (err) {
@@ -188,9 +193,24 @@ export const AppComponent: React.FC = () => {
           );
           return a;
         }
-      }, serverState),
-    [serverState, remoteLog, localLog],
-  );
+      }, intialState);
+    }
+
+    const reducedStateWithRemoteLog =
+      cachedRemoteStateRef.current &&
+      cachedRemoteStateRef.current?.lastEntryId === R.last(remoteLog)?.id
+        ? cachedRemoteStateRef.current.reducedState
+        : reduceLog(serverState, remoteLog);
+
+    if (remoteLog.length) {
+      cachedRemoteStateRef.current = {
+        lastEntryId: R.last(remoteLog)!.id,
+        reducedState: reducedStateWithRemoteLog,
+      };
+    }
+
+    return reduceLog(reducedStateWithRemoteLog, localLog);
+  }, [serverState, remoteLog, localLog]);
 
   const imageStore = useImageStore(httpServerURL);
   useEffect(() => {
