@@ -6,8 +6,9 @@ import {
   ThemeProvider,
   useMediaQuery,
 } from "@material-ui/core";
-import { ITilelayer, ITilemap } from "gl-tiled";
-import { produce, current as immerCurrent } from "immer";
+import { ITilemap } from "gl-tiled";
+import { current as immerCurrent, produce } from "immer";
+import downloadFile from "js-file-download";
 import * as R from "ramda";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { unstable_batchedUpdates } from "react-dom";
@@ -43,7 +44,6 @@ import { useWindowSize } from "../useWindowSize";
 import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
-import downloadFile from "js-file-download";
 
 export function getIndexInLayerFromTileCoord(
   world: ITilemap,
@@ -256,71 +256,55 @@ export const AppComponent: React.FC = () => {
   }, [selectedLayerIds, state.world.layers]);
   const defaultLayerId = R.last(selectedLayerIds);
 
-  const worldForGlTiled = useMemo(
-    () =>
-      produce(state.world, (world) => {
-        addSelectionToLayers(
-          world.layers,
-          myState?.selection,
-          state.users
-            .map((u) => u.selection)
-            .filter((v) => v)
-            .map((v) => v!),
-        );
-        for (const tileset of world.tilesets) {
-          if (!tileset.image) {
-            console.warn(
-              `Tileset ${tileset.name} did not have an image property`,
-            );
-            continue;
-          }
-          if (!imageStore.assetCache[tileset.image]) {
-            tileset.image = ""; // HACK don't load anything if the image is not in the cache
-          }
-        }
+  const worldForGlTiled = produce(state.world, (world) => {
+    addSelectionToLayers(
+      world.layers,
+      myState?.selection,
+      state.users
+        .map((u) => u.selection)
+        .filter((v) => v)
+        .map((v) => v!),
+    );
+    for (const tileset of world.tilesets) {
+      if (!tileset.image) {
+        console.warn(`Tileset ${tileset.name} did not have an image property`);
+        continue;
+      }
+      if (!imageStore.assetCache[tileset.image]) {
+        tileset.image = ""; // HACK don't load anything if the image is not in the cache
+      }
+    }
 
-        let nextLayerId = Math.max(...world.layers.map((l) => l.id)) + 1;
+    world.layers = immerCurrent(world.layers);
 
-        world.layers = immerCurrent(world.layers);
+    // TODO: possibly move out of here
+    function addCursorToWorld(cursor: Cursor) {
+      if (!defaultLayerId) {
+        return;
+      }
 
-        // TODO: possibly move out of here
-        function addCursorToWorld(cursor: Cursor) {
-          if (!defaultLayerId) {
-            return;
-          }
+      world.layers = mergeCursorOntoLayers(
+        world.layers,
+        cursor,
+        defaultLayerId,
+      );
+    }
 
-          world.layers = mergeCursorOntoLayers(
-            world.layers,
-            cursor,
-            defaultLayerId,
-          );
-        }
+    for (const user of state.users) {
+      if (user.id !== userId && user.cursor) {
+        addCursorToWorld(user.cursor);
+      }
+    }
 
-        for (const user of state.users) {
-          if (user.id !== userId && user.cursor) {
-            addCursorToWorld(user.cursor);
-          }
-        }
+    if (myState?.cursor) {
+      addCursorToWorld(myState.cursor);
+    }
 
-        if (myState?.cursor) {
-          addCursorToWorld(myState.cursor);
-        }
+    // TODO: render own selection above other people's cursors
 
-        // TODO: render own selection above other people's cursors
-
-        world.layers = world.layers.filter((layer) => layer.visible);
-        world.tilesets = tilesetsForGlTiled;
-      }),
-    [
-      state.world,
-      tilesetsForGlTiled,
-      imageStore.assetCache,
-      state.users,
-      userId,
-      addSelectionToLayers,
-      defaultLayerId,
-    ],
-  );
+    world.layers = world.layers.filter((layer) => layer.visible);
+    world.tilesets = tilesetsForGlTiled;
+  });
 
   const windowSize = useWindowSize();
 
@@ -405,8 +389,8 @@ export const AppComponent: React.FC = () => {
                     y: c.y - (oldCursor.initialFrame.height - 1),
                   };
                   if (
-                    newFrameStart.x != oldCursor.frame.x ||
-                    newFrameStart.y != oldCursor.frame.y
+                    newFrameStart.x !== oldCursor.frame.x ||
+                    newFrameStart.y !== oldCursor.frame.y
                   ) {
                     runAction({
                       type: ActionType.SetCursorOffset,

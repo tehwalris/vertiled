@@ -61,7 +61,7 @@ export function TileSetList({
     );
     addSelectionToLayers(tilemap.layers, selection, []);
     return tilemap;
-  }, [selectedTileSet, tilesetsForGlTiled, selectionTilesetInfo, selection]);
+  }, [selectedTileSet, tilesetsForGlTiled, selection, addSelectionToLayers]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>

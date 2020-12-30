@@ -1,19 +1,18 @@
-import { ILayer } from "gl-tiled";
-import React from "react";
-import { FiEye, FiEyeOff } from "react-icons/fi";
 import {
+  IconButton,
   List,
   ListItem as UnstyledListItem,
-  ListItemText,
   ListItemSecondaryAction,
-  IconButton,
+  ListItemText,
   ListSubheader,
-  makeStyles,
   withStyles,
 } from "@material-ui/core";
-import { primaryColor } from "../consts";
+import { ILayer } from "gl-tiled";
 import * as R from "ramda";
+import React from "react";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { isLayerRegular } from "unilog-shared";
+import { primaryColor } from "../consts";
 
 interface Props {
   layers: ILayer[];
@@ -21,14 +20,6 @@ interface Props {
   setSelectedLayerIds: (selectedLayerIds: number[]) => void;
   onToggleVisibility: (layerId: number, v: boolean) => void;
 }
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: "100%",
-    maxWidth: 360,
-    backgroundColor: theme.palette.background.paper,
-  },
-}));
 
 const ListItem = withStyles({
   root: {
