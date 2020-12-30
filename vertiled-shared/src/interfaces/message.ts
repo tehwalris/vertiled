@@ -3,6 +3,7 @@ import { Action } from "./action";
 
 export interface LogEntry {
   id: number;
+  undoKey?: string;
   action: Action;
 }
 
@@ -11,14 +12,17 @@ export enum MessageType {
   RemapEntryServer = "RemapEntryServer",
   RejectEntryServer = "RejectEntryServer",
   InitialServer = "InitialServer",
+  ReportUndoServer = "ReportUndoServer",
   SubmitEntryClient = "SubmitEntryClient",
+  RequestUndoClient = "RequestUndoClient",
 }
 
 export type ServerMessage =
   | InitialServerMessage
   | LogEntryServerMessage
   | RemapEntryServerMessage
-  | RejectEntryServerMessage;
+  | RejectEntryServerMessage
+  | ReportUndoServerMessage;
 
 export interface InitialServerMessage {
   type: MessageType.InitialServer;
@@ -43,9 +47,21 @@ export interface RejectEntryServerMessage {
   error: string;
 }
 
-export type ClientMessage = SubmitEntryClientMessage;
+export interface ReportUndoServerMessage {
+  type: MessageType.ReportUndoServer;
+  undoKey: string;
+  finalEntryId: number;
+  finalState: State;
+}
+
+export type ClientMessage = SubmitEntryClientMessage | RequestUndoClientMessage;
 
 export interface SubmitEntryClientMessage {
   type: MessageType.SubmitEntryClient;
   entry: LogEntry;
+}
+
+export interface RequestUndoClientMessage {
+  type: MessageType.RequestUndoClient;
+  undoKey: string;
 }

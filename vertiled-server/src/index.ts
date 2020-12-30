@@ -10,13 +10,17 @@ import {
   State,
   unreachable,
 } from "vertiled-shared";
-import WebSocket from "ws";
+import WebSocket, { errorMonitor } from "ws";
 import express from "express";
 import { v4 as genId } from "uuid";
-
-import { FAKE_ACTIONS } from "./fake";
 import { readFileSync } from "fs";
 import cors from "cors";
+import * as R from "ramda";
+
+interface UndoPoint {
+  firstEntryId: number;
+  stateBeforeEntry: State;
+}
 
 const app = express();
 app.use(cors());
@@ -32,16 +36,22 @@ let state: State = {
     readFileSync("../test-world/main.json", { encoding: "utf-8" }),
   ),
 };
+const undoneUndoKeys = new Set<string>();
+const undoPoints = new Map<string, UndoPoint>();
 
-function pushToLog(action: Action): LogEntry {
+function pushToLog(action: Action, undoKey: string | undefined): LogEntry {
   const nextState = reducer(state, action); // test if the reducer throws when the action is applied
-  const newEntry: LogEntry = { id: log.length + 1, action };
+  const newEntry: LogEntry = { id: log.length + 1, action, undoKey };
   log.push(newEntry);
+  if (undoKey && !undoPoints.has(undoKey)) {
+    undoPoints.set(undoKey, {
+      firstEntryId: newEntry.id,
+      stateBeforeEntry: state,
+    });
+  }
   state = nextState;
   return newEntry;
 }
-
-FAKE_ACTIONS.forEach((a) => pushToLog(a));
 
 const wss = new WebSocket.Server({ noServer: true });
 
@@ -61,7 +71,7 @@ wss.on("connection", (ws) => {
   const userId = genId();
   sendToOthers({
     type: MessageType.LogEntryServer,
-    entry: pushToLog({ type: ActionType.AddUser, userId }),
+    entry: pushToLog({ type: ActionType.AddUser, userId }, undefined),
   });
 
   sendToSelf({
@@ -73,7 +83,7 @@ wss.on("connection", (ws) => {
   ws.on("close", () => {
     sendToOthers({
       type: MessageType.LogEntryServer,
-      entry: pushToLog({ type: ActionType.RemoveUser, userId }),
+      entry: pushToLog({ type: ActionType.RemoveUser, userId }, undefined),
     });
   });
 
@@ -84,7 +94,7 @@ wss.on("connection", (ws) => {
       case MessageType.SubmitEntryClient: {
         let newEntry: LogEntry;
         try {
-          newEntry = pushToLog(msg.entry.action);
+          newEntry = pushToLog(msg.entry.action, msg.entry.undoKey);
         } catch (err) {
           sendToSelf({
             type: MessageType.RejectEntryServer,
@@ -104,8 +114,69 @@ wss.on("connection", (ws) => {
         });
         break;
       }
+      case MessageType.RequestUndoClient: {
+        if (undoneUndoKeys.has(msg.undoKey)) {
+          console.warn(`${msg.undoKey} has already been undone`);
+          return;
+        }
+        const undoPoint = undoPoints.get(msg.undoKey);
+        if (!undoPoint) {
+          console.warn(
+            `${msg.undoKey} ocurred too long ago to be undone (or never ocurred)`,
+          );
+          return;
+        }
+
+        undoneUndoKeys.add(msg.undoKey);
+
+        state = undoPoint.stateBeforeEntry;
+        for (let i = undoPoint.firstEntryId - 1; i < log.length; i++) {
+          const logEntry = log[i];
+
+          if (logEntry.undoKey) {
+            const oldUndoPoint = undoPoints.get(logEntry.undoKey);
+            if (!oldUndoPoint) {
+              throw new Error("expected undo point to exist");
+            }
+            if (oldUndoPoint.firstEntryId === logEntry.id) {
+              undoPoints.set(logEntry.undoKey, {
+                ...oldUndoPoint,
+                stateBeforeEntry: state,
+              });
+            }
+          }
+
+          if (logEntry.undoKey && undoneUndoKeys.has(logEntry.undoKey)) {
+            continue;
+          }
+
+          try {
+            state = reducer(state, logEntry.action);
+          } catch (err) {
+            console.warn(
+              `action from entry ${logEntry.id} failed after undo: ${err}`,
+            );
+          }
+        }
+
+        const finalLogEntry = R.last(log);
+        if (!finalLogEntry) {
+          throw new Error("unexpected empty log");
+        }
+
+        const outMsg: ServerMessage = {
+          type: MessageType.ReportUndoServer,
+          undoKey: msg.undoKey,
+          finalEntryId: finalLogEntry.id,
+          finalState: state,
+        };
+        sendToSelf(outMsg);
+        sendToOthers(outMsg);
+
+        break;
+      }
       default:
-        unreachable(msg as never); // HACK: because this is not Union
+        unreachable(msg);
     }
   });
 });

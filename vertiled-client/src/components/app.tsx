@@ -144,7 +144,14 @@ export const AppComponent: React.FC = () => {
 
   const [isDrawerOpen, setDrawerOpen] = useState(true);
 
-  const [state, userId, runAction] = useUnilog(wsServerURL);
+  const {
+    state,
+    userId,
+    runAction,
+    startUndoGroup,
+    endUndoGroup,
+    tryUndo,
+  } = useUnilog(wsServerURL);
   const myState = state.users.find((u) => u.id === userId);
 
   const [editingMode, setEditingMode] = useState(EditingMode.Clone);
@@ -315,32 +322,28 @@ export const AppComponent: React.FC = () => {
         return;
       }
       e.stopPropagation();
-      if (e.ctrlKey) {
-        //zoom += e.deltaY;
+      if (wheelHandlerRef.current) {
+        wheelHandlerRef.current = {
+          x: wheelHandlerRef.current.x + e.deltaX,
+          y: wheelHandlerRef.current.y + e.deltaY,
+        };
       } else {
-        if (wheelHandlerRef.current) {
-          wheelHandlerRef.current = {
-            x: wheelHandlerRef.current.x + e.deltaX,
-            y: wheelHandlerRef.current.y + e.deltaY,
-          };
-        } else {
-          wheelHandlerRef.current = {
-            x: e.deltaX,
-            y: e.deltaY,
-          };
-          requestAnimationFrame(() => {
-            setPanOffset((old) => {
-              if (!wheelHandlerRef.current) {
-                throw new Error("wheelHandlerRef is not defined");
-              }
-              return {
-                x: old.x + (wheelHandlerRef.current.x * 2) / tileSize,
-                y: old.y + (wheelHandlerRef.current.y * 2) / tileSize,
-              };
-            });
-            wheelHandlerRef.current = undefined;
+        wheelHandlerRef.current = {
+          x: e.deltaX,
+          y: e.deltaY,
+        };
+        requestAnimationFrame(() => {
+          setPanOffset((old) => {
+            if (!wheelHandlerRef.current) {
+              throw new Error("wheelHandlerRef is not defined");
+            }
+            return {
+              x: old.x + (wheelHandlerRef.current.x * 2) / tileSize,
+              y: old.y + (wheelHandlerRef.current.y * 2) / tileSize,
+            };
           });
-        }
+          wheelHandlerRef.current = undefined;
+        });
       }
     };
     window.addEventListener("wheel", wheelHandler, { passive: true });
@@ -449,7 +452,11 @@ export const AppComponent: React.FC = () => {
                 tileSize={tileSize}
                 onWheel={(e) => {}}
                 onPointerDown={(c, ev, nonOffsetCoordinates) => {
+                  if (pointerIsDownRef.current) {
+                    return;
+                  }
                   pointerIsDownRef.current = true;
+
                   if (ev.button === 1) {
                     ev.preventDefault();
 
@@ -475,6 +482,7 @@ export const AppComponent: React.FC = () => {
                   } else if (ev.button === 0 && EditingMode.Erase) {
                     ev.preventDefault();
 
+                    startUndoGroup();
                     runAction(() => ({
                       type: ActionType.SetTile,
                       layerIds: selectedLayerIds,
@@ -491,10 +499,13 @@ export const AppComponent: React.FC = () => {
                   }
                 }}
                 onPointerUp={(c, ev) => {
+                  if (!pointerIsDownRef.current) {
+                    return;
+                  }
                   pointerIsDownRef.current = false;
                   panStartRef.current = undefined;
 
-                  if (ev.button === 2 && editingMode === EditingMode.Clone) {
+                  if (editingMode === EditingMode.Clone) {
                     ev.preventDefault();
 
                     handleEndSelect(setSelection);
@@ -513,6 +524,8 @@ export const AppComponent: React.FC = () => {
                       );
                       setCursor(cursor);
                     }
+                  } else if (editingMode === EditingMode.Erase) {
+                    endUndoGroup();
                   }
                 }}
                 onPointerMove={(c, ev, nonOffsetCoordinates) => {
@@ -611,6 +624,7 @@ export const AppComponent: React.FC = () => {
                 >
                   Download as JSON
                 </Button>
+                <Button onClick={tryUndo}>Undo</Button>
               </div>
             </Drawer>
           </div>

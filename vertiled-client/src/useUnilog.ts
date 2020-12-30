@@ -1,6 +1,7 @@
 import * as R from "ramda";
 import { useCallback, useRef, useState } from "react";
 import { unstable_batchedUpdates } from "react-dom";
+import { v4 as genId } from "uuid";
 import {
   Action,
   ClientMessage,
@@ -18,6 +19,7 @@ function reduceLog(
   logBaseState: State,
   remoteLog: LogEntry[],
   localLog: LogEntry[],
+  undoneUndoKeys: Set<string>,
   cachedRemoteStateRef: React.MutableRefObject<
     | {
         lastEntryId: number;
@@ -28,6 +30,9 @@ function reduceLog(
 ) {
   function _reduceLog(logBaseState: State, log: LogEntry[]) {
     return log.reduce((a, c, i) => {
+      if (c.undoKey && undoneUndoKeys.has(c.undoKey)) {
+        return a;
+      }
       try {
         return reducer(a, c.action);
       } catch (err) {
@@ -37,11 +42,16 @@ function reduceLog(
     }, logBaseState);
   }
 
-  const reducedStateWithRemoteLog =
+  let reducedStateWithRemoteLog: State;
+  if (
     cachedRemoteStateRef.current &&
     cachedRemoteStateRef.current?.lastEntryId === R.last(remoteLog)?.id
-      ? cachedRemoteStateRef.current.reducedState
-      : _reduceLog(logBaseState, remoteLog);
+  ) {
+    reducedStateWithRemoteLog = cachedRemoteStateRef.current.reducedState;
+  } else {
+    console.warn("using slow reduce path");
+    reducedStateWithRemoteLog = _reduceLog(logBaseState, remoteLog);
+  }
 
   if (remoteLog.length) {
     cachedRemoteStateRef.current = {
@@ -53,6 +63,10 @@ function reduceLog(
   return _reduceLog(reducedStateWithRemoteLog, localLog);
 }
 
+function sendToServer(ws: WebSocket, msg: ClientMessage) {
+  ws.send(JSON.stringify(msg));
+}
+
 export function useUnilog(wsServerURL: string) {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
   const [localLog, setLocalLog] = useState<LogEntry[]>([]);
@@ -60,6 +74,10 @@ export function useUnilog(wsServerURL: string) {
   const nextLocalId = useRef<number>(-1);
 
   const [logBaseState, setLogBaseState] = useState(initialState);
+
+  const undoGroupKey = useRef<string>();
+  const lastUndoGroupKeys = useRef<string[]>([]);
+  const undoneUndoKeys = useRef(new Set<string>());
 
   const [userId, setUserId] = useState<string>();
 
@@ -138,7 +156,13 @@ export function useUnilog(wsServerURL: string) {
         unstable_batchedUpdates(() => {
           removeFromLocalLog(msg.entryId);
           setCachedFullState(
-            reduceLog(logBaseState, remoteLog, localLog, cachedRemoteStateRef),
+            reduceLog(
+              logBaseState,
+              remoteLog,
+              localLog,
+              undoneUndoKeys.current,
+              cachedRemoteStateRef,
+            ),
           );
         });
         console.warn(
@@ -148,27 +172,78 @@ export function useUnilog(wsServerURL: string) {
         );
         break;
       }
+      case MessageType.ReportUndoServer: {
+        undoneUndoKeys.current.add(msg.undoKey);
+        if (R.last(lastUndoGroupKeys.current) === msg.undoKey) {
+          lastUndoGroupKeys.current = R.dropLast(1, lastUndoGroupKeys.current);
+        }
+        cachedRemoteStateRef.current = {
+          lastEntryId: msg.finalEntryId,
+          reducedState: msg.finalState,
+        };
+
+        setCachedFullState(
+          reduceLog(
+            logBaseState,
+            remoteLog,
+            localLog,
+            undoneUndoKeys.current,
+            cachedRemoteStateRef,
+          ),
+        );
+        break;
+      }
       default:
         unreachable(msg);
     }
   });
+
+  const startUndoGroup = useCallback(() => {
+    if (undoGroupKey.current) {
+      throw new Error("startUndoGroup called while creating an undo group");
+    }
+    undoGroupKey.current = genId();
+  }, []);
+
+  const endUndoGroup = useCallback(() => {
+    if (!undoGroupKey.current) {
+      throw new Error("endUndoGroup called while not creating an undo group");
+    }
+    lastUndoGroupKeys.current.push(undoGroupKey.current);
+    undoGroupKey.current = undefined;
+  }, []);
+
+  const tryUndo = useCallback(() => {
+    if (undoGroupKey.current) {
+      throw new Error("undo called while creating an undo group");
+    }
+    const undoKey = R.last(lastUndoGroupKeys.current);
+    if (!undoKey || !wsRef.current) {
+      return;
+    }
+
+    sendToServer(wsRef.current, {
+      type: MessageType.RequestUndoClient,
+      undoKey,
+    });
+  }, [wsRef]);
 
   const runAction = useCallback(
     (makeAction: (userId: string) => Action) => {
       if (!wsRef.current || !userId) {
         return;
       }
-      const localEntry = {
+      const localEntry: LogEntry = {
         id: nextLocalId.current,
+        undoKey: undoGroupKey.current,
         action: makeAction(userId),
       };
       nextLocalId.current--;
 
-      const msg: ClientMessage = {
+      sendToServer(wsRef.current, {
         type: MessageType.SubmitEntryClient,
         entry: localEntry,
-      };
-      wsRef.current.send(JSON.stringify(msg));
+      });
       unstable_batchedUpdates(() => {
         addToLocalLog(localEntry);
         setCachedFullState((cachedFullState) => {
@@ -188,5 +263,12 @@ export function useUnilog(wsServerURL: string) {
     [userId, wsRef],
   );
 
-  return [cachedFullState, userId, runAction] as const;
+  return {
+    state: cachedFullState,
+    userId,
+    runAction,
+    startUndoGroup,
+    endUndoGroup,
+    tryUndo,
+  };
 }
