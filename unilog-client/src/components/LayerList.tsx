@@ -13,6 +13,7 @@ import {
 } from "@material-ui/core";
 import { primaryColor } from "../consts";
 import * as R from "ramda";
+import { isLayerRegular } from "unilog-shared";
 
 interface Props {
   layers: ILayer[];
@@ -69,7 +70,14 @@ export function LayerList({
               )
             }
           >
-            <ListItemText primary={layer.name} />
+            <ListItemText
+              primary={layer.name + (isLayerRegular(layer) ? "" : " (special)")}
+              style={
+                layer.id === R.last(selectedLayerIds)
+                  ? { textDecoration: "underline" }
+                  : undefined
+              }
+            />
             <ListItemSecondaryAction
               onClick={() => {
                 onToggleVisibility(layer.id, !layer.visible);
