@@ -15,15 +15,14 @@ import { unstable_batchedUpdates } from "react-dom";
 import {
   Action,
   ActionType,
+  addCursorOnNewLayers,
   ClientMessage,
   Coordinates,
-  Cursor,
   extractCursor,
   getLayer,
   initialState,
   isLayerRegular,
   LogEntry,
-  mergeCursorOntoLayers,
   MessageType,
   Rectangle,
   reducer,
@@ -277,27 +276,24 @@ export const AppComponent: React.FC = () => {
 
     world.layers = immerCurrent(world.layers);
 
-    // TODO: possibly move out of here
-    function addCursorToWorld(cursor: Cursor) {
-      if (!defaultLayerId) {
-        return;
+    if (defaultLayerId) {
+      for (const user of state.users) {
+        if (user.id !== userId && user.cursor) {
+          world.layers = addCursorOnNewLayers(
+            world.layers,
+            user.cursor,
+            defaultLayerId,
+          );
+        }
       }
 
-      world.layers = mergeCursorOntoLayers(
-        world.layers,
-        cursor,
-        defaultLayerId,
-      );
-    }
-
-    for (const user of state.users) {
-      if (user.id !== userId && user.cursor) {
-        addCursorToWorld(user.cursor);
+      if (myState?.cursor) {
+        world.layers = addCursorOnNewLayers(
+          world.layers,
+          myState.cursor,
+          defaultLayerId,
+        );
       }
-    }
-
-    if (myState?.cursor) {
-      addCursorToWorld(myState.cursor);
     }
 
     // TODO: render own selection above other people's cursors

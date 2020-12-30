@@ -1,6 +1,8 @@
 import assert from "assert";
 import { ILayer, ITilelayer, ITilemap, ITileset } from "gl-tiled";
 import { Cursor, Rectangle } from ".";
+import * as R from "ramda";
+import { tileSize } from "./constants";
 
 export function unreachable(v: never): never {
   console.warn("unreachable called with", v);
@@ -186,4 +188,35 @@ export function mergeCursorOntoLayers(
     });
     return { ...oldLayer, data: newLayerData };
   });
+}
+
+export function addCursorOnNewLayers(
+  oldLayers: ILayer[],
+  cursor: Cursor,
+  defaultLayerId: number,
+): ILayer[] {
+  const cursorDataByLayerId = new Map(
+    cursor.contents.map((c) => [c.layerId ?? defaultLayerId, c.data]),
+  );
+  let nextLayerId = Math.max(...oldLayers.map((l) => l.id)) + 1;
+  return R.chain((oldLayer) => {
+    const cursorData = cursorDataByLayerId.get(oldLayer.id);
+    if (!cursorData) {
+      return [oldLayer];
+    }
+    const cursorLayer: ITilelayer = {
+      ...oldLayer,
+      type: "tilelayer",
+      id: nextLayerId++,
+      data: cursorData,
+      // as per https://doc.mapeditor.org/en/latest/reference/json-map-format/#layer, x and y are always 0
+      x: 0,
+      y: 0,
+      width: cursor.frame.width,
+      height: cursor.frame.height,
+      offsetx: cursor.frame.x * tileSize,
+      offsety: cursor.frame.y * tileSize,
+    };
+    return [oldLayer, cursorLayer];
+  }, oldLayers);
 }
