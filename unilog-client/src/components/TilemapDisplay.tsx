@@ -1,6 +1,7 @@
 import { GLTilemap, ILayer, ITilemap } from "gl-tiled";
 import React, { useEffect, useMemo } from "react";
 import { Coordinates } from "unilog-shared";
+import { neutralWorldColor } from "../consts";
 import { ImageStore } from "../image-store";
 import { useShallowMemo } from "../use-shallow-memo";
 import { MapDisplay } from "./map-display";
@@ -37,7 +38,7 @@ export const TilemapDisplay: React.FC<Props> = ({
 
   const glTilemap = useMemo(() => {
     const tilemap = new GLTilemap(
-      { ...worldForGlTiledWithoutLayers },
+      { backgroundcolor: neutralWorldColor, ...worldForGlTiledWithoutLayers },
       { assetCache: imageStore.assetCache },
     );
     return tilemap;
