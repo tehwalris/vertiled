@@ -82,9 +82,16 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
           const y1 = Math.min(y, y + height);
           const y2 = Math.max(y, y + height);
 
-          for (let i = x1; i < x2; i++) {
-            for (let j = y1; j < y2; j++) {
-              data[i + j * referenceLayer.width!] = tile;
+          for (let x = x1; x < x2; x++) {
+            for (let y = y1; y < y2; y++) {
+              if (
+                x >= 0 &&
+                x < referenceLayer.width &&
+                y >= 0 &&
+                y < referenceLayer.height
+              ) {
+                data[x + y * referenceLayer.width!] = tile;
+              }
             }
           }
         }
