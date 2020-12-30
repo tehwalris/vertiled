@@ -432,6 +432,7 @@ export class GLTilemap
                     assertNever(layer);
             }
 
+            ASSERT(layer.gl === this.gl, 'Layer has mismatched or missing OpenGL context');
             if (layer.texture)
             {
                 gl.bindTexture(gl.TEXTURE_2D, layer.texture);
@@ -513,18 +514,13 @@ export class GLTilemap
 
     destroyLayerFromDesc(layerDesc: ILayer): boolean
     {
-        for (let i = 0; i < this._layers.length; ++i)
-        {
+        const i = this._layers.findIndex(layer => layer.desc === layerDesc)
+        if (i >= 0) {
             const layer = this._layers[i];
-
-            if (layer.desc === layerDesc)
-            {
-                layer.glTerminate();
-                this._layers.splice(1, 1);
-                return true;
-            }
+            layer.glTerminate();
+            this._layers.splice(i, 1)
+            return true;
         }
-
         return false;
     }
 
