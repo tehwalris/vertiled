@@ -85,7 +85,7 @@ export const MapDisplay: React.FC<Props> = ({
     };
   }, [tilemap]);
 
-  const canvasScale = 1 / devicePixelRatio;
+  const canvasScale = (1 / devicePixelRatio) * Math.round(devicePixelRatio);
 
   function tryMakePointerCallback(cb: PointerEventHandler | undefined) {
     return (
