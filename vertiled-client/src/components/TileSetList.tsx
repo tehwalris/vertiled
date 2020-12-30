@@ -26,15 +26,23 @@ interface Props {
   onSelectTiles: (cursor: Cursor) => void;
 }
 
+const PREVIEW_DISPLAY_SIZE = 270;
+
 const useStyles = makeStyles((theme) => ({
   container: {
     display: "flex",
     flexDirection: "column",
+    width: "max-content",
   },
-  previweContainer: {
+  previewContainer: {
     display: "flex",
     justifyContent: "center",
-    marginTop: 10,
+    width: "300px",
+  },
+  previewWrapper: {
+    height: PREVIEW_DISPLAY_SIZE,
+    width: PREVIEW_DISPLAY_SIZE,
+    overflow: "scroll",
   },
   select: {
     margin: theme.spacing(2),
@@ -111,14 +119,14 @@ function _TileSetList({
       </FormControl>
 
       {tilesets[selectedTileSetIndex] && (
-        <div className={classes.previweContainer}>
+        <div className={classes.previewContainer}>
           {tilemap && (
-            <div>
+            <div className={classes.previewWrapper}>
               <TilemapDisplay
                 imageStore={imageStore}
                 tilemap={tilemap}
-                width={250}
-                height={250}
+                width={PREVIEW_DISPLAY_SIZE}
+                height={PREVIEW_DISPLAY_SIZE}
                 offset={{ x: 0, y: 0 }}
                 tileSize={tileSize}
                 onWheel={() => {}}
