@@ -60,7 +60,7 @@ export function LayerList({
             key={layer.id}
             onClick={(ev) =>
               setSelectedLayerIds(
-                ev.ctrlKey
+                ev.ctrlKey || ev.metaKey
                   ? [
                       ...selectedLayerIds.filter((id) => id !== layer.id),
                       layer.id,
