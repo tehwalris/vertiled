@@ -377,22 +377,22 @@ export const AppComponent: React.FC = () => {
                   }
                 }}
                 onPointerMove={(c, ev, nonOffsetCoordinates) => {
-                  if (editingMode === EditingMode.Clone) {
+                  if (panStartRef.current) {
+                    setPanOffset({
+                      x:
+                        panStartRef.current.originalOffset.x +
+                        panStartRef.current.down.x -
+                        nonOffsetCoordinates.x,
+                      y:
+                        panStartRef.current.originalOffset.y +
+                        panStartRef.current.down.y -
+                        nonOffsetCoordinates.y,
+                    });
+                  } else if (editingMode === EditingMode.Clone) {
                     handleMoveSelect(c, myState?.selection, setSelection);
 
                     const oldCursor = myState?.cursor;
-                    if (panStartRef.current) {
-                      setPanOffset({
-                        x:
-                          panStartRef.current.originalOffset.x +
-                          panStartRef.current.down.x -
-                          nonOffsetCoordinates.x,
-                        y:
-                          panStartRef.current.originalOffset.y +
-                          panStartRef.current.down.y -
-                          nonOffsetCoordinates.y,
-                      });
-                    } else if (oldCursor) {
+                    if (oldCursor) {
                       const newFrameStart: Coordinates = {
                         x: c.x - (oldCursor.initialFrame.width - 1),
                         y: c.y - (oldCursor.initialFrame.height - 1),
