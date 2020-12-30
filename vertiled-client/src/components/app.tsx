@@ -134,9 +134,14 @@ export const AppComponent: React.FC = () => {
 
   const [isDrawerOpen, setDrawerOpen] = useState(true);
 
-  const { state, userId, runAction, startUndoGroup, endUndoGroup } = useUnilog(
-    wsServerURL,
-  );
+  const {
+    state,
+    userId,
+    runAction,
+    startUndoGroup,
+    endUndoGroup,
+    tryUndo,
+  } = useUnilog(wsServerURL);
   const myState = state.users.find((u) => u.id === userId);
 
   const [editingMode, setEditingMode] = useState(EditingMode.Clone);
@@ -509,6 +514,7 @@ export const AppComponent: React.FC = () => {
                 >
                   Download as JSON
                 </Button>
+                <Button onClick={tryUndo}>Undo</Button>
               </div>
             </Drawer>
           </div>
