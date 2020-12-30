@@ -228,8 +228,6 @@ export const AppComponent: React.FC = () => {
 
   const windowSize = useWindowSize();
 
-  const canvasWidth = windowSize.width - 300;
-
   const setSelection = (selection: Rectangle | undefined) => {
     runAction((userId) => ({
       type: ActionType.SetSelection,
@@ -239,18 +237,18 @@ export const AppComponent: React.FC = () => {
   };
 
   const setLayerVisibility = useCallback(
-    (id, v) => {
+    (layerId: number, visibility: boolean) => {
       runAction(() => ({
         type: ActionType.SetLayerVisibility,
-        layerId: id,
-        visibility: v,
+        layerId,
+        visibility,
       }));
     },
     [runAction],
   );
 
   const setCursor = useCallback(
-    (cursor) => {
+    (cursor: Cursor) => {
       runAction((userId) => ({
         type: ActionType.SetCursor,
         userId,
@@ -258,6 +256,13 @@ export const AppComponent: React.FC = () => {
       }));
     },
     [runAction],
+  );
+  const onTileSetListSetCursor = useCallback(
+    (cursor) => {
+      setEditingMode(EditingMode.Clone);
+      setCursor(cursor);
+    },
+    [setCursor],
   );
 
   const pointerIsDownRef = useRef(false);
@@ -354,6 +359,15 @@ export const AppComponent: React.FC = () => {
                         defaultLayerId,
                       }));
                     }
+                  } else if (ev.button === 0 && EditingMode.Erase) {
+                    ev.preventDefault();
+
+                    runAction(() => ({
+                      type: ActionType.SetTile,
+                      layerIds: selectedLayerIds,
+                      coordinates: c,
+                      tileId: 0,
+                    }));
                   } else if (
                     ev.button === 2 &&
                     editingMode === EditingMode.Clone
@@ -365,14 +379,9 @@ export const AppComponent: React.FC = () => {
                 }}
                 onPointerUp={(c, ev) => {
                   pointerIsDownRef.current = false;
-                  if (ev.button === 1) {
-                    ev.preventDefault();
+                  panStartRef.current = undefined;
 
-                    panStartRef.current = undefined;
-                  } else if (
-                    ev.button === 2 &&
-                    editingMode === EditingMode.Clone
-                  ) {
+                  if (ev.button === 2 && editingMode === EditingMode.Clone) {
                     ev.preventDefault();
 
                     handleEndSelect(setSelection);
@@ -423,6 +432,16 @@ export const AppComponent: React.FC = () => {
                           userId,
                           offset: newFrameStart,
                         }));
+                        if (pointerIsDownRef.current) {
+                          const defaultLayerId = R.last(selectedLayerIds);
+                          if (defaultLayerId !== undefined) {
+                            runAction((userId) => ({
+                              type: ActionType.PasteFromCursor,
+                              userId,
+                              defaultLayerId,
+                            }));
+                          }
+                        }
                       }
                     }
                   } else if (editingMode === EditingMode.Erase) {
@@ -463,7 +482,7 @@ export const AppComponent: React.FC = () => {
                 imageStore={imageStore}
                 setSelectedTileSet={setSelectedTileSet}
                 selectedTileSetIndex={selectedTileSet}
-                onSelectTiles={setCursor}
+                onSelectTiles={onTileSetListSetCursor}
               />
               <div className="selection-list">
                 <div>Connected users: {state.users.length}</div>
