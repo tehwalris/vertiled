@@ -335,6 +335,17 @@ export const AppComponent: React.FC = () => {
                 height={windowSize.height}
                 offset={panOffset}
                 tileSize={tileSize}
+                onWheel={(e) => {
+                  e.preventDefault();
+                  if (e.ctrlKey) {
+                    //zoom += e.deltaY;
+                  } else {
+                    setPanOffset((old) => ({
+                      x: old.x + (e.deltaX * 2) / tileSize,
+                      y: old.y + (e.deltaY * 2) / tileSize,
+                    }));
+                  }
+                }}
                 onPointerDown={(c, ev, nonOffsetCoordinates) => {
                   pointerIsDownRef.current = true;
                   if (ev.button === 1) {

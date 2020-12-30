@@ -11,6 +11,7 @@ interface Props {
   onPointerDown: PointerEventHandler;
   onPointerUp: PointerEventHandler;
   onPointerMove: PointerEventHandler;
+  onWheel: React.WheelEventHandler;
   imageStore: ImageStore;
   width: number;
   height: number;
@@ -31,6 +32,7 @@ export const TilemapDisplay: React.FC<Props> = ({
   onPointerDown,
   onPointerMove,
   onPointerUp,
+  onWheel,
 }) => {
   const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
     ...tilemap,
@@ -93,6 +95,7 @@ export const TilemapDisplay: React.FC<Props> = ({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onWheel={onWheel}
       onContextMenu={(ev) => ev.preventDefault()}
     ></MapDisplay>
   );
