@@ -1,30 +1,29 @@
 import {
+  AppBar,
   Button,
   createMuiTheme,
   CssBaseline,
+  Divider,
   Drawer,
+  IconButton,
+  makeStyles,
   ThemeProvider,
-  useMediaQuery,
-  AppBar,
   Toolbar,
   Typography,
-  IconButton,
-  Menu,
+  useMediaQuery,
 } from "@material-ui/core";
-import { ITilemap } from "gl-tiled";
-import { FiMenu } from "react-icons/fi";
+import clsx from "clsx";
 import { produce } from "immer";
 import downloadFile from "js-file-download";
 import * as R from "ramda";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { FiMenu } from "react-icons/fi";
 import {
   ActionType,
   addCursorOnNewLayers,
   Coordinates,
   Cursor,
   extractCursor,
-  getLayer,
-  isLayerRegular,
   Rectangle,
   tileSize,
 } from "unilog-shared";
@@ -48,11 +47,55 @@ const serverOrigin =
 const wsServerURL = `${
   window.location.protocol === "https:" ? "wss" : "ws"
 }://${serverOrigin}`;
-const httpServerURL = `//${serverOrigin}`;
 const imageStoreURL = `//${serverOrigin}/world`;
+
+const drawerWidth = 300;
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: "flex",
+  },
+  appBar: {
+    transition: theme.transitions.create(["margin", "width"], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+  },
+  appBarShift: {
+    width: `calc(100% - ${drawerWidth}px)`,
+    transition: theme.transitions.create(["margin", "width"], {
+      easing: theme.transitions.easing.easeOut,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    marginRight: drawerWidth,
+  },
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0,
+  },
+  drawerPaper: {
+    width: drawerWidth,
+  },
+  drawerContainer: {
+    overflow: "auto",
+  },
+  content: {
+    flexGrow: 1,
+    backgroundColor: theme.palette.background.default,
+    padding: theme.spacing(3),
+  },
+  mainDisplayContainer: {
+    display: "flex",
+    maxWidth: "100vw",
+    overflow: "hidden",
+  },
+  toolbar: theme.mixins.toolbar,
+}));
 
 export const AppComponent: React.FC = () => {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
+  const classes = useStyles();
 
   const theme = React.useMemo(
     () =>
@@ -69,6 +112,8 @@ export const AppComponent: React.FC = () => {
       }),
     [prefersDarkMode],
   );
+
+  const [isDrawerOpen, setDrawerOpen] = useState(true);
 
   const [state, userId, runAction] = useUnilog(wsServerURL);
   const myState = state.users.find((u) => u.id === userId);
@@ -162,7 +207,6 @@ export const AppComponent: React.FC = () => {
   const windowSize = useWindowSize();
 
   const canvasWidth = windowSize.width - 300;
-  const menuWidth = 300;
 
   const setSelection = (selection: Rectangle | undefined) => {
     runAction((userId) => ({
@@ -196,32 +240,30 @@ export const AppComponent: React.FC = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <div>
-        <AppBar position="static">
+      <div className={classes.root}>
+        <CssBaseline />
+        <AppBar
+          position="fixed"
+          className={clsx(classes.appBar, {
+            [classes.appBarShift]: isDrawerOpen,
+          })}
+        >
           <Toolbar variant="regular">
             <Typography variant="h6" className="">
               Teilt
             </Typography>
             <IconButton
-              edge="start"
-              className=""
               color="inherit"
               aria-label="menu"
               style={{ marginLeft: "auto" }}
+              onClick={() => setDrawerOpen(!isDrawerOpen)}
             >
               <FiMenu />
             </IconButton>
           </Toolbar>
         </AppBar>
         <div>
-          <div
-            style={{
-              display: "flex",
-              maxWidth: windowSize.width,
-              overflow: "hidden",
-            }}
-          >
+          <div className={classes.mainDisplayContainer}>
             <div className="overlayContainer">
               <TilemapDisplay
                 imageStore={imageStore}
@@ -297,20 +339,22 @@ export const AppComponent: React.FC = () => {
 
             <Drawer
               anchor="right"
-              variant="permanent"
-              PaperProps={{
-                style: {
-                  width: menuWidth,
-                  height: "max-content",
-                },
+              className={classes.drawer}
+              open={isDrawerOpen}
+              variant="persistent"
+              classes={{
+                paper: classes.drawerPaper,
               }}
             >
+              <div className={classes.toolbar} />
+
               <LayerList
                 selectedLayerIds={selectedLayerIds}
                 setSelectedLayerIds={setSelectedLayerIds}
                 layers={state.world.layers}
                 onToggleVisibility={setLayerVisibility}
               />
+              <Divider></Divider>
               <TileSetList
                 tilesets={state.world.tilesets}
                 imageStore={imageStore}
