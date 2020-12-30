@@ -1,4 +1,5 @@
 import {
+  Button,
   createMuiTheme,
   CssBaseline,
   Drawer,
@@ -42,6 +43,7 @@ import { useWindowSize } from "../useWindowSize";
 import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
+import downloadFile from "js-file-download";
 
 export function getIndexInLayerFromTileCoord(
   world: ITilemap,
@@ -453,6 +455,16 @@ export const AppComponent: React.FC = () => {
               <div>UserId: {userId}</div>
               <div>Remote log length: {remoteLog.length}</div>
               <div>Local log length: {localLog.length}</div>
+              <Button
+                onClick={() => {
+                  downloadFile(
+                    JSON.stringify(state.world, null, 2),
+                    "main.json",
+                  );
+                }}
+              >
+                Download as JSON
+              </Button>
             </div>
           </Drawer>
         </div>

@@ -13,6 +13,7 @@
     "@types/uuid": "^8.3.0",
     "gl-tiled": "^1.0.0",
     "immer": "^8.0.0",
+    "js-file-download": "^0.4.12",
     "lodash": "^4.17.20",
     "ramda": "^0.27.1",
     "react": "^17.0.1",
