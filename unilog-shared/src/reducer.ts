@@ -28,17 +28,21 @@ export const reducer = (_state: State, action: Action): State =>
   produce(_state, (state) => {
     switch (action.type) {
       case ActionType.SetTile: {
-        const layer = getLayer(state.world, action.layerId);
-        if (!isLayerRegular(layer)) {
-          throw new Error(`layer ${action.layerId} is not an ITilelayer`);
+        for (const layerId of action.layerIds) {
+          const layer = getLayer(state.world, layerId);
+          if (!isLayerRegular(layer)) {
+            throw new Error(`layer ${layerId} is not an ITilelayer`);
+          }
+          if (layer.height * layer.width < action.index) {
+            throw new Error(
+              `index ${action.index} is out of bounds, Layer: ${layerId} w: ${layer.width}, h: ${layer.height}`,
+            );
+          }
+          if (typeof layer.data === "string") {
+            throw new Error("layer.data with type string is not supported");
+          }
+          layer.data[action.index] = action.tileId;
         }
-        if (layer.height * layer.width < action.index) {
-          throw new Error(
-            `index ${action.index} is out of bounds, Layer: ${action.layerId} w: ${layer.width}, h: ${layer.height}`,
-          );
-        }
-        // TODO: Handle case when string encoded
-        (layer.data as number[])[action.index] = action.tileId;
         break;
       }
       case ActionType.SetSelection: {
