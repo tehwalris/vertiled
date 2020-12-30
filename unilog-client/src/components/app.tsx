@@ -139,20 +139,21 @@ export const AppComponent: React.FC = () => {
     worldForGlTiled.layers.push(selectionLayer);
   }
   if (defaultLayerId) {
-    const addCursor = (cursor: Cursor) => {
+    const addCursor = (cursor: Cursor, highlightGid: number) => {
       worldForGlTiled.layers = addCursorOnNewLayers(
         worldForGlTiled.layers,
         cursor,
         defaultLayerId,
+        highlightGid,
       );
     };
     for (const user of state.users) {
       if (user.id !== userId && user.cursor) {
-        addCursor(user.cursor);
+        addCursor(user.cursor, selectionTilesetInfo.othersSelectionTileId);
       }
     }
     if (myState?.cursor) {
-      addCursor(myState.cursor);
+      addCursor(myState.cursor, selectionTilesetInfo.mySelectionTileId);
     }
   }
   worldForGlTiled.layers = worldForGlTiled.layers.filter(
