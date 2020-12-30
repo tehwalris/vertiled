@@ -2,6 +2,10 @@
 
 This is a collaborative online editor for tile-based worlds that we ([Moritz Schneider](https://github.com/bazumo), me and a few others) hacked together during [rc3](https://events.ccc.de/2020/09/04/rc3-remote-chaos-experience/). It supports maps in the [Tiled (TMX) map format](https://doc.mapeditor.org/en/stable/reference/tmx-map-format/), but only a subset of their features. The tile rendering is done by (a slightly modified) [gl-tiled](https://github.com/englercj/gl-tiled).
 
+## Demo
+
+You can try a [**demo instance here**](https://multi-user-tile-editor.do.walr.is/).
+
 ## Getting started
 
 ### Initial setup
