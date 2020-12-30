@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+import * as R from "ramda";
+import { useRef, useState } from "react";
 import { unstable_batchedUpdates } from "react-dom";
 import {
-  LogEntry,
-  initialState,
   Action,
   ClientMessage,
+  initialState,
+  LogEntry,
   MessageType,
   reducer,
   ServerMessage,
@@ -12,7 +13,45 @@ import {
   unreachable,
 } from "unilog-shared";
 import { useWebSocket } from "./use-web-socket";
-import * as R from "ramda";
+
+function reduceLog(
+  logBaseState: State,
+  remoteLog: LogEntry[],
+  localLog: LogEntry[],
+  cachedRemoteStateRef: React.MutableRefObject<
+    | {
+        lastEntryId: number;
+        reducedState: State;
+      }
+    | undefined
+  >,
+) {
+  function _reduceLog(logBaseState: State, log: LogEntry[]) {
+    return log.reduce((a, c, i) => {
+      try {
+        return reducer(a, c.action);
+      } catch (err) {
+        console.warn("ignoring action (rejected by local reducer)", a, i, err);
+        return a;
+      }
+    }, logBaseState);
+  }
+
+  const reducedStateWithRemoteLog =
+    cachedRemoteStateRef.current &&
+    cachedRemoteStateRef.current?.lastEntryId === R.last(remoteLog)?.id
+      ? cachedRemoteStateRef.current.reducedState
+      : _reduceLog(logBaseState, remoteLog);
+
+  if (remoteLog.length) {
+    cachedRemoteStateRef.current = {
+      lastEntryId: R.last(remoteLog)!.id,
+      reducedState: reducedStateWithRemoteLog,
+    };
+  }
+
+  return _reduceLog(reducedStateWithRemoteLog, localLog);
+}
 
 export function useUnilog(wsServerURL: string) {
   const [remoteLog, setRemoteLog] = useState<LogEntry[]>([]);
@@ -20,9 +59,15 @@ export function useUnilog(wsServerURL: string) {
   const removedLocalEntryIds = useRef(new Set<number>());
   const nextLocalId = useRef<number>(-1);
 
-  const [serverState, setServerState] = useState(initialState);
+  const [logBaseState, setLogBaseState] = useState(initialState);
 
   const [userId, setUserId] = useState<string>();
+
+  const cachedRemoteStateRef = useRef<{
+    lastEntryId: number;
+    reducedState: State;
+  }>();
+  const [cachedFullState, setCachedFullState] = useState<State>(initialState);
 
   function addToRemoteLog(entry: LogEntry) {
     setRemoteLog((old) => {
@@ -66,11 +111,19 @@ export function useUnilog(wsServerURL: string) {
     switch (msg.type) {
       case MessageType.InitialServer: {
         setUserId(msg.userId);
-        setServerState(msg.initialState);
+        unstable_batchedUpdates(() => {
+          setLogBaseState(msg.initialState);
+          setCachedFullState(msg.initialState);
+        });
         break;
       }
       case MessageType.LogEntryServer: {
-        addToRemoteLog(msg.entry);
+        unstable_batchedUpdates(() => {
+          addToRemoteLog(msg.entry);
+          setCachedFullState((cachedFullState) =>
+            reducer(cachedFullState, msg.entry.action),
+          );
+        });
         break;
       }
       case MessageType.RemapEntryServer: {
@@ -82,7 +135,12 @@ export function useUnilog(wsServerURL: string) {
       }
       case MessageType.RejectEntryServer: {
         const entry = localLog.find((e) => e.id === msg.entryId);
-        removeFromLocalLog(msg.entryId);
+        unstable_batchedUpdates(() => {
+          removeFromLocalLog(msg.entryId);
+          setCachedFullState(
+            reduceLog(logBaseState, remoteLog, localLog, cachedRemoteStateRef),
+          );
+        });
         console.warn(
           "action rejected by server",
           entry && entry.action,
@@ -107,45 +165,22 @@ export function useUnilog(wsServerURL: string) {
       entry: localEntry,
     };
     wsRef.current.send(JSON.stringify(msg));
-    addToLocalLog(localEntry);
-  };
-
-  const cachedRemoteStateRef = useRef<{
-    lastEntryId: number;
-    reducedState: State;
-  }>();
-  const state = useMemo(() => {
-    function reduceLog(intialState: State, log: LogEntry[]) {
-      return log.reduce((a, c, i) => {
+    unstable_batchedUpdates(() => {
+      addToLocalLog(localEntry);
+      setCachedFullState((cachedFullState) => {
         try {
-          return reducer(a, c.action);
+          return reducer(cachedFullState, localEntry.action);
         } catch (err) {
           console.warn(
             "ignoring action (rejected by local reducer)",
-            a,
-            i,
+            localEntry.action,
             err,
           );
-          return a;
+          return cachedFullState;
         }
-      }, intialState);
-    }
+      });
+    });
+  };
 
-    const reducedStateWithRemoteLog =
-      cachedRemoteStateRef.current &&
-      cachedRemoteStateRef.current?.lastEntryId === R.last(remoteLog)?.id
-        ? cachedRemoteStateRef.current.reducedState
-        : reduceLog(serverState, remoteLog);
-
-    if (remoteLog.length) {
-      cachedRemoteStateRef.current = {
-        lastEntryId: R.last(remoteLog)!.id,
-        reducedState: reducedStateWithRemoteLog,
-      };
-    }
-
-    return reduceLog(reducedStateWithRemoteLog, localLog);
-  }, [serverState, remoteLog, localLog]);
-
-  return [state, userId, runAction] as const;
+  return [cachedFullState, userId, runAction] as const;
 }
