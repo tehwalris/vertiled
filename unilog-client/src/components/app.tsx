@@ -94,7 +94,7 @@ export const AppComponent: React.FC = () => {
   }, [state.world.tilesets, imageStore]);
 
   const {
-    addSelectionToLayers,
+    makeSelectionLayer,
     handleStartSelect,
     handleMoveSelect,
     handleEndSelect,
@@ -114,15 +114,18 @@ export const AppComponent: React.FC = () => {
   }, [selectedLayerIds, state.world.layers]);
   const defaultLayerId = R.last(selectedLayerIds);
 
+  const selectionLayer = makeSelectionLayer(
+    state.world.layers,
+    myState?.selection,
+    state.users
+      .map((u) => u.selection)
+      .filter((v) => v)
+      .map((v) => v!),
+  );
   const worldForGlTiled = produce(state.world, (world) => {
-    addSelectionToLayers(
-      world.layers,
-      myState?.selection,
-      state.users
-        .map((u) => u.selection)
-        .filter((v) => v)
-        .map((v) => v!),
-    );
+    if (selectionLayer) {
+      world.layers.push(selectionLayer);
+    }
     for (const tileset of world.tilesets) {
       if (!tileset.image) {
         console.warn(`Tileset ${tileset.name} did not have an image property`);

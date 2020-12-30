@@ -43,7 +43,7 @@ export function TileSetList({
   }, [selectedTileSet, imageStore]);
 
   const {
-    addSelectionToLayers,
+    makeSelectionLayer,
     handleStartSelect,
     handleMoveSelect,
     handleEndSelect,
@@ -59,9 +59,12 @@ export function TileSetList({
       selectedTileSet,
       tilesetsForGlTiled,
     );
-    addSelectionToLayers(tilemap.layers, selection, []);
+    const selectionLayer = makeSelectionLayer(tilemap.layers, selection, []);
+    if (selectionLayer) {
+      tilemap.layers.push(selectionLayer);
+    }
     return tilemap;
-  }, [selectedTileSet, tilesetsForGlTiled, selection, addSelectionToLayers]);
+  }, [selectedTileSet, tilesetsForGlTiled, selection, makeSelectionLayer]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
