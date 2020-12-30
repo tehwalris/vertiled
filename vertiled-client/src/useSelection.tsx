@@ -88,8 +88,8 @@ export function useSelection(selectionTilesetInfo: SelectionTilesetInfo) {
             Math.max(0, Math.min(referenceLayer.height - 1, y));
           const x1 = clampX(Math.min(x, x + width));
           const x2 = clampX(Math.max(x, x + width));
-          const y1 = clampX(Math.min(y, y + height));
-          const y2 = clampX(Math.max(y, y + height));
+          const y1 = clampY(Math.min(y, y + height));
+          const y2 = clampY(Math.max(y, y + height));
 
           for (let x = x1; x < x2; x++) {
             for (let y = y1; y < y2; y++) {

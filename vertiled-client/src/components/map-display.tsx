@@ -27,10 +27,6 @@ const styles = {
   } as React.CSSProperties,
 };
 
-function coordsToFloored(coords: Coordinates) {
-  return { x: Math.floor(coords.x), y: Math.floor(coords.y) };
-}
-
 export const MapDisplay: React.FC<Props> = ({
   tilemap,
   width,
