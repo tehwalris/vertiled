@@ -51,7 +51,7 @@ export function LayerList({
   onToggleVisibility,
 }: Props) {
   return (
-    <div style={{}}>
+    <div>
       <List subheader={<ListSubheader>Layer</ListSubheader>} dense>
         {R.reverse(layers).map((layer, i) => (
           <ListItem

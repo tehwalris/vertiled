@@ -361,11 +361,13 @@ export const AppComponent: React.FC = () => {
                     selection.width >= 1 &&
                     selection.height >= 1
                   ) {
-                    runAction({
-                      type: ActionType.SetCursor,
-                      userId,
-                      cursor: extractCursor(state.world, selection),
-                    });
+                    const cursor = extractCursor(state.world, selection);
+                    cursor.contents = cursor.contents.filter(
+                      (c) =>
+                        c.layerId === undefined ||
+                        selectedLayerIds.includes(c.layerId),
+                    );
+                    runAction({ type: ActionType.SetCursor, userId, cursor });
                   }
                 }
               }}
