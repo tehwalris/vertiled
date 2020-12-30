@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { unstable_batchedUpdates } from "react-dom";
 import {
   Action,
@@ -153,34 +153,40 @@ export function useUnilog(wsServerURL: string) {
     }
   });
 
-  const runAction = (makeAction: (userId: string) => Action) => {
-    if (!wsRef.current || !userId) {
-      return;
-    }
-    const localEntry = { id: nextLocalId.current, action: makeAction(userId) };
-    nextLocalId.current--;
+  const runAction = useCallback(
+    (makeAction: (userId: string) => Action) => {
+      if (!wsRef.current || !userId) {
+        return;
+      }
+      const localEntry = {
+        id: nextLocalId.current,
+        action: makeAction(userId),
+      };
+      nextLocalId.current--;
 
-    const msg: ClientMessage = {
-      type: MessageType.SubmitEntryClient,
-      entry: localEntry,
-    };
-    wsRef.current.send(JSON.stringify(msg));
-    unstable_batchedUpdates(() => {
-      addToLocalLog(localEntry);
-      setCachedFullState((cachedFullState) => {
-        try {
-          return reducer(cachedFullState, localEntry.action);
-        } catch (err) {
-          console.warn(
-            "ignoring action (rejected by local reducer)",
-            localEntry.action,
-            err,
-          );
-          return cachedFullState;
-        }
+      const msg: ClientMessage = {
+        type: MessageType.SubmitEntryClient,
+        entry: localEntry,
+      };
+      wsRef.current.send(JSON.stringify(msg));
+      unstable_batchedUpdates(() => {
+        addToLocalLog(localEntry);
+        setCachedFullState((cachedFullState) => {
+          try {
+            return reducer(cachedFullState, localEntry.action);
+          } catch (err) {
+            console.warn(
+              "ignoring action (rejected by local reducer)",
+              localEntry.action,
+              err,
+            );
+            return cachedFullState;
+          }
+        });
       });
-    });
-  };
+    },
+    [userId, wsRef],
+  );
 
   return [cachedFullState, userId, runAction] as const;
 }

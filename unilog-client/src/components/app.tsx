@@ -10,7 +10,7 @@ import { ITilemap } from "gl-tiled";
 import { produce } from "immer";
 import downloadFile from "js-file-download";
 import * as R from "ramda";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActionType,
   addCursorOnNewLayers,
@@ -172,6 +172,28 @@ export const AppComponent: React.FC = () => {
     }));
   };
 
+  const setLayerVisibility = useCallback(
+    (id, v) => {
+      runAction(() => ({
+        type: ActionType.SetLayerVisibility,
+        layerId: id,
+        visibility: v,
+      }));
+    },
+    [runAction],
+  );
+
+  const setCursor = useCallback(
+    (cursor) => {
+      runAction((userId) => ({
+        type: ActionType.SetCursor,
+        userId,
+        cursor,
+      }));
+    },
+    [runAction],
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -228,11 +250,7 @@ export const AppComponent: React.FC = () => {
                         c.layerId === undefined ||
                         selectedLayerIds.includes(c.layerId),
                     );
-                    runAction((userId) => ({
-                      type: ActionType.SetCursor,
-                      userId,
-                      cursor,
-                    }));
+                    setCursor(cursor);
                   }
                 }
               }}
@@ -274,26 +292,14 @@ export const AppComponent: React.FC = () => {
               selectedLayerIds={selectedLayerIds}
               setSelectedLayerIds={setSelectedLayerIds}
               layers={state.world.layers}
-              onToggleVisibility={(id, v) => {
-                runAction(() => ({
-                  type: ActionType.SetLayerVisibility,
-                  layerId: id,
-                  visibility: v,
-                }));
-              }}
+              onToggleVisibility={setLayerVisibility}
             />
             <TileSetList
               tilesets={state.world.tilesets}
               imageStore={imageStore}
               setSelectedTileSet={setSelectedTileSet}
               selectedTileSetIndex={selectedTileSet}
-              onSelectTiles={(cursor) => {
-                runAction((userId) => ({
-                  type: ActionType.SetCursor,
-                  userId,
-                  cursor,
-                }));
-              }}
+              onSelectTiles={setCursor}
             />
             <div className="selection-list">
               <div>Connected users: {state.users.length}</div>

@@ -19,7 +19,8 @@ interface Props {
   imageStore: ImageStore;
   onSelectTiles: (cursor: Cursor) => void;
 }
-export function TileSetList({
+
+function _TileSetList({
   tilesets,
   selectedTileSetIndex,
   setSelectedTileSet,
@@ -138,3 +139,5 @@ export function TileSetList({
     </div>
   );
 }
+
+export const TileSetList = React.memo(_TileSetList);
