@@ -25,7 +25,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { BiEraser, BiUndo } from "react-icons/bi";
+import { BiEraser, BiUndo, BiZoomIn, BiZoomOut } from "react-icons/bi";
 import { CgEditFlipH, CgEditFlipV } from "react-icons/cg";
 import { FaRegClone } from "react-icons/fa";
 import { FiMenu } from "react-icons/fi";
@@ -110,6 +110,14 @@ const useStyles = makeStyles((theme) => ({
     overflow: "hidden",
   },
   toolbar: theme.mixins.toolbar,
+  overlayContainer: {
+    position: "relative",
+  },
+  overlayUILayer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+  },
 }));
 enum EditingMode {
   Clone = "Clone",
@@ -310,37 +318,19 @@ export const AppComponent: React.FC = () => {
   const [panOffset, setPanOffset] = useState<Coordinates>({ x: 0, y: 0 });
 
   const wheelHandlerRef = useRef<Coordinates>();
-  const zoomHandlerRef = useRef<number>();
 
-  const [zoomFactor, setZoomFactor] = useState(devicePixelRatio);
+  const ZOOM_LEVELS = [1, 2, 4, 8];
+
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
-    const zoom_scaling_factor = 0.01;
     const wheelHandler = (e: WheelEvent) => {
       if (!e.target || (e.target as any)?.id !== MAIN_CANVAS_ID) {
         return;
       }
       e.stopPropagation();
       if (e.ctrlKey) {
-        if (zoomHandlerRef.current !== undefined) {
-          zoomHandlerRef.current =
-            zoomHandlerRef.current + e.deltaY * zoom_scaling_factor;
-        } else {
-          zoomHandlerRef.current = e.deltaY * zoom_scaling_factor;
-
-          requestAnimationFrame(() => {
-            setZoomFactor((old) => {
-              if (zoomHandlerRef.current === undefined) {
-                throw new Error("zoomHandlerRef is not defined");
-              }
-              console.log(old + zoomHandlerRef.current);
-
-              return old + zoomHandlerRef.current;
-            });
-            zoomHandlerRef.current = undefined;
-          });
-        }
-        return;
+        // TODO zoom with scroll and ctrl
       }
 
       if (wheelHandlerRef.current) {
@@ -479,9 +469,9 @@ export const AppComponent: React.FC = () => {
         </AppBar>
         <div>
           <div className={classes.mainDisplayContainer}>
-            <div className="overlayContainer">
+            <div className={classes.overlayContainer}>
               <TilemapDisplay
-                zoomFactor={zoomFactor}
+                zoomFactor={ZOOM_LEVELS[zoomLevel]}
                 id={MAIN_CANVAS_ID}
                 imageStore={imageStore}
                 tilemap={worldForGlTiled}
@@ -669,6 +659,32 @@ export const AppComponent: React.FC = () => {
                   }
                 }}
               />
+              <div className={classes.overlayUILayer}>
+                <Box m={2}>
+                  <IconButton
+                    aria-label="Zoom in"
+                    disabled={zoomLevel >= ZOOM_LEVELS.length - 2}
+                    onClick={() => {
+                      if (zoomLevel < ZOOM_LEVELS.length - 2) {
+                        setZoomLevel(zoomLevel + 1);
+                      }
+                    }}
+                  >
+                    <BiZoomIn />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Zoom Out"
+                    disabled={zoomLevel === 0}
+                    onClick={() => {
+                      if (zoomLevel > 0) {
+                        setZoomLevel(zoomLevel - 1);
+                      }
+                    }}
+                  >
+                    <BiZoomOut />
+                  </IconButton>
+                </Box>
+              </div>
             </div>
 
             <Drawer
