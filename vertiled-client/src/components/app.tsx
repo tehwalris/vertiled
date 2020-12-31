@@ -318,13 +318,39 @@ export const AppComponent: React.FC = () => {
   const [panOffset, setPanOffset] = useState<Coordinates>({ x: 0, y: 0 });
 
   const wheelHandlerRef = useRef<Coordinates>();
+  const zoomHandlerRef = useRef<number>();
+
+  const [zoomFactor, setZoomFactor] = useState(devicePixelRatio);
 
   useEffect(() => {
+    const zoom_scaling_factor = 0.01;
     const wheelHandler = (e: WheelEvent) => {
       if (!e.target || (e.target as any)?.id !== MAIN_CANVAS_ID) {
         return;
       }
       e.stopPropagation();
+      if (e.ctrlKey) {
+        if (zoomHandlerRef.current !== undefined) {
+          zoomHandlerRef.current =
+            zoomHandlerRef.current + e.deltaY * zoom_scaling_factor;
+        } else {
+          zoomHandlerRef.current = e.deltaY * zoom_scaling_factor;
+
+          requestAnimationFrame(() => {
+            setZoomFactor((old) => {
+              if (zoomHandlerRef.current === undefined) {
+                throw new Error("zoomHandlerRef is not defined");
+              }
+              console.log(old + zoomHandlerRef.current);
+
+              return old + zoomHandlerRef.current;
+            });
+            zoomHandlerRef.current = undefined;
+          });
+        }
+        return;
+      }
+
       if (wheelHandlerRef.current) {
         wheelHandlerRef.current = {
           x: wheelHandlerRef.current.x + e.deltaX,
@@ -473,6 +499,7 @@ export const AppComponent: React.FC = () => {
           <div className={classes.mainDisplayContainer}>
             <div className="overlayContainer">
               <TilemapDisplay
+                zoomFactor={zoomFactor}
                 id={MAIN_CANVAS_ID}
                 imageStore={imageStore}
                 tilemap={worldForGlTiled}

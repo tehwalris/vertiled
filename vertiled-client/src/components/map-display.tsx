@@ -20,6 +20,7 @@ interface Props {
   tilemap: glTiled.GLTilemap;
   offset: Coordinates; // number of tiles to shift by before drawing. When zero, the (0, 0) tile will draw in the top left corner of the canvas (possibly fractional)
   tileSize: number; // width (and height) of a tile in pixels of the source image
+  zoomFactor?: number;
 }
 
 const styles = {
@@ -40,6 +41,7 @@ export const MapDisplay: React.FC<Props> = ({
   onPointerUp,
   onContextMenu,
   onWheel,
+  zoomFactor = devicePixelRatio,
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const canvasWidth = Math.floor(width * devicePixelRatio);
@@ -85,7 +87,7 @@ export const MapDisplay: React.FC<Props> = ({
     };
   }, [tilemap]);
 
-  const canvasScale = (1 / devicePixelRatio) * Math.round(devicePixelRatio);
+  const canvasScale = (1 / devicePixelRatio) * zoomFactor;
 
   function tryMakePointerCallback(cb: PointerEventHandler | undefined) {
     return (
