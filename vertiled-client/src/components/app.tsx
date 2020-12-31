@@ -413,6 +413,7 @@ export const AppComponent: React.FC = () => {
 
             <Button
               className={classes.button}
+              disabled={!state.users.find((u) => u.id === userId)?.cursor}
               variant="outlined"
               startIcon={<CgEditFlipH />}
               onClick={() => {
@@ -436,6 +437,7 @@ export const AppComponent: React.FC = () => {
 
             <Button
               className={classes.button}
+              disabled={!state.users.find((u) => u.id === userId)?.cursor}
               variant="outlined"
               startIcon={<CgEditFlipV />}
               onClick={() => {
