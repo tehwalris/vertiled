@@ -44,7 +44,10 @@ function _LayerList({
 }: Props) {
   return (
     <div>
-      <List subheader={<ListSubheader>Layer</ListSubheader>} dense>
+      <List
+        subheader={<ListSubheader disableSticky>Layer</ListSubheader>}
+        dense
+      >
         {R.reverse(layers).map((layer, i) => (
           <ListItem
             button

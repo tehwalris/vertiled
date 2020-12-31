@@ -11,6 +11,7 @@ import {
   Toolbar,
   Box,
   ButtonGroup,
+  ListSubheader,
   Typography,
   Tooltip,
   useMediaQuery,
@@ -54,6 +55,7 @@ import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
 import {
   BiEraser,
+  BiUndo,
   BiEditAlt,
   BiRightArrowCircle,
   BiDownArrowCircle,
@@ -369,6 +371,14 @@ export const AppComponent: React.FC = () => {
             </Typography>
             <Divider style={{ marginLeft: "auto" }}></Divider>
             <Box mr={1}>
+              <Tooltip title="Undo" aria-label="Undo">
+                <IconButton color="inherit" aria-label="menu" onClick={tryUndo}>
+                  <BiUndo />
+                </IconButton>
+              </Tooltip>
+            </Box>
+
+            <Box mr={1}>
               <ButtonGroup>
                 <Tooltip
                   title="Mirror Horizontally"
@@ -659,7 +669,7 @@ export const AppComponent: React.FC = () => {
                 paper: classes.drawerPaper,
               }}
             >
-              <div className={classes.toolbar} />
+              {/*<div className={classes.toolbar} /> */}
 
               <LayerList
                 selectedLayerIds={selectedLayerIds}
@@ -675,7 +685,8 @@ export const AppComponent: React.FC = () => {
                 selectedTileSetIndex={selectedTileSet}
                 onSelectTiles={onTileSetListSetCursor}
               />
-              <div className="selection-list">
+              <ListSubheader disableSticky>Debug</ListSubheader>
+              <Box px={2}>
                 <div>Connected users: {state.users.length}</div>
                 <div>UserId: {userId}</div>
                 <Button
@@ -688,8 +699,7 @@ export const AppComponent: React.FC = () => {
                 >
                   Download as JSON
                 </Button>
-                <Button onClick={tryUndo}>Undo</Button>
-              </div>
+              </Box>
             </Drawer>
           </div>
         </div>
