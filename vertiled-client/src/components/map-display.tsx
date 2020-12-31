@@ -44,8 +44,8 @@ export const MapDisplay: React.FC<Props> = ({
   zoomFactor = devicePixelRatio,
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const canvasWidth = Math.floor(width * devicePixelRatio);
-  const canvasHeight = Math.floor(height * devicePixelRatio);
+  const canvasWidth = Math.floor((width * devicePixelRatio) / zoomFactor);
+  const canvasHeight = Math.floor((height * devicePixelRatio) / zoomFactor);
 
   const render = () => {
     const gl = canvas.current?.getContext("webgl");
