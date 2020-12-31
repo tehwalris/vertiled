@@ -349,8 +349,14 @@ export const AppComponent: React.FC = () => {
               throw new Error("wheelHandlerRef is not defined");
             }
             return {
-              x: old.x + (wheelHandlerRef.current.x * 2) / tileSize,
-              y: old.y + (wheelHandlerRef.current.y * 2) / tileSize,
+              x:
+                old.x +
+                (wheelHandlerRef.current.x * (4 / ZOOM_LEVELS[zoomLevel])) /
+                  tileSize,
+              y:
+                old.y +
+                (wheelHandlerRef.current.y * (4 / ZOOM_LEVELS[zoomLevel])) /
+                  tileSize,
             };
           });
           wheelHandlerRef.current = undefined;
