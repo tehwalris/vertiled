@@ -1,23 +1,19 @@
 import {
   AppBar,
+  Box,
   Button,
   createMuiTheme,
   CssBaseline,
   Divider,
   Drawer,
   IconButton,
+  ListSubheader,
   makeStyles,
   ThemeProvider,
   Toolbar,
-  Box,
-  ButtonGroup,
-  ListSubheader,
   Typography,
-  Tooltip,
   useMediaQuery,
 } from "@material-ui/core";
-
-import { ToggleButtonGroup, ToggleButton } from "@material-ui/lab";
 import clsx from "clsx";
 import { produce } from "immer";
 import downloadFile from "js-file-download";
@@ -26,9 +22,12 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useState,
   useRef,
+  useState,
 } from "react";
+import { BiEraser, BiUndo } from "react-icons/bi";
+import { CgEditFlipH, CgEditFlipV } from "react-icons/cg";
+import { FaRegClone } from "react-icons/fa";
 import { FiMenu } from "react-icons/fi";
 import {
   ActionType,
@@ -36,11 +35,12 @@ import {
   Coordinates,
   Cursor,
   extractCursor,
-  Rectangle,
-  tileSize,
   mirrorCursor,
   MirrorDirection,
+  Rectangle,
+  tileSize,
 } from "vertiled-shared";
+import { CursorContent } from "vertiled-shared/src";
 import { primaryColor, secondaryColor } from "../consts";
 import { useImageStore } from "../image-store";
 import {
@@ -53,14 +53,6 @@ import { useWindowSize } from "../useWindowSize";
 import { LayerList } from "./LayerList";
 import { TilemapDisplay } from "./TilemapDisplay";
 import { TileSetList } from "./TileSetList";
-import {
-  BiEraser,
-  BiUndo,
-  BiEditAlt,
-  BiRightArrowCircle,
-  BiDownArrowCircle,
-} from "react-icons/bi";
-import { CursorContent } from "vertiled-shared/src";
 
 const serverOrigin =
   process.env.NODE_ENV === "development"
@@ -104,7 +96,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   button: {
-    padding: 11,
+    marginRight: theme.spacing(1),
   },
   content: {
     flexGrow: 1,
@@ -370,95 +362,85 @@ export const AppComponent: React.FC = () => {
               Vertiled
             </Typography>
             <Divider style={{ marginLeft: "auto" }}></Divider>
-            <Box mr={1}>
-              <Tooltip title="Undo" aria-label="Undo">
-                <IconButton color="inherit" aria-label="menu" onClick={tryUndo}>
-                  <BiUndo />
-                </IconButton>
-              </Tooltip>
-            </Box>
 
-            <Box mr={1}>
-              <ButtonGroup>
-                <Tooltip
-                  title="Mirror Horizontally"
-                  aria-label="Mirror Horizontally"
-                >
-                  <Button
-                    className={classes.button}
-                    onClick={() => {
-                      if (!userId) return;
-                      const user = state.users.find((u) => u.id === userId);
-                      const cursor = user?.cursor;
-                      if (!cursor) return;
-                      runAction((userId) => {
-                        const newC = mirrorCursor(
-                          cursor,
-                          MirrorDirection.Horizontal,
-                        );
-                        console.log("newC", newC);
-                        return {
-                          type: ActionType.SetCursor,
-                          userId,
-                          cursor: newC,
-                        };
-                      });
-                    }}
-                  >
-                    <BiRightArrowCircle />
-                  </Button>
-                </Tooltip>
-
-                <Tooltip
-                  title="Mirror Vertically"
-                  aria-label="Mirror Vertically"
-                >
-                  <Button
-                    className={classes.button}
-                    onClick={() => {
-                      if (!userId) return;
-                      const user = state.users.find((u) => u.id === userId);
-                      const cursor = user?.cursor;
-                      if (!cursor) return;
-                      runAction((userId) => {
-                        return {
-                          type: ActionType.SetCursor,
-                          userId,
-                          cursor: mirrorCursor(
-                            cursor,
-                            MirrorDirection.Vertical,
-                          ),
-                        };
-                      });
-                    }}
-                  >
-                    <BiDownArrowCircle />
-                  </Button>
-                </Tooltip>
-              </ButtonGroup>
-            </Box>
-
-            <ToggleButtonGroup
-              value={editingMode}
-              exclusive
-              onChange={(ev: any, newMode: EditingMode) => {
-                if (!newMode) return;
-                setEditingMode(newMode);
+            <Button
+              className={classes.button}
+              variant={
+                editingMode === EditingMode.Clone ? "contained" : "outlined"
+              }
+              startIcon={<FaRegClone />}
+              onClick={() => {
+                setEditingMode(EditingMode.Clone);
               }}
-              aria-label="text alignment"
             >
-              <Tooltip title="Clone" aria-label="Clone">
-                <ToggleButton value="Clone">
-                  <BiEditAlt />
-                </ToggleButton>
-              </Tooltip>
+              Clone
+            </Button>
 
-              <Tooltip title="Erease" aria-label="Erease">
-                <ToggleButton value="Erase">
-                  <BiEraser />
-                </ToggleButton>
-              </Tooltip>
-            </ToggleButtonGroup>
+            <Button
+              className={classes.button}
+              variant={
+                editingMode === EditingMode.Erase ? "contained" : "outlined"
+              }
+              startIcon={<BiEraser />}
+              onClick={() => {
+                setEditingMode(EditingMode.Erase);
+              }}
+            >
+              Erease
+            </Button>
+
+            <Button
+              className={classes.button}
+              variant="outlined"
+              startIcon={<CgEditFlipH />}
+              onClick={() => {
+                if (!userId) return;
+                const user = state.users.find((u) => u.id === userId);
+                const cursor = user?.cursor;
+                if (!cursor) return;
+                runAction((userId) => {
+                  const newC = mirrorCursor(cursor, MirrorDirection.Horizontal);
+                  console.log("newC", newC);
+                  return {
+                    type: ActionType.SetCursor,
+                    userId,
+                    cursor: newC,
+                  };
+                });
+              }}
+            >
+              Flip H.
+            </Button>
+
+            <Button
+              className={classes.button}
+              variant="outlined"
+              startIcon={<CgEditFlipV />}
+              onClick={() => {
+                if (!userId) return;
+                const user = state.users.find((u) => u.id === userId);
+                const cursor = user?.cursor;
+                if (!cursor) return;
+                runAction((userId) => {
+                  return {
+                    type: ActionType.SetCursor,
+                    userId,
+                    cursor: mirrorCursor(cursor, MirrorDirection.Vertical),
+                  };
+                });
+              }}
+            >
+              Flip V.
+            </Button>
+
+            <Button
+              className={classes.button}
+              variant="outlined"
+              startIcon={<BiUndo />}
+              onClick={tryUndo}
+            >
+              Undo
+            </Button>
 
             <IconButton
               color="inherit"
