@@ -669,9 +669,9 @@ export const AppComponent: React.FC = () => {
                 <Box m={2}>
                   <IconButton
                     aria-label="Zoom in"
-                    disabled={zoomLevel >= ZOOM_LEVELS.length - 2}
+                    disabled={zoomLevel > ZOOM_LEVELS.length - 2}
                     onClick={() => {
-                      if (zoomLevel < ZOOM_LEVELS.length - 2) {
+                      if (zoomLevel <= ZOOM_LEVELS.length - 2) {
                         setZoomLevel(zoomLevel + 1);
                       }
                     }}
