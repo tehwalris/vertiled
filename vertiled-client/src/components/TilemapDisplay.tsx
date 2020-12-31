@@ -19,6 +19,7 @@ interface Props {
   tilemap: ITilemap;
   offset: Coordinates; // number of tiles to shift by before drawing. When zero, the (0, 0) tile will draw in the top left corner of the canvas (possibly fractional)
   tileSize: number; // width (and height) of a tile in pixels of the source image
+  zoomFactor?: number;
 }
 
 const EMPTY_LAYERS: ILayer[] = [];
@@ -35,6 +36,7 @@ export const TilemapDisplay: React.FC<Props> = ({
   onPointerMove,
   onPointerUp,
   onWheel,
+  zoomFactor,
 }) => {
   const worldForGlTiledWithoutLayers = useShallowMemo(() => ({
     ...tilemap,
@@ -100,6 +102,7 @@ export const TilemapDisplay: React.FC<Props> = ({
       onPointerUp={onPointerUp}
       onWheel={onWheel}
       onContextMenu={(ev) => ev.preventDefault()}
+      zoomFactor={zoomFactor}
     ></MapDisplay>
   );
 };
