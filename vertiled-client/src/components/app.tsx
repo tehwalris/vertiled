@@ -633,8 +633,11 @@ export const AppComponent: React.FC = () => {
                         rectangle: { x: c.x, y: c.y, width: 1, height: 1 },
                         tileId: 0,
                       }));
+                      setSelection({ x: c.x, y: c.y, width: 1, height: 1 });
                     } else if (pointerDownRef.current?.button === 2) {
                       handleMoveSelect(c, myState?.selection, setSelection);
+                    } else if (!pointerDownRef.current) {
+                      setSelection({ x: c.x, y: c.y, width: 1, height: 1 });
                     }
                   }
                 }}
