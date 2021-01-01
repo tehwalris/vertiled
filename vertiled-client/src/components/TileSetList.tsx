@@ -105,11 +105,11 @@ function _TileSetList({
       : undefined;
 
   const previewWidth = Math.max(
-    (dataLayer?.width ?? 300) * 32,
+    (dataLayer?.width ?? 10) * 32,
     PREVIEW_DISPLAY_SIZE,
   );
   const previewHeight = Math.max(
-    (dataLayer?.height ?? 300) * 32,
+    (dataLayer?.height ?? 10) * 32,
     PREVIEW_DISPLAY_SIZE,
   );
 
