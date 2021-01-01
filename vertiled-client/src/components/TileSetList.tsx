@@ -11,6 +11,7 @@ import {
   createTilemapForTilesetPreview,
   Cursor,
   extractCursor,
+  isLayerRegular,
   Rectangle,
   tileSize,
 } from "vertiled-shared";
@@ -98,6 +99,20 @@ function _TileSetList({
     return tilemap;
   }, [selectedTileSet, tilesetsForGlTiled, selection, makeSelectionLayer]);
 
+  const dataLayer =
+    tilemap && isLayerRegular(tilemap.layers[0])
+      ? tilemap.layers[0]
+      : undefined;
+
+  const previewWidth = Math.max(
+    (dataLayer?.width ?? 300) * 32,
+    PREVIEW_DISPLAY_SIZE,
+  );
+  const previewHeight = Math.max(
+    (dataLayer?.height ?? 300) * 32,
+    PREVIEW_DISPLAY_SIZE,
+  );
+
   return (
     <div className={classes.container}>
       <FormControl variant="outlined" className={classes.select}>
@@ -125,8 +140,8 @@ function _TileSetList({
               <TilemapDisplay
                 imageStore={imageStore}
                 tilemap={tilemap}
-                width={PREVIEW_DISPLAY_SIZE}
-                height={PREVIEW_DISPLAY_SIZE}
+                width={previewWidth}
+                height={previewHeight}
                 offset={{ x: 0, y: 0 }}
                 tileSize={tileSize}
                 onWheel={() => {}}
