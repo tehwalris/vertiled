@@ -125,15 +125,14 @@ enum EditingMode {
 }
 
 export const AppComponent: React.FC = () => {
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-
+  //const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const classes = useStyles();
 
   const theme = React.useMemo(
     () =>
       createMuiTheme({
         palette: {
-          type: prefersDarkMode ? "dark" : "light",
+          type: "dark",
           primary: {
             main: primaryColor,
           },
@@ -142,7 +141,7 @@ export const AppComponent: React.FC = () => {
           },
         },
       }),
-    [prefersDarkMode],
+    [],
   );
 
   const [isDrawerOpen, setDrawerOpen] = useState(true);
