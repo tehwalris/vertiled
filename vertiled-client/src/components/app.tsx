@@ -12,7 +12,6 @@ import {
   ThemeProvider,
   Toolbar,
   Typography,
-  useMediaQuery,
 } from "@material-ui/core";
 import clsx from "clsx";
 import { produce } from "immer";
