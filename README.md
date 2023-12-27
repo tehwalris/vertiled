@@ -44,7 +44,7 @@ To run it locally:
 
 ```bash
 yarn
-yarn workspaces build
+yarn workspaces run build
 cd vertiled-server
 node dist/index.js
 ```
